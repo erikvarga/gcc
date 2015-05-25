@@ -2,9 +2,9 @@
    inside a loop.  */
 /* { dg-do compile }  */
 /* { dg-options "-O2" } */
-/* { dg-final { scan-assembler-times "mov.b\t@r\[0-9]\+\\+,r\[0-9]\+" 3 { xfail *-*-*} } } */
-/* { dg-final { scan-assembler-times "mov.w\t@r\[0-9]\+\\+,r\[0-9]\+" 3 { xfail *-*-*} } } */
-/* { dg-final { scan-assembler-times "mov.l\t@r\[0-9]\+\\+,r\[0-9]\+" 3 { xfail *-*-*} } } */
+/* { dg-final { scan-assembler-times "mov.b\t@r\[0-9]\+\\+,r\[0-9]\+" 3 } } */
+/* { dg-final { scan-assembler-times "mov.w\t@r\[0-9]\+\\+,r\[0-9]\+" 3 } } */
+/* { dg-final { scan-assembler-times "mov.l\t@r\[0-9]\+\\+,r\[0-9]\+" 3 } } */
 
 int
 test_func_00 (char* p, int c)
