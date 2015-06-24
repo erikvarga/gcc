@@ -84,15 +84,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "tm.h"
-#include "hash-set.h"
-#include "machmode.h"
-#include "vec.h"
-#include "double-int.h"
-#include "input.h"
 #include "alias.h"
 #include "symtab.h"
-#include "wide-int.h"
-#include "inchash.h"
 #include "tree.h"
 #include "fold-const.h"
 #include "stor-layout.h"
@@ -108,7 +101,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "internal-fn.h"
 #include "gimple-fold.h"
 #include "gimple-expr.h"
-#include "is-a.h"
 #include "gimple.h"
 #include "gimplify.h"
 #include "gimple-iterator.h"
@@ -129,11 +121,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "tree-ssa-address.h"
 #include "tree-pass.h"
 #include "dbgcnt.h"
-#include "hashtab.h"
 #include "rtl.h"
-#include "statistics.h"
-#include "real.h"
-#include "fixed-value.h"
 #include "insn-config.h"
 #include "expmed.h"
 #include "dojump.h"
@@ -145,7 +133,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "expr.h"
 #include "insn-codes.h"
 #include "optabs.h"
-#include "hash-map.h"
 
 /* List of basic blocks in if-conversion-suitable order.  */
 static basic_block *ifc_bbs;
@@ -339,7 +326,7 @@ parse_predicate (tree cond, tree *op0, tree *op1)
       return ERROR_MARK;
     }
 
-  if (TREE_CODE_CLASS (TREE_CODE (cond)) == tcc_comparison)
+  if (COMPARISON_CLASS_P (cond))
     {
       *op0 = TREE_OPERAND (cond, 0);
       *op1 = TREE_OPERAND (cond, 1);
@@ -594,7 +581,8 @@ if_convertible_phi_p (struct loop *loop, basic_block bb, gphi *phi,
 
       FOR_EACH_IMM_USE_FAST (use_p, imm_iter, gimple_phi_result (phi))
 	{
-	  if (gimple_code (USE_STMT (use_p)) == GIMPLE_PHI)
+	  if (gimple_code (USE_STMT (use_p)) == GIMPLE_PHI
+	      && USE_STMT (use_p) != (gimple) phi)
 	    {
 	      if (dump_file && (dump_flags & TDF_DETAILS))
 		fprintf (dump_file, "Difficult to handle this virtual phi.\n");
@@ -1522,11 +1510,7 @@ is_cond_scalar_reduction (gimple phi, gimple *reduc, tree arg_0, tree arg_1,
   /* Make R_OP1 to hold reduction variable.  */
   if (r_op2 == PHI_RESULT (header_phi)
       && reduction_op == PLUS_EXPR)
-    {
-      tree tmp = r_op1;
-      r_op1 = r_op2;
-      r_op2 = tmp;
-    }
+    std::swap (r_op1, r_op2);
   else if (r_op1 != PHI_RESULT (header_phi))
     return false;
 
@@ -1720,11 +1704,7 @@ predicate_scalar_phi (gphi *phi, gimple_stmt_iterator *gsi)
       second_edge = EDGE_PRED (bb, 1);
       cond = bb_predicate (first_edge->src);
       if (TREE_CODE (cond) == TRUTH_NOT_EXPR)
-	{
-	  edge tmp_edge = first_edge;
-	  first_edge = second_edge;
-	  second_edge = tmp_edge;
-	}
+	std::swap (first_edge, second_edge);
       if (EDGE_COUNT (first_edge->src->succs) > 1)
 	{
 	  cond = bb_predicate (second_edge->src);
@@ -1807,11 +1787,7 @@ predicate_scalar_phi (gphi *phi, gimple_stmt_iterator *gsi)
 
   /* Put element with max number of occurences to the end of ARGS.  */
   if (max_ind != -1 && max_ind +1 != (int) args_len)
-    {
-      tree tmp = args[args_len - 1];
-      args[args_len - 1] = args[max_ind];
-      args[max_ind] = tmp;
-    }
+    std::swap (args[args_len - 1], args[max_ind]);
 
   /* Handle one special case when number of arguments with different values
      is equal 2 and one argument has the only occurrence.  Such PHI can be
@@ -2186,11 +2162,7 @@ predicate_mem_writes (loop_p loop)
 	    lhs = ifc_temp_var (type, unshare_expr (lhs), &gsi);
 	    rhs = ifc_temp_var (type, unshare_expr (rhs), &gsi);
 	    if (swap)
-	      {
-		tree tem = lhs;
-		lhs = rhs;
-		rhs = tem;
-	      }
+	      std::swap (lhs, rhs);
 	    cond = force_gimple_operand_gsi_1 (&gsi, unshare_expr (cond),
 					       is_gimple_condexpr, NULL_TREE,
 					       true, GSI_SAME_STMT);

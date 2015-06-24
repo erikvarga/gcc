@@ -23,15 +23,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "coretypes.h"
 #include "tm.h"
 #include "flags.h"
-#include "hash-set.h"
-#include "machmode.h"
-#include "vec.h"
-#include "double-int.h"
-#include "input.h"
 #include "alias.h"
 #include "symtab.h"
-#include "wide-int.h"
-#include "inchash.h"
 #include "tree.h"
 #include "fold-const.h"
 #include "stor-layout.h"
@@ -48,7 +41,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "gimple-fold.h"
 #include "tree-eh.h"
 #include "gimple-expr.h"
-#include "is-a.h"
 #include "gimple.h"
 #include "gimple-iterator.h"
 #include "gimple-walk.h"
@@ -73,11 +65,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "tree-ssa-propagate.h"
 #include "tree-chrec.h"
 #include "tree-ssa-threadupdate.h"
-#include "hashtab.h"
 #include "rtl.h"
-#include "statistics.h"
-#include "real.h"
-#include "fixed-value.h"
 #include "insn-config.h"
 #include "expmed.h"
 #include "dojump.h"
@@ -2926,33 +2914,17 @@ extract_range_from_binary_expr_1 (value_range_t *vr,
 	     prod3.  */
 	  /* min0min1 > max0max1 */
 	  if (wi::gts_p (prod0, prod3))
-	    {
-	      vrp_int tmp = prod3;
-	      prod3 = prod0;
-	      prod0 = tmp;
-	    }
+	    std::swap (prod0, prod3);
 
 	  /* min0max1 > max0min1 */
 	  if (wi::gts_p (prod1, prod2))
-	    {
-	      vrp_int tmp = prod2;
-	      prod2 = prod1;
-	      prod1 = tmp;
-	    }
+	    std::swap (prod1, prod2);
 
 	  if (wi::gts_p (prod0, prod1))
-	    {
-	      vrp_int tmp = prod1;
-	      prod1 = prod0;
-	      prod0 = tmp;
-	    }
+	    std::swap (prod0, prod1);
 
 	  if (wi::gts_p (prod2, prod3))
-	    {
-	      vrp_int tmp = prod3;
-	      prod3 = prod2;
-	      prod2 = tmp;
-	    }
+	    std::swap (prod2, prod3);
 
 	  /* diff = max - min.  */
 	  prod2 = prod3 - prod0;
@@ -3735,11 +3707,7 @@ extract_range_from_unary_expr_1 (value_range_t *vr,
 	{
           /* If the range was reversed, swap MIN and MAX.  */
 	  if (cmp == 1)
-	    {
-	      tree t = min;
-	      min = max;
-	      max = t;
-	    }
+	    std::swap (min, max);
 	}
 
       cmp = compare_values (min, max);
@@ -4556,11 +4524,8 @@ compare_ranges (enum tree_code comp, value_range_t *vr0, value_range_t *vr1,
      operands around and change the comparison code.  */
   if (comp == GT_EXPR || comp == GE_EXPR)
     {
-      value_range_t *tmp;
       comp = (comp == GT_EXPR) ? LT_EXPR : LE_EXPR;
-      tmp = vr0;
-      vr0 = vr1;
-      vr1 = tmp;
+      std::swap (vr0, vr1);
     }
 
   if (comp == EQ_EXPR)

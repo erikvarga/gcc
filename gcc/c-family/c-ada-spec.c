@@ -23,16 +23,9 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "tm.h"
-#include "hash-set.h"
-#include "machmode.h"
-#include "vec.h"
-#include "double-int.h"
-#include "input.h"
 #include "alias.h"
 #include "symtab.h"
 #include "options.h"
-#include "wide-int.h"
-#include "inchash.h"
 #include "tree.h"
 #include "fold-const.h"
 #include "dumpfile.h"
@@ -40,7 +33,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "cpplib.h"
 #include "c-pragma.h"
 #include "cpp-id-data.h"
-#include "wide-int.h"
 
 /* Local functions, macros and variables.  */
 static int dump_generic_ada_node (pretty_printer *, tree, tree, int, int,
@@ -601,9 +593,12 @@ collect_ada_nodes (tree t, const char *source_file)
   tree n;
   int i = to_dump_count;
 
-  /* Count the likely relevant nodes.  */
+  /* Count the likely relevant nodes: do not dump builtins (they are irrelevant
+     in the context of bindings) and namespaces (we do not handle them properly
+     yet).  */
   for (n = t; n; n = TREE_CHAIN (n))
     if (!DECL_IS_BUILTIN (n)
+	&& TREE_CODE (n) != NAMESPACE_DECL
 	&& LOCATION_FILE (decl_sloc (n, false)) == source_file)
       to_dump_count++;
 
@@ -613,6 +608,7 @@ collect_ada_nodes (tree t, const char *source_file)
   /* Store the relevant nodes.  */
   for (n = t; n; n = TREE_CHAIN (n))
     if (!DECL_IS_BUILTIN (n)
+	&& TREE_CODE (n) != NAMESPACE_DECL
 	&& LOCATION_FILE (decl_sloc (n, false)) == source_file)
       to_dump[i++] = n;
 }
@@ -960,6 +956,9 @@ is_tagged_type (const_tree type)
   if (!type || !RECORD_OR_UNION_TYPE_P (type))
     return false;
 
+  /* TYPE_METHODS is only set on the main variant.  */
+  type = TYPE_MAIN_VARIANT (type);
+
   for (tmp = TYPE_METHODS (type); tmp; tmp = TREE_CHAIN (tmp))
     if (TREE_CODE (tmp) == FUNCTION_DECL && DECL_VINDEX (tmp))
       return true;
@@ -987,6 +986,9 @@ has_nontrivial_methods (tree type)
   /* A non-trivial type has non-trivial special methods.  */
   if (!cpp_check (type, IS_TRIVIAL))
     return true;
+
+  /* TYPE_METHODS is only set on the main variant.  */
+  type = TYPE_MAIN_VARIANT (type);
 
   /* If there are user-defined methods, they are deemed non-trivial.  */
   for (tmp = TYPE_METHODS (type); tmp; tmp = TREE_CHAIN (tmp))
@@ -1629,7 +1631,7 @@ dump_sloc (pretty_printer *buffer, tree node)
 
   xloc.file = NULL;
 
-  if (TREE_CODE_CLASS (TREE_CODE (node)) == tcc_declaration)
+  if (DECL_P (node))
     xloc = expand_location (DECL_SOURCE_LOCATION (node));
   else if (EXPR_HAS_LOCATION (node))
     xloc = expand_location (EXPR_LOCATION (node));
@@ -1747,7 +1749,7 @@ dump_ada_template (pretty_printer *buffer, tree t, int spc)
       != LOCATION_FILE (decl_sloc (t, false)))
     return 0;
 
-  while (inst && inst != error_mark_node)
+  for (; inst && inst != error_mark_node; inst = TREE_CHAIN (inst))
     {
       tree types = TREE_PURPOSE (inst);
       tree instance = TREE_VALUE (inst);
@@ -1757,6 +1759,13 @@ dump_ada_template (pretty_printer *buffer, tree t, int spc)
 
       if (!RECORD_OR_UNION_TYPE_P (instance) || !TYPE_METHODS (instance))
 	break;
+
+      /* We are interested in concrete template instantiations only: skip
+	 partially specialized nodes.  */
+      if ((TREE_CODE (instance) == RECORD_TYPE
+	   || TREE_CODE (instance) == UNION_TYPE)
+	  && cpp_check && cpp_check (instance, HAS_DEPENDENT_TEMPLATE_ARGS))
+	continue;
 
       num_inst++;
       INDENT (spc);
@@ -1793,8 +1802,6 @@ dump_ada_template (pretty_printer *buffer, tree t, int spc)
       pp_semicolon (buffer);
       pp_newline (buffer);
       pp_newline (buffer);
-
-      inst = TREE_CHAIN (inst);
     }
 
   return num_inst > 0;
