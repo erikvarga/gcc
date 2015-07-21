@@ -810,6 +810,10 @@ static struct ams_delegate : public sh_ams::delegate
   mem_access_alternatives (sh_ams::access& a,
 			   const sh_ams::access_sequence& as,
 			   sh_ams::access_sequence::const_iterator acc);
+
+  virtual int
+  lookahead_count (const sh_ams::access_sequence& as,
+                   sh_ams::access_sequence::const_iterator acc);
   virtual int
   addr_reg_disp_cost (const_rtx reg, sh_ams::disp_t disp,
 		      const sh_ams::access_sequence& as,
@@ -13816,6 +13820,13 @@ mem_access_alternatives (sh_ams::access& a,
     a.add_alternative (
 	  3 + gbr_extra_cost,
 	  sh_ams::make_disp_addr (0, sh_max_mov_insn_displacement (a.mach_mode (), true)));
+}
+
+int ams_delegate::
+lookahead_count (const sh_ams::access_sequence& as ATTRIBUTE_UNUSED,
+                 sh_ams::access_sequence::const_iterator acc ATTRIBUTE_UNUSED)
+{
+  return 1;
 }
 
 int
