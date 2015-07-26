@@ -282,6 +282,9 @@ public:
     std::map<rtx, std::pair<sh_ams::access_sequence*, std::set<rtx> > >& new_seqs,
     sh_ams::access &acc, bool add_to_front);
 
+  static void split_access_sequence_2 (std::set<rtx>& addr_regs,
+                                       sh_ams::access& acc);
+
   // helper functions to create a particular type of address expression.
   static addr_expr
   make_reg_addr (rtx base_reg = any_regno);
@@ -639,16 +642,19 @@ public:
     add_reg_mod (rtx_insn* insn, const addr_expr& original_addr_expr,
 		 const addr_expr& addr_expr, rtx addr_rtx,
 		 rtx_insn* mod_insn, rtx reg,
-		 int cost = infinite_costs, bool removable = false);
+		 int cost = infinite_costs, bool removable = false,
+                 bool use_as_start_addr = true);
 
     access&
     add_reg_mod (rtx_insn* insn, const addr_expr& original_addr_expr,
 		 const addr_expr& addr_expr, rtx_insn* mod_insn,
-		 rtx reg, int cost = infinite_costs, bool removable = false);
+		 rtx reg, int cost = infinite_costs, bool removable = false,
+                 bool use_as_start_addr = true);
 
     access&
     add_reg_mod (rtx_insn* insn, rtx addr_rtx, rtx_insn* mod_insn,
-		 rtx reg, int cost = infinite_costs, bool removable = false);
+		 rtx reg, int cost = infinite_costs, bool removable = false,
+                 bool use_as_start_addr = true);
 
     access&
     add_reg_mod (access_sequence::iterator insert_before,
