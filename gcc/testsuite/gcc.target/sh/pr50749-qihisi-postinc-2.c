@@ -1,5 +1,4 @@
-/* PR target/50749: Verify that subsequent post-increment addressings
-   are generated.  */
+/* Verify that subsequent post-increment address modes are generated.   */
 /* { dg-do compile }  */
 /* { dg-options "-O2" } */
 /* { dg-final { scan-assembler-times "mov.b\t@r\[0-9]\+\\+,r\[0-9]\+" 5 } } */
@@ -48,6 +47,10 @@ test_func_03 (short* p, int* x)
   return p;
 }
 
+/* For SImode loads displacements are as cheap as post-inc loads, as the
+   register operand is not restricted to R0.  However, here we're also
+   returning the post-incremented pointer and thus using post-inc modes is
+   cheaper in total.  */
 int*
 test_func_04 (int* p, int* x)
 {
