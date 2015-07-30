@@ -13981,6 +13981,9 @@ const_load_cost (const_rtx reg ATTRIBUTE_UNUSED,
                  sh_ams::access_sequence::const_iterator acc
                  ATTRIBUTE_UNUSED)
 {
+  if (CONST_OK_FOR_I08 (value))
+    return 2;
+
   return 4;
 }
 
