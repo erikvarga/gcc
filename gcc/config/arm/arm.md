@@ -3455,6 +3455,44 @@
    (set_attr "type" "multiple,multiple")]
 )
 
+;; t = (s/u)min (x, y)
+;; cc = cmp (t, z)
+;; is the same as
+;; cmp x, z
+;; cmpge(u) y, z
+
+(define_insn_and_split "*arm_smin_cmp"
+  [(set (reg:CC CC_REGNUM)
+	(compare:CC
+	 (smin:SI (match_operand:SI 0 "s_register_operand" "r")
+		  (match_operand:SI 1 "s_register_operand" "r"))
+	 (match_operand:SI 2 "s_register_operand" "r")))]
+  "TARGET_32BIT"
+  "#"
+  "&& reload_completed"
+  [(set (reg:CC CC_REGNUM)
+	(compare:CC (match_dup 0) (match_dup 2)))
+   (cond_exec (ge:CC (reg:CC CC_REGNUM) (const_int 0))
+	      (set (reg:CC CC_REGNUM)
+		   (compare:CC (match_dup 1) (match_dup 2))))]
+)
+
+(define_insn_and_split "*arm_umin_cmp"
+  [(set (reg:CC CC_REGNUM)
+	(compare:CC
+	 (umin:SI (match_operand:SI 0 "s_register_operand" "r")
+		  (match_operand:SI 1 "s_register_operand" "r"))
+	 (match_operand:SI 2 "s_register_operand" "r")))]
+  "TARGET_32BIT"
+  "#"
+  "&& reload_completed"
+  [(set (reg:CC CC_REGNUM)
+	(compare:CC (match_dup 0) (match_dup 2)))
+   (cond_exec (geu:CC (reg:CC CC_REGNUM) (const_int 0))
+	      (set (reg:CC CC_REGNUM)
+		   (compare:CC (match_dup 1) (match_dup 2))))]
+)
+
 (define_expand "umaxsi3"
   [(parallel [
     (set (match_operand:SI 0 "s_register_operand" "")
@@ -4553,7 +4591,7 @@
   "TARGET_32BIT"
   "#" ; "rsbs\\t%Q0, %1, #0\;sbc\\t%R0,%R0,%R0"
       ;; Don't care what register is input to sbc,
-      ;; since we just just need to propagate the carry.
+      ;; since we just need to propagate the carry.
   "&& reload_completed"
   [(parallel [(set (reg:CC CC_REGNUM)
                    (compare:CC (const_int 0) (match_dup 1)))
@@ -5480,6 +5518,42 @@
     {
       if (!REG_P (operands[0]))
 	operands[1] = force_reg (DImode, operands[1]);
+    }
+  if (REG_P (operands[0]) && REGNO (operands[0]) < FIRST_VIRTUAL_REGISTER
+      && !HARD_REGNO_MODE_OK (REGNO (operands[0]), DImode))
+    {
+      /* Avoid LDRD's into an odd-numbered register pair in ARM state
+	 when expanding function calls.  */
+      gcc_assert (can_create_pseudo_p ());
+      if (MEM_P (operands[1]) && MEM_VOLATILE_P (operands[1]))
+	{
+	  /* Perform load into legal reg pair first, then move.  */
+	  rtx reg = gen_reg_rtx (DImode);
+	  emit_insn (gen_movdi (reg, operands[1]));
+	  operands[1] = reg;
+	}
+      emit_move_insn (gen_lowpart (SImode, operands[0]),
+		      gen_lowpart (SImode, operands[1]));
+      emit_move_insn (gen_highpart (SImode, operands[0]),
+		      gen_highpart (SImode, operands[1]));
+      DONE;
+    }
+  else if (REG_P (operands[1]) && REGNO (operands[1]) < FIRST_VIRTUAL_REGISTER
+	   && !HARD_REGNO_MODE_OK (REGNO (operands[1]), DImode))
+    {
+      /* Avoid STRD's from an odd-numbered register pair in ARM state
+	 when expanding function prologue.  */
+      gcc_assert (can_create_pseudo_p ());
+      rtx split_dest = (MEM_P (operands[0]) && MEM_VOLATILE_P (operands[0]))
+		       ? gen_reg_rtx (DImode)
+		       : operands[0];
+      emit_move_insn (gen_lowpart (SImode, split_dest),
+		      gen_lowpart (SImode, operands[1]));
+      emit_move_insn (gen_highpart (SImode, split_dest),
+		      gen_highpart (SImode, operands[1]));
+      if (split_dest != operands[0])
+	emit_insn (gen_movdi (operands[0], split_dest));
+      DONE;
     }
   "
 )
@@ -10028,21 +10102,24 @@
    (set_attr "type" "multiple")]
 )
 
-(define_insn "*if_neg_move"
-  [(set (match_operand:SI 0 "s_register_operand" "=r,r,r")
+(define_insn_and_split "*if_neg_move"
+  [(set (match_operand:SI 0 "s_register_operand" "=l,r")
 	(if_then_else:SI
 	 (match_operator 4 "arm_comparison_operator"
 	  [(match_operand 3 "cc_register" "") (const_int 0)])
-	 (neg:SI (match_operand:SI 2 "s_register_operand" "r,r,r"))
-	 (match_operand:SI 1 "arm_not_operand" "0,?rI,K")))]
-  "TARGET_ARM"
-  "@
-   rsb%d4\\t%0, %2, #0
-   mov%D4\\t%0, %1\;rsb%d4\\t%0, %2, #0
-   mvn%D4\\t%0, #%B1\;rsb%d4\\t%0, %2, #0"
+	 (neg:SI (match_operand:SI 2 "s_register_operand" "l,r"))
+	 (match_operand:SI 1 "s_register_operand" "0,0")))]
+  "TARGET_32BIT"
+  "#"
+  "&& reload_completed"
+  [(cond_exec (match_op_dup 4 [(match_dup 3) (const_int 0)])
+	      (set (match_dup 0) (neg:SI (match_dup 2))))]
+  ""
   [(set_attr "conds" "use")
-   (set_attr "length" "4,8,8")
-   (set_attr "type" "logic_shift_imm,multiple,multiple")]
+   (set_attr "length" "4")
+   (set_attr "arch" "t2,32")
+   (set_attr "enabled_for_depr_it" "yes,no")
+   (set_attr "type" "logic_shift_imm")]
 )
 
 (define_insn "*ifcompare_move_neg"
@@ -10061,21 +10138,34 @@
    (set_attr "type" "multiple")]
 )
 
-(define_insn "*if_move_neg"
-  [(set (match_operand:SI 0 "s_register_operand" "=r,r,r")
+(define_insn_and_split "*if_move_neg"
+  [(set (match_operand:SI 0 "s_register_operand" "=l,r")
 	(if_then_else:SI
 	 (match_operator 4 "arm_comparison_operator"
 	  [(match_operand 3 "cc_register" "") (const_int 0)])
-	 (match_operand:SI 1 "arm_not_operand" "0,?rI,K")
-	 (neg:SI (match_operand:SI 2 "s_register_operand" "r,r,r"))))]
-  "TARGET_ARM"
-  "@
-   rsb%D4\\t%0, %2, #0
-   mov%d4\\t%0, %1\;rsb%D4\\t%0, %2, #0
-   mvn%d4\\t%0, #%B1\;rsb%D4\\t%0, %2, #0"
+	 (match_operand:SI 1 "s_register_operand" "0,0")
+	 (neg:SI (match_operand:SI 2 "s_register_operand" "l,r"))))]
+  "TARGET_32BIT"
+  "#"
+  "&& reload_completed"
+  [(cond_exec (match_dup 5)
+	      (set (match_dup 0) (neg:SI (match_dup 2))))]
+  {
+    machine_mode mode = GET_MODE (operands[3]);
+    rtx_code rc = GET_CODE (operands[4]);
+
+    if (mode == CCFPmode || mode == CCFPEmode)
+      rc = reverse_condition_maybe_unordered (rc);
+    else
+      rc = reverse_condition (rc);
+
+    operands[5] = gen_rtx_fmt_ee (rc, VOIDmode, operands[3], const0_rtx);
+  }
   [(set_attr "conds" "use")
-   (set_attr "length" "4,8,8")
-   (set_attr "type" "logic_shift_imm,multiple,multiple")]
+   (set_attr "length" "4")
+   (set_attr "arch" "t2,32")
+   (set_attr "enabled_for_depr_it" "yes,no")
+   (set_attr "type" "logic_shift_imm")]
 )
 
 (define_insn "*arith_adjacentmem"

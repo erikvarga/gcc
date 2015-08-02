@@ -56,22 +56,14 @@ along with GCC; see the file COPYING3.  If not see
 #include <list>
 #include "coretypes.h"
 #include "alias.h"
-#include "symtab.h"
-#include "options.h"
+#include "backend.h"
 #include "tree.h"
-#include "fold-const.h"
-#include "predict.h"
-#include "tm.h"
-#include "hard-reg-set.h"
-#include "function.h"
-#include "dominance.h"
-#include "cfg.h"
-#include "basic-block.h"
-#include "tree-ssa-alias.h"
-#include "internal-fn.h"
-#include "gimple-expr.h"
 #include "gimple.h"
 #include "rtl.h"
+#include "ssa.h"
+#include "options.h"
+#include "fold-const.h"
+#include "internal-fn.h"
 #include "flags.h"
 #include "insn-config.h"
 #include "expmed.h"
@@ -83,16 +75,10 @@ along with GCC; see the file COPYING3.  If not see
 #include "stmt.h"
 #include "expr.h"
 #include "gimple-iterator.h"
-#include "gimple-ssa.h"
 #include "tree-cfg.h"
-#include "tree-phinodes.h"
-#include "stringpool.h"
-#include "tree-ssanames.h"
 #include "tree-dfa.h"
 #include "tree-pass.h"
 #include "gimple-pretty-print.h"
-#include "plugin-api.h"
-#include "ipa-ref.h"
 #include "cgraph.h"
 #include "alloc-pool.h"
 #include "symbol-summary.h"
@@ -103,7 +89,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "coverage.h"
 #include "attribs.h"
 #include "print-tree.h"
-#include "lto-streamer.h"
+#include "target.h"
 #include "data-streamer.h"
 #include "ipa-utils.h"
 #include "ipa-icf-gimple.h"
@@ -2417,7 +2403,7 @@ sem_item_optimizer::read_section (lto_file_decl_data *file_data,
   lto_data_in_delete (data_in);
 }
 
-/* Read IPA IPA ICF summary for symbols.  */
+/* Read IPA ICF summary for symbols.  */
 
 void
 sem_item_optimizer::read_summary (void)
@@ -2908,8 +2894,7 @@ sem_item_optimizer::subdivide_classes_by_equality (bool in_wpa)
 unsigned
 sem_item_optimizer::subdivide_classes_by_sensitive_refs ()
 {
-  typedef hash_map <symbol_compare_collection *, vec <sem_item *>,
-    symbol_compare_hashmap_traits> subdivide_hash_map;
+  typedef hash_map <symbol_compare_hash, vec <sem_item *> > subdivide_hash_map;
 
   unsigned newly_created_classes = 0;
 
@@ -3208,7 +3193,7 @@ sem_item_optimizer::do_congruence_step (congruence_class *cls)
   EXECUTE_IF_SET_IN_BITMAP (usage, 0, i, bi)
   {
     if (dump_file && (dump_flags & TDF_DETAILS))
-      fprintf (dump_file, "  processing congruece step for class: %u, index: %u\n",
+      fprintf (dump_file, "  processing congruence step for class: %u, index: %u\n",
 	       cls->id, i);
 
     do_congruence_step_for_index (cls, i);

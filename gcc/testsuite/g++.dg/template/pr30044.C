@@ -12,5 +12,3 @@ struct sort3 { };
 
 template <template <typename T1, typename T2, template <T2> class Comp, class Result = Comp<1> > class Foo>
 struct sort4 { };
-
-

@@ -22,7 +22,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "coretypes.h"
 #include "tm.h"
 #include "alias.h"
-#include "symtab.h"
 #include "tree.h"
 #include "stringpool.h"
 #include "flags.h"
@@ -1026,7 +1025,7 @@ static void check_format_info_main (format_check_results *,
 				    function_format_info *,
 				    const char *, int, tree,
 				    unsigned HOST_WIDE_INT,
-				    pool_allocator<format_wanted_type> &);
+				    object_allocator<format_wanted_type> &);
 
 static void init_dollar_format_checking (int, tree);
 static int maybe_read_dollar_number (const char **, int,
@@ -1514,7 +1513,7 @@ check_format_arg (void *ctx, tree format_tree,
   tree array_size = 0;
   tree array_init;
 
-  if (TREE_CODE (format_tree) == VAR_DECL)
+  if (VAR_P (format_tree))
     {
       /* Pull out a constant value if the front end didn't.  */
       format_tree = decl_constant_value (format_tree);
@@ -1618,7 +1617,7 @@ check_format_arg (void *ctx, tree format_tree,
       res->number_non_literal++;
       return;
     }
-  if (TREE_CODE (format_tree) == VAR_DECL
+  if (VAR_P (format_tree)
       && TREE_CODE (TREE_TYPE (format_tree)) == ARRAY_TYPE
       && (array_init = decl_constant_value (format_tree)) != format_tree
       && TREE_CODE (array_init) == STRING_CST)
@@ -1688,7 +1687,8 @@ check_format_arg (void *ctx, tree format_tree,
      will decrement it if it finds there are extra arguments, but this way
      need not adjust it for every return.  */
   res->number_other++;
-  pool_allocator <format_wanted_type> fwt_pool ("format_wanted_type pool", 10);
+  object_allocator <format_wanted_type> fwt_pool ("format_wanted_type pool",
+						  10);
   check_format_info_main (res, info, format_chars, format_length,
 			  params, arg_num, fwt_pool);
 }
@@ -1706,7 +1706,7 @@ check_format_info_main (format_check_results *res,
 			function_format_info *info, const char *format_chars,
 			int format_length, tree params,
 			unsigned HOST_WIDE_INT arg_num,
-			pool_allocator<format_wanted_type> &fwt_pool)
+			object_allocator <format_wanted_type> &fwt_pool)
 {
   const char *orig_format_chars = format_chars;
   tree first_fillin_param = params;

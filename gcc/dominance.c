@@ -35,22 +35,14 @@
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
-#include "tm.h"
+#include "backend.h"
 #include "rtl.h"
-#include "hard-reg-set.h"
-#include "obstack.h"
-#include "predict.h"
-#include "function.h"
-#include "dominance.h"
-#include "cfg.h"
 #include "cfganal.h"
-#include "basic-block.h"
 #include "diagnostic-core.h"
 #include "alloc-pool.h"
 #include "et-forest.h"
 #include "timevar.h"
 #include "graphds.h"
-#include "bitmap.h"
 
 /* We name our nodes with integers, beginning with 1.  Zero is reserved for
    'undefined' or 'end of list'.  The name of each node is given by the dfs
@@ -648,7 +640,7 @@ calculate_dominance_info (enum cdi_direction dir)
   if (dom_computed[dir_index] == DOM_OK)
     {
 #if ENABLE_CHECKING
-      verify_dominators (CDI_DOMINATORS);
+      verify_dominators (dir);
 #endif
       return;
     }
@@ -678,6 +670,12 @@ calculate_dominance_info (enum cdi_direction dir)
 
       free_dom_info (&di);
       dom_computed[dir_index] = DOM_NO_FAST_QUERY;
+    }
+  else
+    {
+#if ENABLE_CHECKING
+      verify_dominators (dir);
+#endif
     }
 
   compute_dom_fast_query (dir);

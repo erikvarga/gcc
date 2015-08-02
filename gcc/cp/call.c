@@ -27,7 +27,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "coretypes.h"
 #include "tm.h"
 #include "alias.h"
-#include "symtab.h"
 #include "tree.h"
 #include "stor-layout.h"
 #include "trans-mem.h"
@@ -42,10 +41,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "langhooks.h"
 #include "c-family/c-objc.h"
 #include "timevar.h"
-#include "plugin-api.h"
 #include "hard-reg-set.h"
 #include "function.h"
-#include "ipa-ref.h"
 #include "cgraph.h"
 #include "internal-fn.h"
 
@@ -1522,7 +1519,7 @@ reference_binding (tree rto, tree rfrom, tree expr, bool c_cast_p, int flags,
     tfrom = unlowered_expr_type (expr);
 
   /* Figure out whether or not the types are reference-related and
-     reference compatible.  We have do do this after stripping
+     reference compatible.  We have to do this after stripping
      references from FROM.  */
   related_p = reference_related_p (to, tfrom);
   /* If this is a C cast, first convert to an appropriately qualified
@@ -4561,8 +4558,8 @@ build_conditional_expr_1 (location_t loc, tree arg1, tree arg2, tree arg3,
       arg2_type = TREE_TYPE (arg2);
       arg3_type = TREE_TYPE (arg3);
 
-      if (TREE_CODE (arg2_type) != VECTOR_TYPE
-	  && TREE_CODE (arg3_type) != VECTOR_TYPE)
+      if (!VECTOR_TYPE_P (arg2_type)
+	  && !VECTOR_TYPE_P (arg3_type))
 	{
 	  /* Rely on the error messages of the scalar version.  */
 	  tree scal = build_conditional_expr_1 (loc, integer_one_node,
@@ -4614,8 +4611,7 @@ build_conditional_expr_1 (location_t loc, tree arg1, tree arg2, tree arg3,
 	  arg3_type = vtype;
 	}
 
-      if ((TREE_CODE (arg2_type) == VECTOR_TYPE)
-	  != (TREE_CODE (arg3_type) == VECTOR_TYPE))
+      if (VECTOR_TYPE_P (arg2_type) != VECTOR_TYPE_P (arg3_type))
 	{
 	  enum stv_conv convert_flag =
 	    scalar_to_vector (loc, VEC_COND_EXPR, arg2, arg3,
@@ -5399,7 +5395,7 @@ build_new_op_1 (location_t loc, enum tree_code code, int flags, tree arg1,
      only non-member functions that have type T1 or reference to
      cv-qualified-opt T1 for the first argument, if the first argument
      has an enumeration type, or T2 or reference to cv-qualified-opt
-     T2 for the second argument, if the the second argument has an
+     T2 for the second argument, if the second argument has an
      enumeration type.  Filter out those that don't match.  */
   else if (! arg2 || ! CLASS_TYPE_P (TREE_TYPE (arg2)))
     {
@@ -5655,6 +5651,8 @@ build_new_op_1 (location_t loc, enum tree_code code, int flags, tree arg1,
 	  && ((code_orig_arg1 == BOOLEAN_TYPE)
 	      ^ (code_orig_arg2 == BOOLEAN_TYPE)))
 	maybe_warn_bool_compare (loc, code, arg1, arg2);
+      if (complain & tf_warning && warn_tautological_compare)
+	warn_tautological_cmp (loc, code, arg1, arg2);
       /* Fall through.  */
     case PLUS_EXPR:
     case MINUS_EXPR:
@@ -5845,7 +5843,7 @@ build_op_delete_call (enum tree_code code, tree addr, tree size,
 	    = G_("exception cleanup for this placement new selects "
 		 "non-placement operator delete");
 	  const char *msg2
-	    = G_("%q+D is a usual (non-placement) deallocation "
+	    = G_("%qD is a usual (non-placement) deallocation "
 		 "function in C++14 (or with -fsized-deallocation)");
 
 	  /* But if the class has an operator delete (void *), then that is
@@ -5867,7 +5865,7 @@ build_op_delete_call (enum tree_code code, tree addr, tree size,
 	    {
 	      if ((complain & tf_warning)
 		  && warning (OPT_Wc__14_compat, msg1))
-		inform (0, msg2, fn);
+		inform (DECL_SOURCE_LOCATION (fn), msg2, fn);
 	      goto ok;
 	    }
 
@@ -5877,9 +5875,10 @@ build_op_delete_call (enum tree_code code, tree addr, tree size,
 		{
 		  /* Only mention C++14 for namespace-scope delete.  */
 		  if (DECL_NAMESPACE_SCOPE_P (fn))
-		    inform (0, msg2, fn);
+		    inform (DECL_SOURCE_LOCATION (fn), msg2, fn);
 		  else
-		    inform (0, "%q+D is a usual (non-placement) deallocation "
+		    inform (DECL_SOURCE_LOCATION (fn),
+			    "%qD is a usual (non-placement) deallocation "
 			    "function", fn);
 		}
 	    }
@@ -6335,8 +6334,8 @@ convert_like_real (conversion *convs, tree expr, tree fn, int argnum,
 	  build_user_type_conversion (totype, convs->u.expr, LOOKUP_NORMAL,
 				      complain);
 	  if (fn)
-	    inform (input_location, "  initializing argument %P of %q+D",
-		    argnum, fn);
+	    inform (DECL_SOURCE_LOCATION (fn),
+		    "  initializing argument %P of %qD", argnum, fn);
 	}
       return error_mark_node;
 
@@ -6441,12 +6440,14 @@ convert_like_real (conversion *convs, tree expr, tree fn, int argnum,
       /* Copy-initialization where the cv-unqualified version of the source
 	 type is the same class as, or a derived class of, the class of the
 	 destination [is treated as direct-initialization].  [dcl.init] */
-      flags = LOOKUP_NORMAL|LOOKUP_ONLYCONVERTING;
+      flags = LOOKUP_NORMAL;
       if (convs->user_conv_p)
 	/* This conversion is being done in the context of a user-defined
 	   conversion (i.e. the second step of copy-initialization), so
 	   don't allow any more.  */
 	flags |= LOOKUP_NO_CONVERSION;
+      else
+	flags |= LOOKUP_ONLYCONVERTING;
       if (convs->rvaluedness_matches_p)
 	flags |= LOOKUP_PREFER_RVALUE;
       if (TREE_CODE (expr) == TARGET_EXPR
@@ -6486,8 +6487,8 @@ convert_like_real (conversion *convs, tree expr, tree fn, int argnum,
 	      gcc_unreachable ();
 	    maybe_print_user_conv_context (convs);
 	    if (fn)
-	      inform (input_location,
-		      "  initializing argument %P of %q+D", argnum, fn);
+	      inform (DECL_SOURCE_LOCATION (fn),
+		      "  initializing argument %P of %qD", argnum, fn);
 	    return error_mark_node;
 	  }
 
@@ -7307,7 +7308,8 @@ build_over_call (struct z_candidate *cand, int flags, tsubst_flags_t complain)
 	      pedwarn (input_location, 0, "deducing %qT as %qT",
 		       non_reference (TREE_TYPE (patparm)),
 		       non_reference (type));
-	      pedwarn (input_location, 0, "  in call to %q+D", cand->fn);
+	      pedwarn (DECL_SOURCE_LOCATION (cand->fn), 0,
+		       "  in call to %qD", cand->fn);
 	      pedwarn (input_location, 0,
 		       "  (you can disable this with -fno-deduce-init-list)");
 	    }
@@ -8071,7 +8073,10 @@ build_new_method_call_1 (tree instance, tree fns, vec<tree, va_gc> **args,
       /* If BASETYPE is an aggregate, we need to do aggregate
 	 initialization.  */
       else if (CP_AGGREGATE_TYPE_P (basetype))
-	init = digest_init (basetype, init_list, complain);
+	{
+	  init = reshape_init (basetype, init_list, complain);
+	  init = digest_init (basetype, init, complain);
+	}
 
       if (init)
 	{
@@ -9559,13 +9564,14 @@ make_temporary_var_for_ref_to_temp (tree decl, tree type)
 
   /* Register the variable.  */
   if (VAR_P (decl)
-      && (TREE_STATIC (decl) || DECL_THREAD_LOCAL_P (decl)))
+      && (TREE_STATIC (decl) || CP_DECL_THREAD_LOCAL_P (decl)))
     {
       /* Namespace-scope or local static; give it a mangled name.  */
       /* FIXME share comdat with decl?  */
       tree name;
 
       TREE_STATIC (var) = TREE_STATIC (decl);
+      CP_DECL_THREAD_LOCAL_P (var) = CP_DECL_THREAD_LOCAL_P (decl);
       set_decl_tls_model (var, DECL_TLS_MODEL (decl));
       name = mangle_ref_init_variable (decl);
       DECL_NAME (var) = name;
@@ -9686,7 +9692,7 @@ set_up_extended_ref_temp (tree decl, tree expr, vec<tree, va_gc> **cleanups,
       rest_of_decl_compilation (var, /*toplev=*/1, at_eof);
       if (TYPE_HAS_NONTRIVIAL_DESTRUCTOR (type))
 	{
-	  if (DECL_THREAD_LOCAL_P (var))
+	  if (CP_DECL_THREAD_LOCAL_P (var))
 	    tls_aggregates = tree_cons (NULL_TREE, var,
 					tls_aggregates);
 	  else
@@ -9699,7 +9705,7 @@ set_up_extended_ref_temp (tree decl, tree expr, vec<tree, va_gc> **cleanups,
     }
   /* Avoid -Wunused-variable warning (c++/38958).  */
   if (TYPE_HAS_NONTRIVIAL_DESTRUCTOR (type)
-      && TREE_CODE (decl) == VAR_DECL)
+      && VAR_P (decl))
     TREE_USED (decl) = DECL_READ_P (decl) = true;
 
   *initp = init;

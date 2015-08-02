@@ -23,7 +23,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "coretypes.h"
 #include "tm.h"
 #include "alias.h"
-#include "symtab.h"
 #include "tree.h"
 #include "fold-const.h"
 #include "tree-hasher.h"
@@ -35,10 +34,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "tree-inline.h"
 #include "debug.h"
 #include "convert.h"
-#include "plugin-api.h"
 #include "hard-reg-set.h"
 #include "function.h"
-#include "ipa-ref.h"
 #include "cgraph.h"
 #include "splay-tree.h"
 #include "gimple-expr.h"
@@ -734,7 +731,7 @@ struct cplus_array_info
   tree domain;
 };
 
-struct cplus_array_hasher : ggc_hasher<tree>
+struct cplus_array_hasher : ggc_ptr_hash<tree_node>
 {
   typedef cplus_array_info *compare_type;
 
@@ -1712,7 +1709,7 @@ struct list_proxy
   tree chain;
 };
 
-struct list_hasher : ggc_hasher<tree>
+struct list_hasher : ggc_ptr_hash<tree_node>
 {
   typedef list_proxy *compare_type;
 
@@ -2197,8 +2194,8 @@ static tree
 verify_stmt_tree_r (tree* tp, int * /*walk_subtrees*/, void* data)
 {
   tree t = *tp;
-  hash_table<pointer_hash <tree_node> > *statements
-      = static_cast <hash_table<pointer_hash <tree_node> > *> (data);
+  hash_table<nofree_ptr_hash <tree_node> > *statements
+      = static_cast <hash_table<nofree_ptr_hash <tree_node> > *> (data);
   tree_node **slot;
 
   if (!STATEMENT_CODE_P (TREE_CODE (t)))
@@ -2221,7 +2218,7 @@ verify_stmt_tree_r (tree* tp, int * /*walk_subtrees*/, void* data)
 void
 verify_stmt_tree (tree t)
 {
-  hash_table<pointer_hash <tree_node> > statements (37);
+  hash_table<nofree_ptr_hash <tree_node> > statements (37);
   cp_walk_tree (&t, verify_stmt_tree_r, &statements, NULL);
 }
 
@@ -3241,8 +3238,7 @@ scalarish_type_p (const_tree t)
   if (t == error_mark_node)
     return 1;
 
-  return (SCALAR_TYPE_P (t)
-	  || TREE_CODE (t) == VECTOR_TYPE);
+  return (SCALAR_TYPE_P (t) || VECTOR_TYPE_P (t));
 }
 
 /* Returns true iff T requires non-trivial default initialization.  */
@@ -3657,13 +3653,15 @@ handle_abi_tag_attribute (tree* node, tree name, tree args,
 		 name, *node);
 	  goto fail;
 	}
-      else if (CLASSTYPE_TEMPLATE_INSTANTIATION (*node))
+      else if (CLASS_TYPE_P (*node)
+	       && CLASSTYPE_TEMPLATE_INSTANTIATION (*node))
 	{
 	  warning (OPT_Wattributes, "ignoring %qE attribute applied to "
 		   "template instantiation %qT", name, *node);
 	  goto fail;
 	}
-      else if (CLASSTYPE_TEMPLATE_SPECIALIZATION (*node))
+      else if (CLASS_TYPE_P (*node)
+	       && CLASSTYPE_TEMPLATE_SPECIALIZATION (*node))
 	{
 	  warning (OPT_Wattributes, "ignoring %qE attribute applied to "
 		   "template specialization %qT", name, *node);
@@ -3685,8 +3683,7 @@ handle_abi_tag_attribute (tree* node, tree name, tree args,
     }
   else
     {
-      if (TREE_CODE (*node) != FUNCTION_DECL
-	  && TREE_CODE (*node) != VAR_DECL)
+      if (!VAR_OR_FUNCTION_DECL_P (*node))
 	{
 	  error ("%qE attribute applied to non-function, non-variable %qD",
 		 name, *node);
@@ -4040,7 +4037,7 @@ decl_storage_duration (tree decl)
   if (!TREE_STATIC (decl)
       && !DECL_EXTERNAL (decl))
     return dk_auto;
-  if (DECL_THREAD_LOCAL_P (decl))
+  if (CP_DECL_THREAD_LOCAL_P (decl))
     return dk_thread;
   return dk_static;
 }

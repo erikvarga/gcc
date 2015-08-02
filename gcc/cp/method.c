@@ -26,7 +26,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "coretypes.h"
 #include "tm.h"
 #include "alias.h"
-#include "symtab.h"
 #include "tree.h"
 #include "stringpool.h"
 #include "varasm.h"
@@ -37,10 +36,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "target.h"
 #include "common/common-target.h"
 #include "diagnostic.h"
-#include "plugin-api.h"
 #include "hard-reg-set.h"
 #include "function.h"
-#include "ipa-ref.h"
 #include "cgraph.h"
 
 /* Various flags to control the mangling process.  */
@@ -1141,8 +1138,8 @@ process_subob_fn (tree fn, tree *spec_p, bool *trivial_p,
       *constexpr_p = false;
       if (diag)
 	{
-	  inform (0, "defaulted constructor calls non-constexpr "
-		  "%q+D", fn);
+	  inform (DECL_SOURCE_LOCATION (fn),
+		  "defaulted constructor calls non-constexpr %qD", fn);
 	  explain_invalid_constexpr_fn (fn);
 	}
     }
@@ -1202,7 +1199,8 @@ walk_field_subobs (tree fields, tree fnname, special_function_kind sfk,
 	  if (DECL_INITIAL (field))
 	    {
 	      if (diag && DECL_INITIAL (field) == error_mark_node)
-		inform (0, "initializer for %q+#D is invalid", field);
+		inform (DECL_SOURCE_LOCATION (field),
+			"initializer for %q#D is invalid", field);
 	      if (trivial_p)
 		*trivial_p = false;
 	      /* Core 1351: If the field has an NSDMI that could throw, the
@@ -1253,8 +1251,9 @@ walk_field_subobs (tree fields, tree fnname, special_function_kind sfk,
 	    {
 	      *constexpr_p = false;
 	      if (diag)
-		inform (0, "defaulted default constructor does not "
-			"initialize %q+#D", field);
+		inform (DECL_SOURCE_LOCATION (field),
+			"defaulted default constructor does not "
+			"initialize %q#D", field);
 	    }
 	}
       else if (sfk == sfk_copy_constructor)
@@ -1618,9 +1617,10 @@ maybe_explain_implicit_delete (tree decl)
 	       && (type_has_user_declared_move_constructor (ctype)
 		   || type_has_user_declared_move_assign (ctype)))
 	{
-	  inform (0, "%q+#D is implicitly declared as deleted because %qT "
-		 "declares a move constructor or move assignment operator",
-		 decl, ctype);
+	  inform (DECL_SOURCE_LOCATION (decl),
+		  "%q#D is implicitly declared as deleted because %qT "
+		  "declares a move constructor or move assignment operator",
+		  decl, ctype);
 	  informed = true;
 	}
       if (!informed)
@@ -1637,7 +1637,8 @@ maybe_explain_implicit_delete (tree decl)
 				   DECL_INHERITED_CTOR_BASE (decl), parms);
 	  if (deleted_p)
 	    {
-	      inform (0, "%q+#D is implicitly deleted because the default "
+	      inform (DECL_SOURCE_LOCATION (decl),
+		      "%q#D is implicitly deleted because the default "
 		      "definition would be ill-formed:", decl);
 	      synthesized_method_walk (ctype, sfk, const_p,
 				       NULL, NULL, NULL, NULL, true,

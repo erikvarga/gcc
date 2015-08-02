@@ -58,31 +58,20 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "dumpfile.h"
-#include "tm.h"
-#include "alias.h"
-#include "symtab.h"
+#include "backend.h"
+#include "predict.h"
 #include "tree.h"
+#include "gimple.h"
+#include "hard-reg-set.h"
+#include "ssa.h"
+#include "alias.h"
 #include "fold-const.h"
 #include "stor-layout.h"
 #include "tree-pretty-print.h"
-#include "predict.h"
-#include "hard-reg-set.h"
-#include "function.h"
-#include "dominance.h"
-#include "cfg.h"
-#include "basic-block.h"
-#include "tree-ssa-alias.h"
 #include "internal-fn.h"
-#include "gimple-expr.h"
-#include "gimple.h"
 #include "gimple-iterator.h"
 #include "gimple-walk.h"
-#include "gimple-ssa.h"
-#include "plugin-api.h"
-#include "ipa-ref.h"
 #include "cgraph.h"
-#include "tree-phinodes.h"
-#include "ssa-iterators.h"
 #include "tree-ssa-loop-manip.h"
 #include "tree-cfg.h"
 #include "cfgloop.h"
@@ -102,14 +91,12 @@ vec<vec_void_p> stmt_vec_info_vec;
 
 /* For mapping simduid to vectorization factor.  */
 
-struct simduid_to_vf : typed_free_remove<simduid_to_vf>
+struct simduid_to_vf : free_ptr_hash<simduid_to_vf>
 {
   unsigned int simduid;
   int vf;
 
   /* hash_table support.  */
-  typedef simduid_to_vf *value_type;
-  typedef simduid_to_vf *compare_type;
   static inline hashval_t hash (const simduid_to_vf *);
   static inline int equal (const simduid_to_vf *, const simduid_to_vf *);
 };
@@ -138,14 +125,12 @@ simduid_to_vf::equal (const simduid_to_vf *p1, const simduid_to_vf *p2)
    This hash maps from the OMP simd array (D.1737[]) to DECL_UID of
    simduid.0.  */
 
-struct simd_array_to_simduid : typed_free_remove<simd_array_to_simduid>
+struct simd_array_to_simduid : free_ptr_hash<simd_array_to_simduid>
 {
   tree decl;
   unsigned int simduid;
 
   /* hash_table support.  */
-  typedef simd_array_to_simduid *value_type;
-  typedef simd_array_to_simduid *compare_type;
   static inline hashval_t hash (const simd_array_to_simduid *);
   static inline int equal (const simd_array_to_simduid *,
 			   const simd_array_to_simduid *);

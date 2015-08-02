@@ -21,7 +21,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
-#include "flags.h"
+#include "options.h"
 #include "gfortran.h"
 #include "arith.h"
 #include "match.h"
@@ -1253,6 +1253,9 @@ match_sym_complex_part (gfc_expr **result)
       gfc_error ("Expected PARAMETER symbol in complex constant at %C");
       return MATCH_ERROR;
     }
+
+  if (!sym->value)
+    goto error;
 
   if (!gfc_numeric_ts (&sym->value->ts))
     {
@@ -2961,7 +2964,8 @@ gfc_match_rvalue (gfc_expr **result)
 
       st = gfc_enclosing_unit (NULL);
 
-      if (st != NULL && st->state == COMP_FUNCTION
+      if (st != NULL
+	  && st->state == COMP_FUNCTION
 	  && st->sym == sym
 	  && !sym->attr.recursive)
 	{
@@ -3265,6 +3269,7 @@ match_variable (gfc_expr **result, int equiv_flag, int host_flag)
      of keywords, such as 'end', being turned into variables by
      failed matching to assignments for, e.g., END INTERFACE.  */
   if (gfc_current_state () == COMP_MODULE
+      || gfc_current_state () == COMP_SUBMODULE
       || gfc_current_state () == COMP_INTERFACE
       || gfc_current_state () == COMP_CONTAINS)
     host_flag = 0;

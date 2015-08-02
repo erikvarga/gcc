@@ -20,28 +20,23 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
-#include "tm.h"
-#include "rtl.h"
-#include "hard-reg-set.h"
-#include "alias.h"
-#include "symtab.h"
+#include "backend.h"
+#include "cfghooks.h"
 #include "tree.h"
+#include "gimple.h"
+#include "rtl.h"
+#include "ssa.h"
+#include "alias.h"
 #include "fold-const.h"
-#include "stringpool.h"
 #include "varasm.h"
 #include "stor-layout.h"
 #include "stmt.h"
 #include "print-tree.h"
 #include "tm_p.h"
-#include "predict.h"
-#include "function.h"
-#include "dominance.h"
-#include "cfg.h"
 #include "cfgrtl.h"
 #include "cfganal.h"
 #include "cfgbuild.h"
 #include "cfgcleanup.h"
-#include "basic-block.h"
 #include "insn-codes.h"
 #include "optabs.h"
 #include "flags.h"
@@ -53,22 +48,12 @@ along with GCC; see the file COPYING3.  If not see
 #include "emit-rtl.h"
 #include "expr.h"
 #include "langhooks.h"
-#include "bitmap.h"
-#include "tree-ssa-alias.h"
 #include "internal-fn.h"
 #include "tree-eh.h"
-#include "gimple-expr.h"
-#include "gimple.h"
 #include "gimple-iterator.h"
 #include "gimple-walk.h"
-#include "gimple-ssa.h"
-#include "plugin-api.h"
-#include "ipa-ref.h"
 #include "cgraph.h"
 #include "tree-cfg.h"
-#include "tree-phinodes.h"
-#include "ssa-iterators.h"
-#include "tree-ssanames.h"
 #include "tree-dfa.h"
 #include "tree-ssa.h"
 #include "tree-pass.h"
@@ -83,7 +68,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "target.h"
 #include "tree-ssa-live.h"
 #include "tree-outof-ssa.h"
-#include "sbitmap.h"
 #include "cfgloop.h"
 #include "regs.h" /* For reg_renumber.  */
 #include "insn-attr.h" /* For INSN_SCHEDULING.  */
@@ -610,25 +594,7 @@ stack_var_cmp (const void *a, const void *b)
   return 0;
 }
 
-struct part_traits : default_hashmap_traits
-{
-  template<typename T>
-    static bool
-    is_deleted (T &e)
-    { return e.m_value == reinterpret_cast<void *> (1); }
-
-  template<typename T> static bool is_empty (T &e) { return e.m_value == NULL; }
-  template<typename T>
-    static void
-    mark_deleted (T &e)
-    { e.m_value = reinterpret_cast<T> (1); }
-
-  template<typename T>
-    static void
-    mark_empty (T &e)
-      { e.m_value = NULL; }
-};
-
+struct part_traits : unbounded_int_hashmap_traits <size_t, bitmap> {};
 typedef hash_map<size_t, bitmap, part_traits> part_hashmap;
 
 /* If the points-to solution *PI points to variables that are in a partition
@@ -3666,9 +3632,7 @@ convert_debug_memory_address (machine_mode mode, rtx x,
     return x;
 
   if (GET_MODE_PRECISION (mode) < GET_MODE_PRECISION (xmode))
-    x = simplify_gen_subreg (mode, x, xmode,
-			     subreg_lowpart_offset
-			     (mode, xmode));
+    x = lowpart_subreg (mode, x, xmode);
   else if (POINTERS_EXTEND_UNSIGNED > 0)
     x = gen_rtx_ZERO_EXTEND (mode, x);
   else if (!POINTERS_EXTEND_UNSIGNED)
@@ -3884,9 +3848,7 @@ expand_debug_expr (tree exp)
 	      if (SCALAR_INT_MODE_P (opmode)
 		  && (GET_MODE_PRECISION (opmode)
 		      < GET_MODE_PRECISION (inner_mode)))
-		op1 = simplify_gen_subreg (opmode, op1, inner_mode,
-					   subreg_lowpart_offset (opmode,
-								  inner_mode));
+		op1 = lowpart_subreg (opmode, op1, inner_mode);
 	    }
 	  break;
 	default:
@@ -4045,9 +4007,7 @@ expand_debug_expr (tree exp)
 	  }
 	else if (CONSTANT_P (op0)
 		 || GET_MODE_PRECISION (mode) <= GET_MODE_PRECISION (inner_mode))
-	  op0 = simplify_gen_subreg (mode, op0, inner_mode,
-				     subreg_lowpart_offset (mode,
-							    inner_mode));
+	  op0 = lowpart_subreg (mode, op0, inner_mode);
 	else if (UNARY_CLASS_P (exp)
 		 ? TYPE_UNSIGNED (TREE_TYPE (TREE_OPERAND (exp, 0)))
 		 : unsignedp)
@@ -4175,9 +4135,7 @@ expand_debug_expr (tree exp)
 	      offmode = TYPE_MODE (TREE_TYPE (offset));
 
 	    if (addrmode != offmode)
-	      op1 = simplify_gen_subreg (addrmode, op1, offmode,
-					 subreg_lowpart_offset (addrmode,
-								offmode));
+	      op1 = lowpart_subreg (addrmode, op1, offmode);
 
 	    /* Don't use offset_address here, we don't need a
 	       recognizable address, and we don't want to generate
@@ -4902,8 +4860,7 @@ expand_debug_source_expr (tree exp)
     }
   else if (CONSTANT_P (op0)
 	   || GET_MODE_BITSIZE (mode) <= GET_MODE_BITSIZE (inner_mode))
-    op0 = simplify_gen_subreg (mode, op0, inner_mode,
-			       subreg_lowpart_offset (mode, inner_mode));
+    op0 = lowpart_subreg (mode, op0, inner_mode);
   else if (TYPE_UNSIGNED (TREE_TYPE (exp)))
     op0 = simplify_gen_unary (ZERO_EXTEND, mode, op0, inner_mode);
   else
@@ -5787,11 +5744,6 @@ expand_main_function (void)
 /* Expand code to initialize the stack_protect_guard.  This is invoked at
    the beginning of a function to be protected.  */
 
-#ifndef HAVE_stack_protect_set
-# define HAVE_stack_protect_set		0
-# define gen_stack_protect_set(x,y)	(gcc_unreachable (), NULL_RTX)
-#endif
-
 static void
 stack_protect_prologue (void)
 {
@@ -5803,15 +5755,12 @@ stack_protect_prologue (void)
 
   /* Allow the target to copy from Y to X without leaking Y into a
      register.  */
-  if (HAVE_stack_protect_set)
-    {
-      rtx insn = gen_stack_protect_set (x, y);
-      if (insn)
-	{
-	  emit_insn (insn);
-	  return;
-	}
-    }
+  if (targetm.have_stack_protect_set ())
+    if (rtx_insn *insn = targetm.gen_stack_protect_set (x, y))
+      {
+	emit_insn (insn);
+	return;
+      }
 
   /* Otherwise do a straight move.  */
   emit_move_insn (x, y);

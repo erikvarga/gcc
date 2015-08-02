@@ -20,16 +20,15 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
-#include "tm.h"
-#include "alias.h"
-#include "symtab.h"
+#include "backend.h"
 #include "tree.h"
+#include "gimple.h"
+#include "rtl.h"
+#include "ssa.h"
+#include "alias.h"
 #include "stor-layout.h"
 #include "fold-const.h"
 #include "calls.h"
-#include "hard-reg-set.h"
-#include "function.h"
-#include "rtl.h"
 #include "flags.h"
 #include "insn-config.h"
 #include "expmed.h"
@@ -40,22 +39,12 @@ along with GCC; see the file COPYING3.  If not see
 #include "stmt.h"
 #include "expr.h"
 #include "tm_p.h"
-#include "predict.h"
-#include "dominance.h"
-#include "cfg.h"
-#include "basic-block.h"
 #include "gimple-pretty-print.h"
 #include "intl.h"
-#include "tree-ssa-alias.h"
 #include "internal-fn.h"
-#include "gimple-expr.h"
-#include "gimple.h"
 #include "gimplify.h"
 #include "gimple-iterator.h"
-#include "gimple-ssa.h"
 #include "tree-cfg.h"
-#include "tree-phinodes.h"
-#include "ssa-iterators.h"
 #include "tree-ssa-loop-ivopts.h"
 #include "tree-ssa-loop-niter.h"
 #include "tree-ssa-loop.h"
@@ -68,8 +57,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "diagnostic-core.h"
 #include "tree-inline.h"
 #include "tree-pass.h"
-#include "stringpool.h"
-#include "tree-ssanames.h"
 #include "wide-int-print.h"
 
 
@@ -3955,7 +3942,21 @@ loop_exits_before_overflow (tree base, tree step,
 	if (!CONVERT_EXPR_P (e) || !operand_equal_p (e, unsigned_base, 0))
 	  continue;
 	e = TREE_OPERAND (e, 0);
-	gcc_assert (operand_equal_p (e, base, 0));
+	/* It may still be possible to prove no overflow even if condition
+	   "operand_equal_p (e, base, 0)" isn't satisfied here, like below
+	   example:
+
+	     e             : ssa_var                 ; unsigned long type
+	     base          : (int) ssa_var
+	     unsigned_base : (unsigned int) ssa_var
+
+	   Unfortunately this is a rare case observed during GCC profiled
+	   bootstrap.  See PR66638 for more information.
+
+	   For now, we just skip the possibility.  */
+	if (!operand_equal_p (e, base, 0))
+	  continue;
+
 	if (tree_int_cst_sign_bit (step))
 	  {
 	    code = LT_EXPR;

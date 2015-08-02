@@ -31,7 +31,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "coretypes.h"
 #include "tm.h"
 #include "alias.h"
-#include "symtab.h"
 #include "tree.h"
 #include "tree-hasher.h"
 #include "stringpool.h"
@@ -59,10 +58,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "timevar.h"
 #include "splay-tree.h"
 #include "plugin.h"
-#include "plugin-api.h"
 #include "hard-reg-set.h"
 #include "function.h"
-#include "ipa-ref.h"
 #include "cgraph.h"
 #include "cilk.h"
 #include "builtins.h"
@@ -643,14 +640,16 @@ poplevel (int keep, int reverse, int functionbody)
 				     TYPE_ATTRIBUTES (TREE_TYPE (decl)))))
 	  {
 	    if (! TREE_USED (decl))
-	      warning (OPT_Wunused_variable, "unused variable %q+D", decl);
+	      warning_at (DECL_SOURCE_LOCATION (decl),
+			  OPT_Wunused_variable, "unused variable %qD", decl);
 	    else if (DECL_CONTEXT (decl) == current_function_decl
 		     // For -Wunused-but-set-variable leave references alone.
 		     && TREE_CODE (TREE_TYPE (decl)) != REFERENCE_TYPE
 		     && errorcount == unused_but_set_errorcount)
 	      {
-		warning (OPT_Wunused_but_set_variable,
-			 "variable %q+D set but not used", decl);
+		warning_at (DECL_SOURCE_LOCATION (decl),
+			    OPT_Wunused_but_set_variable,
+			    "variable %qD set but not used", decl);
 		unused_but_set_errorcount = errorcount;
 	      }
 	  }
@@ -1160,7 +1159,8 @@ warn_extern_redeclared_static (tree newdecl, tree olddecl)
 
   if (permerror (DECL_SOURCE_LOCATION (newdecl),
 		 "%qD was declared %<extern%> and later %<static%>", newdecl))
-    inform (input_location, "previous declaration of %q+D", olddecl);
+    inform (DECL_SOURCE_LOCATION (olddecl),
+	    "previous declaration of %qD", olddecl);
 }
 
 /* NEW_DECL is a redeclaration of OLD_DECL; both are functions or
@@ -1257,8 +1257,8 @@ check_redeclaration_no_default_args (tree decl)
        t && t != void_list_node; t = TREE_CHAIN (t))
     if (TREE_PURPOSE (t))
       {
-	permerror (input_location,
-		   "redeclaration of %q+#D may not have default "
+	permerror (DECL_SOURCE_LOCATION (decl),
+		   "redeclaration of %q#D may not have default "
 		   "arguments", decl);
 	return;
       }
@@ -1331,8 +1331,9 @@ duplicate_decls (tree newdecl, tree olddecl, bool newdecl_is_friend)
 	       && DECL_UNINLINABLE (olddecl)
 	       && lookup_attribute ("noinline", DECL_ATTRIBUTES (olddecl)))
 	{
-	  if (warning (OPT_Wattributes, "function %q+D redeclared as inline",
-		       newdecl))
+	  if (warning_at (DECL_SOURCE_LOCATION (newdecl),
+			  OPT_Wattributes, "function %qD redeclared as inline",
+			  newdecl))
 	    inform (DECL_SOURCE_LOCATION (olddecl),
 		    "previous declaration of %qD with attribute noinline",
 		    olddecl);
@@ -1341,8 +1342,9 @@ duplicate_decls (tree newdecl, tree olddecl, bool newdecl_is_friend)
 	       && DECL_UNINLINABLE (newdecl)
 	       && lookup_attribute ("noinline", DECL_ATTRIBUTES (newdecl)))
 	{
-	  if (warning (OPT_Wattributes, "function %q+D redeclared with "
-		       "attribute noinline", newdecl))
+	  if (warning_at (DECL_SOURCE_LOCATION (newdecl),
+			  OPT_Wattributes, "function %qD redeclared with "
+			  "attribute noinline", newdecl))
 	    inform (DECL_SOURCE_LOCATION (olddecl),
 		    "previous declaration of %qD was inline",
 		    olddecl);
@@ -1376,8 +1378,9 @@ duplicate_decls (tree newdecl, tree olddecl, bool newdecl_is_friend)
 	  /* If the built-in is not ansi, then programs can override
 	     it even globally without an error.  */
 	  else if (! DECL_BUILT_IN (olddecl))
-	    warning (0, "library function %q#D redeclared as non-function %q+#D",
-		     olddecl, newdecl);
+	    warning_at (DECL_SOURCE_LOCATION (newdecl), 0,
+			"library function %q#D redeclared as non-function %q#D",
+			olddecl, newdecl);
 	  else
 	    error ("declaration of %q+#D conflicts with built-in "
 		   "declaration %q#D", newdecl, olddecl);
@@ -1439,8 +1442,9 @@ duplicate_decls (tree newdecl, tree olddecl, bool newdecl_is_friend)
 	      /* A near match; override the builtin.  */
 
 	      if (TREE_PUBLIC (newdecl))
-		warning (0, "new declaration %q+#D ambiguates built-in "
-			 "declaration %q#D", newdecl, olddecl);
+		warning_at (DECL_SOURCE_LOCATION (newdecl), 0,
+			    "new declaration %q#D ambiguates built-in "
+			    "declaration %q#D", newdecl, olddecl);
 	      else
 		warning (OPT_Wshadow, 
                          DECL_BUILT_IN (olddecl)
@@ -1668,10 +1672,10 @@ duplicate_decls (tree newdecl, tree olddecl, bool newdecl_is_friend)
 	{
 	  error_at (DECL_SOURCE_LOCATION (newdecl), errmsg, newdecl);
 	  if (DECL_NAME (olddecl) != NULL_TREE)
-	    inform (input_location,
+	    inform (DECL_SOURCE_LOCATION (olddecl),
 		    (DECL_INITIAL (olddecl) && namespace_bindings_p ())
-		    ? G_("%q+#D previously defined here")
-		    : G_("%q+#D previously declared here"), olddecl);
+		    ? G_("%q#D previously defined here")
+		    : G_("%q#D previously declared here"), olddecl);
 	  return error_mark_node;
 	}
       else if (TREE_CODE (olddecl) == FUNCTION_DECL
@@ -1681,7 +1685,7 @@ duplicate_decls (tree newdecl, tree olddecl, bool newdecl_is_friend)
 	{
 	  /* Prototype decl follows defn w/o prototype.  */
 	  if (warning_at (DECL_SOURCE_LOCATION (newdecl), 0,
-			  "prototype specified for %q+#D", newdecl))
+			  "prototype specified for %q#D", newdecl))
 	    inform (DECL_SOURCE_LOCATION (olddecl),
 		    "previous non-prototype definition here");
 	}
@@ -1834,9 +1838,10 @@ duplicate_decls (tree newdecl, tree olddecl, bool newdecl_is_friend)
 	  && (! DECL_TEMPLATE_SPECIALIZATION (newdecl)
 	      || DECL_TEMPLATE_SPECIALIZATION (olddecl)))
 	{
-	  if (warning (OPT_Wredundant_decls,
-		       "redundant redeclaration of %q+D in same scope",
-		       newdecl))
+	  if (warning_at (DECL_SOURCE_LOCATION (newdecl),
+			  OPT_Wredundant_decls,
+			  "redundant redeclaration of %qD in same scope",
+			  newdecl))
 	    inform (DECL_SOURCE_LOCATION (olddecl),
 		    "previous declaration of %qD", olddecl);
 	}
@@ -2106,6 +2111,8 @@ duplicate_decls (tree newdecl, tree olddecl, bool newdecl_is_friend)
   TREE_STATIC (olddecl) = TREE_STATIC (newdecl) |= TREE_STATIC (olddecl);
   if (! DECL_EXTERNAL (olddecl))
     DECL_EXTERNAL (newdecl) = 0;
+  if (! DECL_COMDAT (olddecl))
+    DECL_COMDAT (newdecl) = 0;
 
   new_template_info = NULL_TREE;
   if (DECL_LANG_SPECIFIC (newdecl) && DECL_LANG_SPECIFIC (olddecl))
@@ -2476,14 +2483,15 @@ duplicate_decls (tree newdecl, tree olddecl, bool newdecl_is_friend)
 	  {
             struct symtab_node *snode = NULL;
 
-            if (TREE_CODE (newdecl) == VAR_DECL
-		&& (TREE_STATIC (olddecl) || TREE_PUBLIC (olddecl) || DECL_EXTERNAL (olddecl)))
+	    if (VAR_P (newdecl)
+		&& (TREE_STATIC (olddecl) || TREE_PUBLIC (olddecl)
+		    || DECL_EXTERNAL (olddecl)))
 	      snode = symtab_node::get (olddecl);
 	    memcpy ((char *) olddecl + sizeof (struct tree_decl_common),
 		    (char *) newdecl + sizeof (struct tree_decl_common),
 		    size - sizeof (struct tree_decl_common)
 		    + TREE_CODE_LENGTH (TREE_CODE (newdecl)) * sizeof (char *));
-            if (TREE_CODE (newdecl) == VAR_DECL)
+	    if (VAR_P (newdecl))
 	      olddecl->decl_with_vis.symtab_node = snode;
 	  }
 	  break;
@@ -2496,8 +2504,7 @@ duplicate_decls (tree newdecl, tree olddecl, bool newdecl_is_friend)
 	}
     }
 
-  if (TREE_CODE (newdecl) == FUNCTION_DECL
-      || TREE_CODE (newdecl) == VAR_DECL)
+  if (VAR_OR_FUNCTION_DECL_P (newdecl))
     {
       if (DECL_EXTERNAL (olddecl)
 	  || TREE_PUBLIC (olddecl)
@@ -2522,9 +2529,13 @@ duplicate_decls (tree newdecl, tree olddecl, bool newdecl_is_friend)
 	    }
 	}
 
-      if (TREE_CODE (newdecl) == VAR_DECL
-	  && DECL_THREAD_LOCAL_P (newdecl))
-	set_decl_tls_model (olddecl, DECL_TLS_MODEL (newdecl));
+      if (VAR_P (newdecl)
+	  && CP_DECL_THREAD_LOCAL_P (newdecl))
+	{
+	  CP_DECL_THREAD_LOCAL_P (olddecl) = true;
+	  if (!processing_template_decl)
+	    set_decl_tls_model (olddecl, DECL_TLS_MODEL (newdecl));
+	}
     }
 
   DECL_UID (olddecl) = olddecl_uid;
@@ -2559,8 +2570,7 @@ duplicate_decls (tree newdecl, tree olddecl, bool newdecl_is_friend)
      structure is shared in between newdecl and oldecl.  */
   if (TREE_CODE (newdecl) == FUNCTION_DECL)
     DECL_STRUCT_FUNCTION (newdecl) = NULL;
-  if (TREE_CODE (newdecl) == FUNCTION_DECL
-      || TREE_CODE (newdecl) == VAR_DECL)
+  if (VAR_OR_FUNCTION_DECL_P (newdecl))
     {
       struct symtab_node *snode = symtab_node::get (newdecl);
       if (snode)
@@ -2703,14 +2713,14 @@ redeclaration_error_message (tree newdecl, tree olddecl)
       return NULL;
     }
   else if (VAR_P (newdecl)
-	   && DECL_THREAD_LOCAL_P (newdecl) != DECL_THREAD_LOCAL_P (olddecl)
+	   && CP_DECL_THREAD_LOCAL_P (newdecl) != CP_DECL_THREAD_LOCAL_P (olddecl)
 	   && (! DECL_LANG_SPECIFIC (olddecl)
 	       || ! CP_DECL_THREADPRIVATE_P (olddecl)
-	       || DECL_THREAD_LOCAL_P (newdecl)))
+	       || CP_DECL_THREAD_LOCAL_P (newdecl)))
     {
       /* Only variables can be thread-local, and all declarations must
 	 agree on this property.  */
-      if (DECL_THREAD_LOCAL_P (newdecl))
+      if (CP_DECL_THREAD_LOCAL_P (newdecl))
 	return G_("thread-local declaration of %q#D follows "
 	          "non-thread-local declaration");
       else
@@ -2944,10 +2954,11 @@ check_previous_goto_1 (tree decl, cp_binding_level* level, tree names,
 	  if (complained)
 	    {
 	      if (problem > 1)
-		inform (input_location,
-			"  crosses initialization of %q+#D", new_decls);
+		inform (DECL_SOURCE_LOCATION (new_decls),
+			"  crosses initialization of %q#D", new_decls);
 	      else
-		inform (input_location, "  enters scope of %q+#D which has "
+		inform (DECL_SOURCE_LOCATION (new_decls),
+			"  enters scope of %q#D which has "
 			"non-trivial destructor", new_decls);
 	    }
 	}
@@ -3050,7 +3061,8 @@ check_goto (tree decl)
   if (ent->in_try_scope || ent->in_catch_scope
       || ent->in_omp_scope || !vec_safe_is_empty (ent->bad_decls))
     {
-      complained = permerror (input_location, "jump to label %q+D", decl);
+      complained = permerror (DECL_SOURCE_LOCATION (decl),
+			      "jump to label %qD", decl);
       if (complained)
 	inform (input_location, "  from here");
       identified = true;
@@ -3070,9 +3082,11 @@ check_goto (tree decl)
       else if (complained)
 	{
 	  if (u > 1)
-	    inform (input_location, "  skips initialization of %q+#D", bad);
+	    inform (DECL_SOURCE_LOCATION (bad),
+		    "  skips initialization of %q#D", bad);
 	  else
-	    inform (input_location, "  enters scope of %q+#D which has "
+	    inform (DECL_SOURCE_LOCATION (bad),
+		    "  enters scope of %q#D which has "
 		    "non-trivial destructor", bad);
 	}
     }
@@ -3101,8 +3115,8 @@ check_goto (tree decl)
 	    {
 	      if (!identified)
 		{
-		  complained = permerror (input_location,
-					  "jump to label %q+D", decl);
+		  complained = permerror (DECL_SOURCE_LOCATION (decl),
+					  "jump to label %qD", decl);
 		  if (complained)
 		    inform (input_location, "  from here");
 		  identified = true;
@@ -3209,6 +3223,9 @@ struct cp_switch
      label.  We need a tree, rather than simply a hash table, because
      of the GNU case range extension.  */
   splay_tree cases;
+  /* Remember whether there was a case value that is outside the
+     range of the original type of the controlling expression.  */
+  bool outside_range_p;
 };
 
 /* A stack of the currently active switch statements.  The innermost
@@ -3230,6 +3247,7 @@ push_switch (tree switch_stmt)
   p->next = switch_stack;
   p->switch_stmt = switch_stmt;
   p->cases = splay_tree_new (case_compare, NULL, NULL);
+  p->outside_range_p = false;
   switch_stack = p;
 }
 
@@ -3241,10 +3259,14 @@ pop_switch (void)
 
   /* Emit warnings as needed.  */
   switch_location = EXPR_LOC_OR_LOC (cs->switch_stmt, input_location);
+  const bool bool_cond_p
+    = (SWITCH_STMT_TYPE (cs->switch_stmt)
+       && TREE_CODE (SWITCH_STMT_TYPE (cs->switch_stmt)) == BOOLEAN_TYPE);
   if (!processing_template_decl)
     c_do_switch_warnings (cs->cases, switch_location,
 			  SWITCH_STMT_TYPE (cs->switch_stmt),
-			  SWITCH_STMT_COND (cs->switch_stmt));
+			  SWITCH_STMT_COND (cs->switch_stmt),
+			  bool_cond_p, cs->outside_range_p);
 
   splay_tree_delete (cs->cases);
   switch_stack = switch_stack->next;
@@ -3309,7 +3331,8 @@ finish_case_label (location_t loc, tree low_value, tree high_value)
   high_value = case_conversion (type, high_value);
 
   r = c_add_case_label (loc, switch_stack->cases, cond, type,
-			low_value, high_value);
+			low_value, high_value,
+			&switch_stack->outside_range_p);
 
   /* After labels, make any new cleanups in the function go into their
      own new (temporary) binding contour.  */
@@ -3329,7 +3352,7 @@ struct typename_info {
   bool class_p;
 };
 
-struct typename_hasher : ggc_hasher<tree>
+struct typename_hasher : ggc_ptr_hash<tree_node>
 {
   typedef typename_info *compare_type;
 
@@ -3995,6 +4018,8 @@ cxx_init_decl_processing (void)
     TYPE_SIZE_UNIT (nullptr_type_node) = size_int (GET_MODE_SIZE (ptr_mode));
     TYPE_UNSIGNED (nullptr_type_node) = 1;
     TYPE_PRECISION (nullptr_type_node) = GET_MODE_BITSIZE (ptr_mode);
+    if (abi_version_at_least (9))
+      TYPE_ALIGN (nullptr_type_node) = GET_MODE_ALIGNMENT (ptr_mode);
     SET_TYPE_MODE (nullptr_type_node, ptr_mode);
     record_builtin_type (RID_MAX, "decltype(nullptr)", nullptr_type_node);
     nullptr_node = build_int_cst (nullptr_type_node, 0);
@@ -4725,7 +4750,8 @@ start_decl (const cp_declarator *declarator,
       && DECL_DECLARED_INLINE_P (decl)
       && DECL_UNINLINABLE (decl)
       && lookup_attribute ("noinline", DECL_ATTRIBUTES (decl)))
-    warning (0, "inline function %q+D given attribute noinline", decl);
+    warning_at (DECL_SOURCE_LOCATION (decl), 0,
+		"inline function %qD given attribute noinline", decl);
 
   if (TYPE_P (context) && COMPLETE_TYPE_P (complete_type (context)))
     {
@@ -4828,7 +4854,7 @@ start_decl (const cp_declarator *declarator,
   /* Enter this declaration into the symbol table.  Don't push the plain
      VAR_DECL for a variable template.  */
   if (!template_parm_scope_p ()
-      || TREE_CODE (decl) != VAR_DECL)
+      || !VAR_P (decl))
     decl = maybe_push_decl (decl);
 
   if (processing_template_decl)
@@ -4851,7 +4877,7 @@ start_decl (const cp_declarator *declarator,
       && DECL_DECLARED_CONSTEXPR_P (current_function_decl))
     {
       bool ok = false;
-      if (DECL_THREAD_LOCAL_P (decl))
+      if (CP_DECL_THREAD_LOCAL_P (decl))
 	error ("%qD declared %<thread_local%> in %<constexpr%> function",
 	       decl);
       else if (TREE_STATIC (decl))
@@ -5278,8 +5304,9 @@ check_for_uninitialized_const_var (tree decl)
 	    inform (DECL_SOURCE_LOCATION (defaulted_ctor),
 		    "constructor is not user-provided because it is "
 		    "explicitly defaulted in the class body");
-	  inform (0, "and the implicitly-defined constructor does not "
-		  "initialize %q+#D", field);
+	  inform (DECL_SOURCE_LOCATION (field),
+		  "and the implicitly-defined constructor does not "
+		  "initialize %q#D", field);
 	}
     }
 }
@@ -5393,7 +5420,7 @@ reshape_init_vector (tree type, reshape_iter *d, tsubst_flags_t complain)
 {
   tree max_index = NULL_TREE;
 
-  gcc_assert (TREE_CODE (type) == VECTOR_TYPE);
+  gcc_assert (VECTOR_TYPE_P (type));
 
   if (COMPOUND_LITERAL_P (d->cur->value))
     {
@@ -5410,7 +5437,7 @@ reshape_init_vector (tree type, reshape_iter *d, tsubst_flags_t complain)
     }
 
   /* For a vector, we initialize it as an array of the appropriate size.  */
-  if (TREE_CODE (type) == VECTOR_TYPE)
+  if (VECTOR_TYPE_P (type))
     max_index = size_int (TYPE_VECTOR_SUBPARTS (type) - 1);
 
   return reshape_init_array_1 (TREE_TYPE (type), max_index, d, complain);
@@ -5718,7 +5745,7 @@ reshape_init_r (tree type, reshape_iter *d, bool first_initializer_p,
     return reshape_init_class (type, d, first_initializer_p, complain);
   else if (TREE_CODE (type) == ARRAY_TYPE)
     return reshape_init_array (type, d, complain);
-  else if (TREE_CODE (type) == VECTOR_TYPE)
+  else if (VECTOR_TYPE_P (type))
     return reshape_init_vector (type, d, complain);
   else
     gcc_unreachable();
@@ -5920,7 +5947,7 @@ check_initializer (tree decl, tree init, int flags, vec<tree, va_gc> **cleanups)
 		       "not by %<{...}%>",
 		       decl);
 	    }
-	  else if (TREE_CODE (type) == VECTOR_TYPE && TYPE_VECTOR_OPAQUE (type))
+	  else if (VECTOR_TYPE_P (type) && TYPE_VECTOR_OPAQUE (type))
 	    {
 	      error ("opaque vector types cannot be initialized");
 	      init = error_mark_node;
@@ -7048,7 +7075,7 @@ register_dtor_fn (tree decl)
      function to do the cleanup.  */
   dso_parm = (flag_use_cxa_atexit
 	      && !targetm.cxx.use_atexit_for_cxa_atexit ());
-  ob_parm = (DECL_THREAD_LOCAL_P (decl) || dso_parm);
+  ob_parm = (CP_DECL_THREAD_LOCAL_P (decl) || dso_parm);
   use_dtor = ob_parm && CLASS_TYPE_P (type);
   if (use_dtor)
     {
@@ -7091,7 +7118,7 @@ register_dtor_fn (tree decl)
   mark_used (cleanup);
   cleanup = build_address (cleanup);
 
-  if (DECL_THREAD_LOCAL_P (decl))
+  if (CP_DECL_THREAD_LOCAL_P (decl))
     atex_node = get_thread_atexit_node ();
   else
     atex_node = get_atexit_node ();
@@ -7131,7 +7158,7 @@ register_dtor_fn (tree decl)
 
   if (ob_parm)
     {
-      if (!DECL_THREAD_LOCAL_P (decl)
+      if (!CP_DECL_THREAD_LOCAL_P (decl)
 	  && targetm.cxx.use_aeabi_atexit ())
 	{
 	  arg1 = cleanup;
@@ -7171,7 +7198,7 @@ expand_static_init (tree decl, tree init)
 	return;
     }
 
-  if (DECL_THREAD_LOCAL_P (decl) && DECL_GNU_TLS_P (decl)
+  if (CP_DECL_THREAD_LOCAL_P (decl) && DECL_GNU_TLS_P (decl)
       && !DECL_FUNCTION_SCOPE_P (decl))
     {
       if (init)
@@ -7200,7 +7227,7 @@ expand_static_init (tree decl, tree init)
       tree flag, begin;
       /* We don't need thread-safety code for thread-local vars.  */
       bool thread_guard = (flag_threadsafe_statics
-			   && !DECL_THREAD_LOCAL_P (decl));
+			   && !CP_DECL_THREAD_LOCAL_P (decl));
 
       /* Emit code to perform this initialization but once.  This code
 	 looks like:
@@ -7313,7 +7340,7 @@ expand_static_init (tree decl, tree init)
       finish_then_clause (if_stmt);
       finish_if_stmt (if_stmt);
     }
-  else if (DECL_THREAD_LOCAL_P (decl))
+  else if (CP_DECL_THREAD_LOCAL_P (decl))
     tls_aggregates = tree_cons (init, decl, tls_aggregates);
   else
     static_aggregates = tree_cons (init, decl, static_aggregates);
@@ -7730,15 +7757,12 @@ grokfndecl (tree ctype,
 	    }
 
 	  if (inlinep & 1)
-	    error ("%<inline%> is not allowed in declaration of friend "
-		   "template specialization %qD",
-		   decl);
-	  if (inlinep & 2)
-	    error ("%<constexpr%> is not allowed in declaration of friend "
-		   "template specialization %qD",
-		   decl);
-	  if (inlinep)
-	    return NULL_TREE;
+	    {
+	      error ("%<inline%> is not allowed in declaration of friend "
+		     "template specialization %qD",
+		     decl);
+	      return NULL_TREE;
+	    }
 	}
     }
 
@@ -7900,7 +7924,7 @@ grokfndecl (tree ctype,
   if (TYPE_NOTHROW_P (type) || nothrow_libfn_p (decl))
     TREE_NOTHROW (decl) = 1;
 
-  if (flag_openmp || flag_cilkplus)
+  if (flag_openmp || flag_openmp_simd || flag_cilkplus)
     {
       /* Adjust "omp declare simd" attributes.  */
       tree ods = lookup_attribute ("omp declare simd", *attrlist);
@@ -8177,9 +8201,13 @@ grokvardecl (tree type,
   if (decl_spec_seq_has_spec_p (declspecs, ds_thread))
     {
       if (DECL_EXTERNAL (decl) || TREE_STATIC (decl))
-        set_decl_tls_model (decl, decl_default_tls_model (decl));
+	{
+	  CP_DECL_THREAD_LOCAL_P (decl) = true;
+	  if (!processing_template_decl)
+	    set_decl_tls_model (decl, decl_default_tls_model (decl));
+	}
       if (declspecs->gnu_thread_keyword_p)
-	DECL_GNU_TLS_P (decl) = true;
+	SET_DECL_GNU_TLS_P (decl);
     }
 
   /* If the type of the decl has no linkage, make sure that we'll
@@ -9301,7 +9329,12 @@ grokdeclarator (const cp_declarator *declarator,
 	warning (OPT_Wreturn_type,
                  "ISO C++ forbids declaration of %qs with no type", name);
 
-      type = integer_type_node;
+      if (type_was_error_mark_node && template_parm_flag)
+	/* FIXME we should be able to propagate the error_mark_node as is
+	   for other contexts too.  */
+	type = error_mark_node;
+      else
+	type = integer_type_node;
     }
 
   ctype = NULL_TREE;
@@ -10852,9 +10885,11 @@ grokdeclarator (const cp_declarator *declarator,
 
 		if (thread_p)
 		  {
-		    set_decl_tls_model (decl, decl_default_tls_model (decl));
+		    CP_DECL_THREAD_LOCAL_P (decl) = true;
+		    if (!processing_template_decl)
+		      set_decl_tls_model (decl, decl_default_tls_model (decl));
 		    if (declspecs->gnu_thread_keyword_p)
-		      DECL_GNU_TLS_P (decl) = true;
+		      SET_DECL_GNU_TLS_P (decl);
 		  }
 
 		if (constexpr_p && !initialized)
@@ -13354,7 +13389,8 @@ start_preparsed_function (tree decl1, tree attrs, int flags)
 
   if (DECL_DECLARED_INLINE_P (decl1)
       && lookup_attribute ("noinline", attrs))
-    warning (0, "inline function %q+D given attribute noinline", decl1);
+    warning_at (DECL_SOURCE_LOCATION (decl1), 0,
+		"inline function %qD given attribute noinline", decl1);
 
   /* Handle gnu_inline attribute.  */
   if (GNU_INLINE_P (decl1))
@@ -13495,8 +13531,9 @@ start_preparsed_function (tree decl1, tree attrs, int flags)
 		    }
 
 		  if (context == NULL)
-		    warning (OPT_Wmissing_declarations,
-			     "no previous declaration for %q+D", decl1);
+		    warning_at (DECL_SOURCE_LOCATION (decl1),
+				OPT_Wmissing_declarations,
+				"no previous declaration for %qD", decl1);
 		}
 
 	      decl1 = olddecl;
@@ -14306,14 +14343,21 @@ finish_function (int flags)
 	    && TREE_CODE (TREE_TYPE (decl)) != REFERENCE_TYPE
 	    && (!CLASS_TYPE_P (TREE_TYPE (decl))
 	        || !TYPE_HAS_NONTRIVIAL_DESTRUCTOR (TREE_TYPE (decl))))
-	  warning (OPT_Wunused_but_set_parameter,
-		   "parameter %q+D set but not used", decl);
+	  warning_at (DECL_SOURCE_LOCATION (decl),
+		      OPT_Wunused_but_set_parameter,
+		      "parameter %qD set but not used", decl);
       unused_but_set_errorcount = errorcount;
     }
 
   /* Complain about locally defined typedefs that are not used in this
      function.  */
   maybe_warn_unused_local_typedefs ();
+
+  /* Possibly warn about unused parameters.  */
+  if (warn_unused_parameter
+      && !processing_template_decl 
+      && !DECL_CLONED_FUNCTION_P (fndecl))
+    do_warn_unused_parameter (fndecl);
 
   /* Genericize before inlining.  */
   if (!processing_template_decl)

@@ -2827,7 +2827,7 @@ extern vec<tree, va_gc> **decl_debug_args_insert (tree);
   (STATEMENT_LIST_CHECK (NODE)->stmt_list.tail)
 
 #define TREE_OPTIMIZATION(NODE) \
-  (&OPTIMIZATION_NODE_CHECK (NODE)->optimization.opts)
+  (OPTIMIZATION_NODE_CHECK (NODE)->optimization.opts)
 
 #define TREE_OPTIMIZATION_OPTABS(NODE) \
   (OPTIMIZATION_NODE_CHECK (NODE)->optimization.optabs)
@@ -3772,6 +3772,7 @@ extern tree build_constructor_from_list (tree, tree);
 extern tree build_constructor_va (tree, int, ...);
 extern tree build_real_from_int_cst (tree, const_tree);
 extern tree build_complex (tree, tree, tree);
+extern tree build_each_one_cst (tree);
 extern tree build_one_cst (tree);
 extern tree build_minus_one_cst (tree);
 extern tree build_all_ones_cst (tree);
@@ -4368,6 +4369,8 @@ extern int type_num_arguments (const_tree);
 extern bool associative_tree_code (enum tree_code);
 extern bool commutative_tree_code (enum tree_code);
 extern bool commutative_ternary_tree_code (enum tree_code);
+extern bool operation_can_overflow (enum tree_code);
+extern bool operation_no_trapping_overflow (tree, enum tree_code);
 extern tree upper_bound_in_type (tree, tree);
 extern tree lower_bound_in_type (tree, tree);
 extern int operand_equal_for_phi_arg_p (const_tree, const_tree);
@@ -4626,7 +4629,7 @@ extern unsigned int tree_map_hash (const void *);
 extern unsigned int tree_decl_map_hash (const void *);
 #define tree_decl_map_marked_p tree_map_base_marked_p
 
-struct tree_decl_map_cache_hasher : ggc_cache_hasher<tree_decl_map *>
+struct tree_decl_map_cache_hasher : ggc_cache_ptr_hash<tree_decl_map>
 {
   static hashval_t hash (tree_decl_map *m) { return tree_decl_map_hash (m); }
   static bool
@@ -4635,16 +4638,10 @@ struct tree_decl_map_cache_hasher : ggc_cache_hasher<tree_decl_map *>
     return tree_decl_map_eq (a, b);
   }
 
-  static void
-  handle_cache_entry (tree_decl_map *&m)
+  static int
+  keep_cache_entry (tree_decl_map *&m)
   {
-    extern void gt_ggc_mx (tree_decl_map *&);
-    if (m == HTAB_EMPTY_ENTRY || m == HTAB_DELETED_ENTRY)
-      return;
-    else if (ggc_marked_p (m->base.from))
-      gt_ggc_mx (m);
-    else
-      m = static_cast<tree_decl_map *> (HTAB_DELETED_ENTRY);
+    return ggc_marked_p (m->base.from);
   }
 };
 
