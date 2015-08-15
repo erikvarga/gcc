@@ -88,7 +88,7 @@ template <typename T> struct parse_result
 {
   bool valid;
   T value;
-  
+
   parse_result (void) : valid (false) { }
   parse_result (const T& v) : valid (true), value (v) { }
   parse_result (const T& v, bool vv) : valid (vv), value (v) { }
@@ -110,7 +110,7 @@ parse_int (const char* s)
     return parse_result<int> ();
 
   bool neg = false;
-  
+
   if (*s == '-')
     {
       neg = true;
@@ -574,7 +574,7 @@ sh_ams::options::options (const std::string& str)
 
   for (kvi i = kv.find ("check_original_cost"); i != kv.end (); i = kv.end ())
     parse_int (i->second).copy_if_valid_to (check_original_cost);
-    
+
   for (kvi i = kv.find ("base_lookahead_count"); i != kv.end (); i = kv.end ())
     parse_int (i->second).copy_if_valid_to (base_lookahead_count);
 
@@ -1715,7 +1715,7 @@ sh_ams::access_sequence::gen_address_mod (delegate& dlg, int base_lookahead)
   for (acc_opt_iter accs = begin<access_to_optimize> (),
        accs_end = end<access_to_optimize> (); accs != accs_end; ++accs)
     gen_min_mod (accs, dlg,
-		 base_lookahead + dlg.lookahead_count (*this, (iterator)accs),
+		 base_lookahead + dlg.adjust_lookahead_count (*this, (iterator)accs),
 		 true);
 
   typedef access_type_matches<reg_mod> reg_mod_match;
