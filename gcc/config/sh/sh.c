@@ -13798,7 +13798,7 @@ mem_access_alternatives (sh_ams::access::alternative_set& alt,
   // If there is no FPU GP regs will be used for storing FP modes, so we
   // allow normal QIHISImode alternatives also for FP modes.
   if (!TARGET_FPU_ANY
-      || (GET_MODE_CLASS (acc_mode) != MODE_FLOAT
+      || (GET_MODE_CLASS (acc_mode) != MODE_FLOAT
 	  && GET_MODE_CLASS (acc_mode) != MODE_COMPLEX_FLOAT
 	  && GET_MODE_CLASS (acc_mode) != MODE_VECTOR_FLOAT))
     {
@@ -13959,6 +13959,8 @@ addr_reg_mod_cost (const_rtx reg, const_rtx val,
 
   switch (code)
     {
+    case REG:
+      return 0;
     case PLUS:
       if (CONST_INT_P (XEXP (val, 1)))
         return ams_reg_disp_cost (reg, INTVAL (XEXP (val, 1)), as, acc);
