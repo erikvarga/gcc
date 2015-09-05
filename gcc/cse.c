@@ -4126,11 +4126,11 @@ record_jump_cond (enum rtx_code code, machine_mode mode, rtx op0,
    The main function is cse_insn, and between here and that function
    a couple of helper functions is defined to keep the size of cse_insn
    within reasonable proportions.
-   
+
    Data is shared between the main and helper functions via STRUCT SET,
    that contains all data related for every set in the instruction that
    is being processed.
-   
+
    Note that cse_main processes all sets in the instruction.  Most
    passes in GCC only process simple SET insns or single_set insns, but
    CSE processes insns with multiple sets as well.  */
@@ -4180,7 +4180,7 @@ struct set
    Do not make this change if REG1 is a hard register, because it will
    then be used in the sequel and we may be changing a two-operand insn
    into a three-operand insn.
-   
+
    This is the last transformation that cse_insn will try to do.  */
 
 static void
@@ -7520,7 +7520,7 @@ cse_condition_code_reg (void)
 /* Perform common subexpression elimination.  Nonzero value from
    `cse_main' means that jumps were simplified and some code may now
    be unreachable, so do jump optimization again.  */
-static unsigned int
+unsigned int
 rest_of_handle_cse (void)
 {
   int tem;
@@ -7585,7 +7585,7 @@ make_pass_cse (gcc::context *ctxt)
 
 
 /* Run second CSE pass after loop optimizations.  */
-static unsigned int
+unsigned int
 rest_of_handle_cse2 (void)
 {
   int tem;
@@ -7659,7 +7659,7 @@ make_pass_cse2 (gcc::context *ctxt)
 }
 
 /* Run second CSE pass after loop optimizations.  */
-static unsigned int
+unsigned int
 rest_of_handle_cse_after_global_opts (void)
 {
   int save_cfj;
