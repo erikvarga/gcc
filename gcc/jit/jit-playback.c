@@ -1793,7 +1793,7 @@ compile ()
     }
 
   /* This runs the compiler.  */
-  toplev toplev (false, /* use_TV_TOTAL */
+  toplev toplev (get_timer (), /* external_timer */
 		 false); /* init_signals */
   enter_scope ("toplev::main");
   if (get_logger ())
@@ -2085,6 +2085,8 @@ static pthread_mutex_t jit_mutex = PTHREAD_MUTEX_INITIALIZER;
 void
 playback::context::acquire_mutex ()
 {
+  auto_timevar tv (get_timer (), TV_JIT_ACQUIRING_MUTEX);
+
   /* Acquire the big GCC mutex. */
   JIT_LOG_SCOPE (get_logger ());
   pthread_mutex_lock (&jit_mutex);
@@ -2252,6 +2254,9 @@ make_fake_args (vec <char *> *argvec,
       }
   }
 
+  if (get_timer ())
+    ADD_ARG ("-ftime-report");
+
   /* Add any user-provided extra options, starting with any from
      parent contexts.  */
   m_recording_ctxt->append_command_line_options (argvec);
@@ -2368,6 +2373,8 @@ convert_to_dso (const char *ctxt_progname)
 		 true);/* bool run_linker */
 }
 
+static const char * const gcc_driver_name = GCC_DRIVER_NAME;
+
 void
 playback::context::
 invoke_driver (const char *ctxt_progname,
@@ -2378,15 +2385,15 @@ invoke_driver (const char *ctxt_progname,
 	       bool run_linker)
 {
   JIT_LOG_SCOPE (get_logger ());
+
+  bool embedded_driver
+    = !get_inner_bool_option (INNER_BOOL_OPTION_USE_EXTERNAL_DRIVER);
+
   /* Currently this lumps together both assembling and linking into
      TV_ASSEMBLE.  */
-  auto_timevar assemble_timevar (tv_id);
-  const char *errmsg;
+  auto_timevar assemble_timevar (get_timer (), tv_id);
   auto_argvec argvec;
 #define ADD_ARG(arg) argvec.safe_push (xstrdup (arg))
-  int exit_status = 0;
-  int err = 0;
-  const char *gcc_driver_name = GCC_DRIVER_NAME;
 
   ADD_ARG (gcc_driver_name);
 
@@ -2411,8 +2418,19 @@ invoke_driver (const char *ctxt_progname,
      time.  */
   ADD_ARG ("-fno-use-linker-plugin");
 
-  /* pex argv arrays are NULL-terminated.  */
-  argvec.safe_push (NULL);
+#if defined (DARWIN_X86) || defined (DARWIN_PPC)
+  /* OS X's linker defaults to treating undefined symbols as errors.
+     If the context has any imported functions or globals they will be
+     undefined until the .so is dynamically-linked into the process.
+     Ensure that the driver passes in "-undefined dynamic_lookup" to the
+     linker.  */
+  ADD_ARG ("-Wl,-undefined,dynamic_lookup");
+#endif
+
+  if (0)
+    ADD_ARG ("-v");
+
+#undef ADD_ARG
 
   /* pex_one's error-handling requires pname to be non-NULL.  */
   gcc_assert (ctxt_progname);
@@ -2421,9 +2439,42 @@ invoke_driver (const char *ctxt_progname,
     for (unsigned i = 0; i < argvec.length (); i++)
       get_logger ()->log ("argv[%i]: %s", i, argvec[i]);
 
+  if (embedded_driver)
+    invoke_embedded_driver (&argvec);
+  else
+    invoke_external_driver (ctxt_progname, &argvec);
+}
+
+void
+playback::context::
+invoke_embedded_driver (const vec <char *> *argvec)
+{
+  JIT_LOG_SCOPE (get_logger ());
+  driver d (true, /* can_finalize */
+	    false); /* debug */
+  int result = d.main (argvec->length (),
+		       const_cast <char **> (argvec->address ()));
+  d.finalize ();
+  if (result)
+    add_error (NULL, "error invoking gcc driver");
+}
+
+void
+playback::context::
+invoke_external_driver (const char *ctxt_progname,
+			vec <char *> *argvec)
+{
+  JIT_LOG_SCOPE (get_logger ());
+  const char *errmsg;
+  int exit_status = 0;
+  int err = 0;
+
+  /* pex argv arrays are NULL-terminated.  */
+  argvec->safe_push (NULL);
+
   errmsg = pex_one (PEX_SEARCH, /* int flags, */
 		    gcc_driver_name,
-		    const_cast <char *const *> (argvec.address ()),
+		    const_cast <char *const *> (argvec->address ()),
 		    ctxt_progname, /* const char *pname */
 		    NULL, /* const char *outname */
 		    NULL, /* const char *errname */
@@ -2450,7 +2501,6 @@ invoke_driver (const char *ctxt_progname,
 		 getenv ("PATH"));
       return;
     }
-#undef ADD_ARG
 }
 
 /* Extract the target-specific MULTILIB_DEFAULTS to
@@ -2492,7 +2542,7 @@ playback::context::
 dlopen_built_dso ()
 {
   JIT_LOG_SCOPE (get_logger ());
-  auto_timevar load_timevar (TV_LOAD);
+  auto_timevar load_timevar (get_timer (), TV_LOAD);
   void *handle = NULL;
   const char *error = NULL;
   result *result_obj = NULL;

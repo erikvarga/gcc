@@ -267,8 +267,8 @@ vect_analyze_data_ref_dependence (struct data_dependence_relation *ddr,
 	  return false;
 	}
 
-      if (STMT_VINFO_GATHER_P (stmtinfo_a)
-	  || STMT_VINFO_GATHER_P (stmtinfo_b))
+      if (STMT_VINFO_GATHER_SCATTER_P (stmtinfo_a)
+	  || STMT_VINFO_GATHER_SCATTER_P (stmtinfo_b))
 	{
 	  if (dump_enabled_p ())
 	    {
@@ -315,8 +315,8 @@ vect_analyze_data_ref_dependence (struct data_dependence_relation *ddr,
 	  return false;
 	}
 
-      if (STMT_VINFO_GATHER_P (stmtinfo_a)
-	  || STMT_VINFO_GATHER_P (stmtinfo_b))
+      if (STMT_VINFO_GATHER_SCATTER_P (stmtinfo_a)
+	  || STMT_VINFO_GATHER_SCATTER_P (stmtinfo_b))
 	{
 	  if (dump_enabled_p ())
 	    {
@@ -622,7 +622,6 @@ vect_compute_data_ref_alignment (struct data_reference *dr)
   tree ref = DR_REF (dr);
   tree vectype;
   tree base, base_addr;
-  bool base_aligned;
   tree misalign = NULL_TREE;
   tree aligned_to;
   unsigned HOST_WIDE_INT alignment;
@@ -698,6 +697,19 @@ vect_compute_data_ref_alignment (struct data_reference *dr)
 	}
     }
 
+  /* To look at alignment of the base we have to preserve an inner MEM_REF
+     as that carries alignment information of the actual access.  */
+  base = ref;
+  while (handled_component_p (base))
+    base = TREE_OPERAND (base, 0);
+  if (TREE_CODE (base) == MEM_REF)
+    base = build2 (MEM_REF, TREE_TYPE (base), base_addr,
+		   build_int_cst (TREE_TYPE (TREE_OPERAND (base, 1)), 0));
+  unsigned int base_alignment = get_object_alignment (base);
+
+  if (base_alignment >= TYPE_ALIGN (TREE_TYPE (vectype)))
+    DR_VECT_AUX (dr)->base_element_aligned = true;
+
   alignment = TYPE_ALIGN_UNIT (vectype);
 
   if ((compare_tree_int (aligned_to, alignment) < 0)
@@ -713,21 +725,7 @@ vect_compute_data_ref_alignment (struct data_reference *dr)
       return true;
     }
 
-  /* To look at alignment of the base we have to preserve an inner MEM_REF
-     as that carries alignment information of the actual access.  */
-  base = ref;
-  while (handled_component_p (base))
-    base = TREE_OPERAND (base, 0);
-  if (TREE_CODE (base) == MEM_REF)
-    base = build2 (MEM_REF, TREE_TYPE (base), base_addr,
-		   build_int_cst (TREE_TYPE (TREE_OPERAND (base, 1)), 0));
-
-  if (get_object_alignment (base) >= TYPE_ALIGN (vectype))
-    base_aligned = true;
-  else
-    base_aligned = false;
-
-  if (!base_aligned)
+  if (base_alignment < TYPE_ALIGN (vectype))
     {
       /* Strip an inner MEM_REF to a bare decl if possible.  */
       if (TREE_CODE (base) == MEM_REF
@@ -757,8 +755,9 @@ vect_compute_data_ref_alignment (struct data_reference *dr)
           dump_printf (MSG_NOTE, "\n");
         }
 
-      ((dataref_aux *)dr->aux)->base_decl = base;
-      ((dataref_aux *)dr->aux)->base_misaligned = true;
+      DR_VECT_AUX (dr)->base_decl = base;
+      DR_VECT_AUX (dr)->base_misaligned = true;
+      DR_VECT_AUX (dr)->base_element_aligned = true;
     }
 
   /* If this is a backward running DR then first access in the larger
@@ -2013,10 +2012,11 @@ vect_analyze_data_refs_alignment (loop_vec_info loop_vinfo,
 /* Analyze groups of accesses: check that DR belongs to a group of
    accesses of legal size, step, etc.  Detect gaps, single element
    interleaving, and other special cases. Set grouped access info.
-   Collect groups of strided stores for further use in SLP analysis.  */
+   Collect groups of strided stores for further use in SLP analysis.
+   Worker for vect_analyze_group_access.  */
 
 static bool
-vect_analyze_group_access (struct data_reference *dr)
+vect_analyze_group_access_1 (struct data_reference *dr)
 {
   tree step = DR_STEP (dr);
   tree scalar_type = TREE_TYPE (DR_REF (dr));
@@ -2183,6 +2183,14 @@ vect_analyze_group_access (struct data_reference *dr)
       if (groupsize == 0)
         groupsize = count + gaps;
 
+      if (groupsize > UINT_MAX)
+	{
+	  if (dump_enabled_p ())
+	    dump_printf_loc (MSG_MISSED_OPTIMIZATION, vect_location,
+			     "group is too large\n");
+	  return false;
+	}
+
       /* Check that the size of the interleaving is equal to count for stores,
          i.e., that there are no gaps.  */
       if (groupsize != count
@@ -2204,13 +2212,18 @@ vect_analyze_group_access (struct data_reference *dr)
       if (dump_enabled_p ())
 	{
 	  dump_printf_loc (MSG_NOTE, vect_location,
-			   "Detected interleaving of size %d starting with ",
-			   (int)groupsize);
+			   "Detected interleaving ");
+	  if (DR_IS_READ (dr))
+	    dump_printf (MSG_NOTE, "load ");
+	  else
+	    dump_printf (MSG_NOTE, "store ");
+	  dump_printf (MSG_NOTE, "of size %u starting with ",
+		       (unsigned)groupsize);
 	  dump_gimple_stmt (MSG_NOTE, TDF_SLIM, stmt, 0);
 	  if (GROUP_GAP (vinfo_for_stmt (stmt)) != 0)
 	    dump_printf_loc (MSG_NOTE, vect_location,
-			     "There is a gap of %d elements after the group\n",
-			     (int)GROUP_GAP (vinfo_for_stmt (stmt)));
+			     "There is a gap of %u elements after the group\n",
+			     GROUP_GAP (vinfo_for_stmt (stmt)));
 	}
 
       /* SLP: create an SLP data structure for every interleaving group of
@@ -2250,6 +2263,30 @@ vect_analyze_group_access (struct data_reference *dr)
   return true;
 }
 
+/* Analyze groups of accesses: check that DR belongs to a group of
+   accesses of legal size, step, etc.  Detect gaps, single element
+   interleaving, and other special cases. Set grouped access info.
+   Collect groups of strided stores for further use in SLP analysis.  */
+
+static bool
+vect_analyze_group_access (struct data_reference *dr)
+{
+  if (!vect_analyze_group_access_1 (dr))
+    {
+      /* Dissolve the group if present.  */
+      gimple next, stmt = GROUP_FIRST_ELEMENT (vinfo_for_stmt (DR_STMT (dr)));
+      while (stmt)
+	{
+	  stmt_vec_info vinfo = vinfo_for_stmt (stmt);
+	  next = GROUP_NEXT_ELEMENT (vinfo);
+	  GROUP_FIRST_ELEMENT (vinfo) = NULL;
+	  GROUP_NEXT_ELEMENT (vinfo) = NULL;
+	  stmt = next;
+	}
+      return false;
+    }
+  return true;
+}
 
 /* Analyze the access pattern of the data-reference DR.
    In case of non-consecutive accesses call vect_analyze_group_access() to
@@ -2307,10 +2344,7 @@ vect_analyze_data_ref_access (struct data_reference *dr)
 	  if (dump_enabled_p ())
 	    dump_printf_loc (MSG_NOTE, vect_location,
 	                     "zero step in outer loop.\n");
-	  if (DR_IS_READ (dr))
-  	    return true;
-	  else
-	    return false;
+	  return DR_IS_READ (dr);
 	}
     }
 
@@ -2599,6 +2633,10 @@ vect_analyze_data_ref_accesses (loop_vec_info loop_vinfo, bb_vec_info bb_vinfo)
 	    {
 	      dump_printf_loc (MSG_NOTE, vect_location,
 			       "Detected interleaving ");
+	      if (DR_IS_READ (dra))
+		dump_printf (MSG_NOTE, "load ");
+	      else
+		dump_printf (MSG_NOTE, "store ");
 	      dump_generic_expr (MSG_NOTE, TDF_SLIM, DR_REF (dra));
 	      dump_printf (MSG_NOTE,  " and ");
 	      dump_generic_expr (MSG_NOTE, TDF_SLIM, DR_REF (drb));
@@ -2956,12 +2994,12 @@ vect_prune_runtime_alias_test_list (loop_vec_info loop_vinfo)
   return true;
 }
 
-/* Check whether a non-affine read in stmt is suitable for gather load
-   and if so, return a builtin decl for that operation.  */
+/* Check whether a non-affine read or write in stmt is suitable for gather load
+   or scatter store and if so, return a builtin decl for that operation.  */
 
 tree
-vect_check_gather (gimple stmt, loop_vec_info loop_vinfo, tree *basep,
-		   tree *offp, int *scalep)
+vect_check_gather_scatter (gimple stmt, loop_vec_info loop_vinfo, tree *basep,
+			   tree *offp, int *scalep)
 {
   HOST_WIDE_INT scale = 1, pbitpos, pbitsize;
   struct loop *loop = LOOP_VINFO_LOOP (loop_vinfo);
@@ -2990,7 +3028,7 @@ vect_check_gather (gimple stmt, loop_vec_info loop_vinfo, tree *basep,
 	base = TREE_OPERAND (gimple_assign_rhs1 (def_stmt), 0);
     }
 
-  /* The gather builtins need address of the form
+  /* The gather and scatter builtins need address of the form
      loop_invariant + vector * {1, 2, 4, 8}
      or
      loop_invariant + sign_extend (vector) * { 1, 2, 4, 8 }.
@@ -3153,8 +3191,13 @@ vect_check_gather (gimple stmt, loop_vec_info loop_vinfo, tree *basep,
   if (offtype == NULL_TREE)
     offtype = TREE_TYPE (off);
 
-  decl = targetm.vectorize.builtin_gather (STMT_VINFO_VECTYPE (stmt_info),
-					   offtype, scale);
+  if (DR_IS_READ (dr))
+    decl = targetm.vectorize.builtin_gather (STMT_VINFO_VECTYPE (stmt_info),
+					     offtype, scale);
+  else
+    decl = targetm.vectorize.builtin_scatter (STMT_VINFO_VECTYPE (stmt_info),
+					      offtype, scale);
+
   if (decl == NULL_TREE)
     return NULL_TREE;
 
@@ -3303,7 +3346,7 @@ vect_analyze_data_refs (loop_vec_info loop_vinfo,
       gimple stmt;
       stmt_vec_info stmt_info;
       tree base, offset, init;
-      bool gather = false;
+      enum { SG_NONE, GATHER, SCATTER } gatherscatter = SG_NONE;
       bool simd_lane_access = false;
       int vf;
 
@@ -3342,18 +3385,22 @@ again:
 	    = DR_IS_READ (dr)
 	      && !TREE_THIS_VOLATILE (DR_REF (dr))
 	      && targetm.vectorize.builtin_gather != NULL;
+	  bool maybe_scatter
+	    = DR_IS_WRITE (dr)
+	      && !TREE_THIS_VOLATILE (DR_REF (dr))
+	      && targetm.vectorize.builtin_scatter != NULL;
 	  bool maybe_simd_lane_access
 	    = loop_vinfo && loop->simduid;
 
-	  /* If target supports vector gather loads, or if this might be
-	     a SIMD lane access, see if they can't be used.  */
+	  /* If target supports vector gather loads or scatter stores, or if
+	     this might be a SIMD lane access, see if they can't be used.  */
 	  if (loop_vinfo
-	      && (maybe_gather || maybe_simd_lane_access)
+	      && (maybe_gather || maybe_scatter || maybe_simd_lane_access)
 	      && !nested_in_vect_loop_p (loop, stmt))
 	    {
 	      struct data_reference *newdr
 		= create_data_ref (NULL, loop_containing_stmt (stmt),
-				   DR_REF (dr), stmt, true);
+				   DR_REF (dr), stmt, maybe_scatter ? false : true);
 	      gcc_assert (newdr != NULL && DR_REF (newdr));
 	      if (DR_BASE_ADDRESS (newdr)
 		  && DR_OFFSET (newdr)
@@ -3406,17 +3453,20 @@ again:
 			    }
 			}
 		    }
-		  if (!simd_lane_access && maybe_gather)
+		  if (!simd_lane_access && (maybe_gather || maybe_scatter))
 		    {
 		      dr = newdr;
-		      gather = true;
+		      if (maybe_gather)
+			gatherscatter = GATHER;
+		      else
+			gatherscatter = SCATTER;
 		    }
 		}
-	      if (!gather && !simd_lane_access)
+	      if (gatherscatter == SG_NONE && !simd_lane_access)
 		free_data_ref (newdr);
 	    }
 
-	  if (!gather && !simd_lane_access)
+	  if (gatherscatter == SG_NONE && !simd_lane_access)
 	    {
 	      if (dump_enabled_p ())
 		{
@@ -3444,7 +3494,7 @@ again:
           if (bb_vinfo)
 	    break;
 
-	  if (gather || simd_lane_access)
+	  if (gatherscatter != SG_NONE || simd_lane_access)
 	    free_data_ref (dr);
 	  return false;
         }
@@ -3479,7 +3529,7 @@ again:
           if (bb_vinfo)
 	    break;
 
-	  if (gather || simd_lane_access)
+	  if (gatherscatter != SG_NONE || simd_lane_access)
 	    free_data_ref (dr);
           return false;
         }
@@ -3499,7 +3549,7 @@ again:
           if (bb_vinfo)
 	    break;
 
-	  if (gather || simd_lane_access)
+	  if (gatherscatter != SG_NONE || simd_lane_access)
 	    free_data_ref (dr);
           return false;
 	}
@@ -3524,7 +3574,7 @@ again:
 	  if (bb_vinfo)
 	    break;
 
-	  if (gather || simd_lane_access)
+	  if (gatherscatter != SG_NONE || simd_lane_access)
 	    free_data_ref (dr);
 	  return false;
 	}
@@ -3662,7 +3712,7 @@ again:
           if (bb_vinfo)
 	    break;
 
-	  if (gather || simd_lane_access)
+	  if (gatherscatter != SG_NONE || simd_lane_access)
 	    free_data_ref (dr);
           return false;
         }
@@ -3695,10 +3745,10 @@ again:
           if (bb_vinfo)
 	    break;
 
-	  if (gather || simd_lane_access)
+	  if (gatherscatter != SG_NONE || simd_lane_access)
 	    {
 	      STMT_VINFO_DATA_REF (stmt_info) = NULL;
-	      if (gather)
+	      if (gatherscatter != SG_NONE)
 		free_data_ref (dr);
 	    }
 	  return false;
@@ -3722,23 +3772,22 @@ again:
       if (vf > *min_vf)
 	*min_vf = vf;
 
-      if (gather)
+      if (gatherscatter != SG_NONE)
 	{
 	  tree off;
-
-	  gather = 0 != vect_check_gather (stmt, loop_vinfo, NULL, &off, NULL);
-	  if (gather
-	      && get_vectype_for_scalar_type (TREE_TYPE (off)) == NULL_TREE)
-	    gather = false;
-	  if (!gather)
+	  if (!vect_check_gather_scatter (stmt, loop_vinfo, NULL, &off, NULL)
+	      || get_vectype_for_scalar_type (TREE_TYPE (off)) == NULL_TREE)
 	    {
 	      STMT_VINFO_DATA_REF (stmt_info) = NULL;
 	      free_data_ref (dr);
 	      if (dump_enabled_p ())
 		{
-		  dump_printf_loc (MSG_MISSED_OPTIMIZATION, vect_location, 
-                                   "not vectorized: not suitable for gather "
-                                   "load ");
+		  dump_printf_loc (MSG_MISSED_OPTIMIZATION, vect_location,
+				   (gatherscatter == GATHER) ?
+				   "not vectorized: not suitable for gather "
+				   "load " :
+				   "not vectorized: not suitable for scatter "
+				   "store ");
 		  dump_gimple_stmt (MSG_MISSED_OPTIMIZATION, TDF_SLIM, stmt, 0);
                   dump_printf (MSG_MISSED_OPTIMIZATION, "\n");
 		}
@@ -3746,8 +3795,9 @@ again:
 	    }
 
 	  datarefs[i] = dr;
-	  STMT_VINFO_GATHER_P (stmt_info) = true;
+	  STMT_VINFO_GATHER_SCATTER_P (stmt_info) = gatherscatter;
 	}
+
       else if (loop_vinfo
 	       && TREE_CODE (DR_STEP (dr)) != INTEGER_CST)
 	{

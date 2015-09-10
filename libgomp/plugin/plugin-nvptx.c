@@ -36,6 +36,7 @@
 #include "libgomp-plugin.h"
 #include "oacc-ptx.h"
 #include "oacc-plugin.h"
+#include "gomp-constants.h"
 
 #include <pthread.h>
 #include <cuda.h>
@@ -43,16 +44,15 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include <dlfcn.h>
 #include <unistd.h>
 #include <assert.h>
 
 #define	ARRAYSIZE(X) (sizeof (X) / sizeof ((X)[0]))
 
-static struct
+static const struct
 {
   CUresult r;
-  char *m;
+  const char *m;
 } cuda_errlist[]=
 {
   { CUDA_ERROR_INVALID_VALUE, "invalid value" },
@@ -109,9 +109,7 @@ static struct
   { CUDA_ERROR_UNKNOWN, "unknown" }
 };
 
-static char errmsg[128];
-
-static char *
+static const char *
 cuda_error (CUresult r)
 {
   int i;
@@ -119,12 +117,14 @@ cuda_error (CUresult r)
   for (i = 0; i < ARRAYSIZE (cuda_errlist); i++)
     {
       if (cuda_errlist[i].r == r)
-	return &cuda_errlist[i].m[0];
+	return cuda_errlist[i].m;
     }
 
-  sprintf (&errmsg[0], "unknown result code: %5d", r);
+  static char errmsg[30];
 
-  return &errmsg[0];
+  snprintf (errmsg, sizeof (errmsg), "unknown error code: %d", r);
+
+  return errmsg;
 }
 
 static unsigned int instantiated_devices = 0;
@@ -353,74 +353,6 @@ static struct ptx_event *ptx_events;
 
 static struct ptx_device **ptx_devices;
 
-#define _XSTR(s) _STR(s)
-#define _STR(s) #s
-
-static struct _synames
-{
-  char *n;
-} cuda_symnames[] =
-{
-  { _XSTR (cuCtxCreate) },
-  { _XSTR (cuCtxDestroy) },
-  { _XSTR (cuCtxGetCurrent) },
-  { _XSTR (cuCtxPushCurrent) },
-  { _XSTR (cuCtxSynchronize) },
-  { _XSTR (cuDeviceGet) },
-  { _XSTR (cuDeviceGetAttribute) },
-  { _XSTR (cuDeviceGetCount) },
-  { _XSTR (cuEventCreate) },
-  { _XSTR (cuEventDestroy) },
-  { _XSTR (cuEventQuery) },
-  { _XSTR (cuEventRecord) },
-  { _XSTR (cuInit) },
-  { _XSTR (cuLaunchKernel) },
-  { _XSTR (cuLinkAddData) },
-  { _XSTR (cuLinkComplete) },
-  { _XSTR (cuLinkCreate) },
-  { _XSTR (cuMemAlloc) },
-  { _XSTR (cuMemAllocHost) },
-  { _XSTR (cuMemcpy) },
-  { _XSTR (cuMemcpyDtoH) },
-  { _XSTR (cuMemcpyDtoHAsync) },
-  { _XSTR (cuMemcpyHtoD) },
-  { _XSTR (cuMemcpyHtoDAsync) },
-  { _XSTR (cuMemFree) },
-  { _XSTR (cuMemFreeHost) },
-  { _XSTR (cuMemGetAddressRange) },
-  { _XSTR (cuMemHostGetDevicePointer) },
-  { _XSTR (cuMemHostRegister) },
-  { _XSTR (cuMemHostUnregister) },
-  { _XSTR (cuModuleGetFunction) },
-  { _XSTR (cuModuleLoadData) },
-  { _XSTR (cuStreamDestroy) },
-  { _XSTR (cuStreamQuery) },
-  { _XSTR (cuStreamSynchronize) },
-  { _XSTR (cuStreamWaitEvent) }
-};
-
-static int
-verify_device_library (void)
-{
-  int i;
-  void *dh, *ds;
-
-  dh = dlopen ("libcuda.so", RTLD_LAZY);
-  if (!dh)
-    return -1;
-
-  for (i = 0; i < ARRAYSIZE (cuda_symnames); i++)
-    {
-      ds = dlsym (dh, cuda_symnames[i].n);
-      if (!ds)
-        return -1;
-    }
-
-  dlclose (dh);
-
-  return 0;
-}
-
 static inline struct nvptx_thread *
 nvptx_thread (void)
 {
@@ -601,15 +533,10 @@ static bool
 nvptx_init (void)
 {
   CUresult r;
-  int rc;
   int ndevs;
 
   if (instantiated_devices != 0)
     return true;
-
-  rc = verify_device_library ();
-  if (rc < 0)
-    return false;
 
   r = cuInit (0);
   if (r != CUDA_SUCCESS)
@@ -1644,11 +1571,20 @@ typedef struct nvptx_tdata
   size_t fn_num;
 } nvptx_tdata_t;
 
+/* Return the libgomp version number we're compatible with.  There is
+   no requirement for cross-version compatibility.  */
+
+unsigned
+GOMP_OFFLOAD_version (void)
+{
+  return GOMP_VERSION;
+}
+
 /* Load the (partial) program described by TARGET_DATA to device
    number ORD.  Allocate and return TARGET_TABLE.  */
 
 int
-GOMP_OFFLOAD_load_image (int ord, const void *target_data,
+GOMP_OFFLOAD_load_image (int ord, unsigned version, const void *target_data,
 			 struct addr_pair **target_table)
 {
   CUmodule module;
@@ -1661,6 +1597,11 @@ GOMP_OFFLOAD_load_image (int ord, const void *target_data,
   struct ptx_image_data *new_image;
   struct ptx_device *dev;
 
+  if (GOMP_VERSION_DEV (version) > GOMP_VERSION_NVIDIA_PTX)
+    GOMP_PLUGIN_fatal ("Offload data incompatible with PTX plugin"
+		       " (expected %u, received %u)",
+		       GOMP_VERSION_NVIDIA_PTX, GOMP_VERSION_DEV (version));
+  
   GOMP_OFFLOAD_init_device (ord);
 
   dev = ptx_devices[ord];
@@ -1730,11 +1671,14 @@ GOMP_OFFLOAD_load_image (int ord, const void *target_data,
    function descriptors allocated by G_O_load_image.  */
 
 void
-GOMP_OFFLOAD_unload_image (int ord, const void *target_data)
+GOMP_OFFLOAD_unload_image (int ord, unsigned version, const void *target_data)
 {
   struct ptx_image_data *image, **prev_p;
   struct ptx_device *dev = ptx_devices[ord];
 
+  if (GOMP_VERSION_DEV (version) > GOMP_VERSION_NVIDIA_PTX)
+    return;
+  
   pthread_mutex_lock (&dev->image_lock);
   for (prev_p = &dev->images; (image = *prev_p) != 0; prev_p = &image->next)
     if (image->target_data == target_data)

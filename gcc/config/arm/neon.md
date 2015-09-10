@@ -320,11 +320,11 @@
   [(set_attr "type" "neon_load1_all_lanes<q>,neon_from_gp<q>")])
 
 (define_insn "vec_set<mode>_internal"
-  [(set (match_operand:VQ 0 "s_register_operand" "=w,w")
-        (vec_merge:VQ
-          (vec_duplicate:VQ
+  [(set (match_operand:VQ2 0 "s_register_operand" "=w,w")
+        (vec_merge:VQ2
+          (vec_duplicate:VQ2
             (match_operand:<V_elem> 1 "nonimmediate_operand" "Um,r"))
-          (match_operand:VQ 3 "s_register_operand" "0,0")
+          (match_operand:VQ2 3 "s_register_operand" "0,0")
           (match_operand:SI 2 "immediate_operand" "i,i")))]
   "TARGET_NEON"
 {
@@ -407,7 +407,7 @@
 (define_insn "vec_extract<mode>"
   [(set (match_operand:<V_elem> 0 "nonimmediate_operand" "=Um,r")
 	(vec_select:<V_elem>
-          (match_operand:VQ 1 "s_register_operand" "w,w")
+          (match_operand:VQ2 1 "s_register_operand" "w,w")
           (parallel [(match_operand:SI 2 "immediate_operand" "i,i")])))]
   "TARGET_NEON"
 {
@@ -2607,7 +2607,7 @@
   [(set (match_operand:SI 0 "s_register_operand" "=r")
 	(sign_extend:SI
 	  (vec_select:<V_elem>
-	    (match_operand:VQ 1 "s_register_operand" "w")
+	    (match_operand:VQ2 1 "s_register_operand" "w")
 	    (parallel [(match_operand:SI 2 "immediate_operand" "i")]))))]
   "TARGET_NEON"
 {
@@ -2634,7 +2634,7 @@
   [(set (match_operand:SI 0 "s_register_operand" "=r")
 	(zero_extend:SI
 	  (vec_select:<V_elem>
-	    (match_operand:VQ 1 "s_register_operand" "w")
+	    (match_operand:VQ2 1 "s_register_operand" "w")
 	    (parallel [(match_operand:SI 2 "immediate_operand" "i")]))))]
   "TARGET_NEON"
 {
@@ -2672,12 +2672,12 @@
 	 to this model.  */
       unsigned int elt = INTVAL (operands[2]);
       unsigned int reg_nelts
-	= 64 / GET_MODE_BITSIZE (GET_MODE_INNER (<MODE>mode));
+	= 64 / GET_MODE_UNIT_BITSIZE (<MODE>mode);
       elt ^= reg_nelts - 1;
       operands[2] = GEN_INT (elt);
     }
 
-  if (GET_MODE_BITSIZE (GET_MODE_INNER (<MODE>mode)) == 32)
+  if (GET_MODE_UNIT_BITSIZE (<MODE>mode) == 32)
     emit_insn (gen_vec_extract<mode> (operands[0], operands[1], operands[2]));
   else
     emit_insn (gen_neon_vget_lane<mode>_sext_internal (operands[0],
@@ -2701,12 +2701,12 @@
 	 to this model.  */
       unsigned int elt = INTVAL (operands[2]);
       unsigned int reg_nelts
-	= 64 / GET_MODE_BITSIZE (GET_MODE_INNER (<MODE>mode));
+	= 64 / GET_MODE_UNIT_BITSIZE (<MODE>mode);
       elt ^= reg_nelts - 1;
       operands[2] = GEN_INT (elt);
     }
 
-  if (GET_MODE_BITSIZE (GET_MODE_INNER (<MODE>mode)) == 32)
+  if (GET_MODE_UNIT_BITSIZE (<MODE>mode) == 32)
     emit_insn (gen_vec_extract<mode> (operands[0], operands[1], operands[2]));
   else
     emit_insn (gen_neon_vget_lane<mode>_zext_internal (operands[0],
@@ -2731,7 +2731,22 @@
    (match_operand:SI 2 "immediate_operand" "")]
   "TARGET_NEON"
 {
-  int lane = INTVAL (operands[2]);
+  int lane;
+
+if (BYTES_BIG_ENDIAN)
+    {
+      /* The intrinsics are defined in terms of a model where the
+	 element ordering in memory is vldm order, whereas the generic
+	 RTL is defined in terms of a model where the element ordering
+	 in memory is array order.  Convert the lane number to conform
+	 to this model.  */
+      unsigned int elt = INTVAL (operands[2]);
+      unsigned int reg_nelts = 2;
+      elt ^= reg_nelts - 1;
+      operands[2] = GEN_INT (elt);
+    }
+
+  lane = INTVAL (operands[2]);
   gcc_assert ((lane ==0) || (lane == 1));
   emit_move_insn (operands[0], lane == 0
 				? gen_lowpart (DImode, operands[1])
@@ -2751,7 +2766,7 @@
   if (BYTES_BIG_ENDIAN)
     {
       unsigned int reg_nelts
-	= 64 / GET_MODE_BITSIZE (GET_MODE_INNER (<MODE>mode));
+	= 64 / GET_MODE_UNIT_BITSIZE (<MODE>mode);
       elt ^= reg_nelts - 1;
     }
 
@@ -2774,7 +2789,7 @@
 })
 
 (define_expand "neon_vcreate<mode>"
-  [(match_operand:VDX 0 "s_register_operand" "")
+  [(match_operand:VD_RE 0 "s_register_operand" "")
    (match_operand:DI 1 "general_operand" "")]
   "TARGET_NEON"
 {
@@ -2854,7 +2869,7 @@
     {
       unsigned int elt = INTVAL (operands[2]);
       unsigned int reg_nelts
-	= 64 / GET_MODE_BITSIZE (GET_MODE_INNER (<V_double_vector_mode>mode));
+	= 64 / GET_MODE_UNIT_BITSIZE (<V_double_vector_mode>mode);
       elt ^= reg_nelts - 1;
       operands[2] = GEN_INT (elt);
     }
@@ -4125,7 +4140,7 @@
 
 (define_expand "neon_vreinterpretv8qi<mode>"
   [(match_operand:V8QI 0 "s_register_operand" "")
-   (match_operand:VDX 1 "s_register_operand" "")]
+   (match_operand:VD_RE 1 "s_register_operand" "")]
   "TARGET_NEON"
 {
   neon_reinterpret (operands[0], operands[1]);
@@ -4134,7 +4149,7 @@
 
 (define_expand "neon_vreinterpretv4hi<mode>"
   [(match_operand:V4HI 0 "s_register_operand" "")
-   (match_operand:VDX 1 "s_register_operand" "")]
+   (match_operand:VD_RE 1 "s_register_operand" "")]
   "TARGET_NEON"
 {
   neon_reinterpret (operands[0], operands[1]);
@@ -4143,7 +4158,7 @@
 
 (define_expand "neon_vreinterpretv2si<mode>"
   [(match_operand:V2SI 0 "s_register_operand" "")
-   (match_operand:VDX 1 "s_register_operand" "")]
+   (match_operand:VD_RE 1 "s_register_operand" "")]
   "TARGET_NEON"
 {
   neon_reinterpret (operands[0], operands[1]);
@@ -4152,7 +4167,7 @@
 
 (define_expand "neon_vreinterpretv2sf<mode>"
   [(match_operand:V2SF 0 "s_register_operand" "")
-   (match_operand:VDX 1 "s_register_operand" "")]
+   (match_operand:VD_RE 1 "s_register_operand" "")]
   "TARGET_NEON"
 {
   neon_reinterpret (operands[0], operands[1]);
@@ -4161,7 +4176,7 @@
 
 (define_expand "neon_vreinterpretdi<mode>"
   [(match_operand:DI 0 "s_register_operand" "")
-   (match_operand:VDX 1 "s_register_operand" "")]
+   (match_operand:VD_RE 1 "s_register_operand" "")]
   "TARGET_NEON"
 {
   neon_reinterpret (operands[0], operands[1]);
@@ -4420,14 +4435,14 @@
 (define_expand "vec_load_lanesoi<mode>"
   [(set (match_operand:OI 0 "s_register_operand")
         (unspec:OI [(match_operand:OI 1 "neon_struct_operand")
-                    (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
 		   UNSPEC_VLD2))]
   "TARGET_NEON")
 
 (define_insn "neon_vld2<mode>"
   [(set (match_operand:OI 0 "s_register_operand" "=w")
         (unspec:OI [(match_operand:OI 1 "neon_struct_operand" "Um")
-                    (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VLD2))]
   "TARGET_NEON"
   "vld2.<V_sz_elem>\t%h0, %A1"
@@ -4438,7 +4453,7 @@
         (unspec:TI [(match_operand:<V_two_elem> 1 "neon_struct_operand" "Um")
                     (match_operand:TI 2 "s_register_operand" "0")
                     (match_operand:SI 3 "immediate_operand" "i")
-                    (unspec:VD [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VD_LANE [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VLD2_LANE))]
   "TARGET_NEON"
 {
@@ -4463,7 +4478,7 @@
         (unspec:OI [(match_operand:<V_two_elem> 1 "neon_struct_operand" "Um")
                     (match_operand:OI 2 "s_register_operand" "0")
                     (match_operand:SI 3 "immediate_operand" "i")
-                    (unspec:VMQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VQ_HS [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VLD2_LANE))]
   "TARGET_NEON"
 {
@@ -4534,14 +4549,14 @@
 (define_expand "vec_store_lanesoi<mode>"
   [(set (match_operand:OI 0 "neon_struct_operand")
 	(unspec:OI [(match_operand:OI 1 "s_register_operand")
-                    (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VST2))]
   "TARGET_NEON")
 
 (define_insn "neon_vst2<mode>"
   [(set (match_operand:OI 0 "neon_struct_operand" "=Um")
 	(unspec:OI [(match_operand:OI 1 "s_register_operand" "w")
-		    (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+		    (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
 		   UNSPEC_VST2))]
   "TARGET_NEON"
   "vst2.<V_sz_elem>\t%h1, %A0"
@@ -4553,7 +4568,7 @@
 	(unspec:<V_two_elem>
 	  [(match_operand:TI 1 "s_register_operand" "w")
 	   (match_operand:SI 2 "immediate_operand" "i")
-	   (unspec:VD [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+	   (unspec:VD_LANE [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
 	  UNSPEC_VST2_LANE))]
   "TARGET_NEON"
 {
@@ -4578,7 +4593,7 @@
         (unspec:<V_two_elem>
            [(match_operand:OI 1 "s_register_operand" "w")
             (match_operand:SI 2 "immediate_operand" "i")
-            (unspec:VMQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+            (unspec:VQ_HS [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
            UNSPEC_VST2_LANE))]
   "TARGET_NEON"
 {
@@ -4631,7 +4646,7 @@
 (define_expand "vec_load_lanesci<mode>"
   [(match_operand:CI 0 "s_register_operand")
    (match_operand:CI 1 "neon_struct_operand")
-   (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+   (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
   "TARGET_NEON"
 {
   emit_insn (gen_neon_vld3<mode> (operands[0], operands[1]));
@@ -4641,7 +4656,7 @@
 (define_expand "neon_vld3<mode>"
   [(match_operand:CI 0 "s_register_operand")
    (match_operand:CI 1 "neon_struct_operand")
-   (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+   (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
   "TARGET_NEON"
 {
   rtx mem;
@@ -4656,7 +4671,7 @@
 (define_insn "neon_vld3qa<mode>"
   [(set (match_operand:CI 0 "s_register_operand" "=w")
         (unspec:CI [(match_operand:EI 1 "neon_struct_operand" "Um")
-                    (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VLD3A))]
   "TARGET_NEON"
 {
@@ -4676,7 +4691,7 @@
   [(set (match_operand:CI 0 "s_register_operand" "=w")
         (unspec:CI [(match_operand:EI 1 "neon_struct_operand" "Um")
                     (match_operand:CI 2 "s_register_operand" "0")
-                    (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VLD3B))]
   "TARGET_NEON"
 {
@@ -4697,7 +4712,7 @@
         (unspec:EI [(match_operand:<V_three_elem> 1 "neon_struct_operand" "Um")
                     (match_operand:EI 2 "s_register_operand" "0")
                     (match_operand:SI 3 "immediate_operand" "i")
-                    (unspec:VD [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VD_LANE [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VLD3_LANE))]
   "TARGET_NEON"
 {
@@ -4724,7 +4739,7 @@
         (unspec:CI [(match_operand:<V_three_elem> 1 "neon_struct_operand" "Um")
                     (match_operand:CI 2 "s_register_operand" "0")
                     (match_operand:SI 3 "immediate_operand" "i")
-                    (unspec:VMQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VQ_HS [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VLD3_LANE))]
   "TARGET_NEON"
 {
@@ -4804,7 +4819,7 @@
 (define_expand "vec_store_lanesci<mode>"
   [(match_operand:CI 0 "neon_struct_operand")
    (match_operand:CI 1 "s_register_operand")
-   (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+   (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
   "TARGET_NEON"
 {
   emit_insn (gen_neon_vst3<mode> (operands[0], operands[1]));
@@ -4814,7 +4829,7 @@
 (define_expand "neon_vst3<mode>"
   [(match_operand:CI 0 "neon_struct_operand")
    (match_operand:CI 1 "s_register_operand")
-   (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+   (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
   "TARGET_NEON"
 {
   rtx mem;
@@ -4829,7 +4844,7 @@
 (define_insn "neon_vst3qa<mode>"
   [(set (match_operand:EI 0 "neon_struct_operand" "=Um")
         (unspec:EI [(match_operand:CI 1 "s_register_operand" "w")
-                    (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VST3A))]
   "TARGET_NEON"
 {
@@ -4848,7 +4863,7 @@
 (define_insn "neon_vst3qb<mode>"
   [(set (match_operand:EI 0 "neon_struct_operand" "=Um")
         (unspec:EI [(match_operand:CI 1 "s_register_operand" "w")
-                    (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VST3B))]
   "TARGET_NEON"
 {
@@ -4869,7 +4884,7 @@
         (unspec:<V_three_elem>
            [(match_operand:EI 1 "s_register_operand" "w")
             (match_operand:SI 2 "immediate_operand" "i")
-            (unspec:VD [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+            (unspec:VD_LANE [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
            UNSPEC_VST3_LANE))]
   "TARGET_NEON"
 {
@@ -4896,7 +4911,7 @@
         (unspec:<V_three_elem>
            [(match_operand:CI 1 "s_register_operand" "w")
             (match_operand:SI 2 "immediate_operand" "i")
-            (unspec:VMQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+            (unspec:VQ_HS [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
            UNSPEC_VST3_LANE))]
   "TARGET_NEON"
 {
@@ -4951,7 +4966,7 @@
 (define_expand "vec_load_lanesxi<mode>"
   [(match_operand:XI 0 "s_register_operand")
    (match_operand:XI 1 "neon_struct_operand")
-   (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+   (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
   "TARGET_NEON"
 {
   emit_insn (gen_neon_vld4<mode> (operands[0], operands[1]));
@@ -4961,7 +4976,7 @@
 (define_expand "neon_vld4<mode>"
   [(match_operand:XI 0 "s_register_operand")
    (match_operand:XI 1 "neon_struct_operand")
-   (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+   (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
   "TARGET_NEON"
 {
   rtx mem;
@@ -4976,7 +4991,7 @@
 (define_insn "neon_vld4qa<mode>"
   [(set (match_operand:XI 0 "s_register_operand" "=w")
         (unspec:XI [(match_operand:OI 1 "neon_struct_operand" "Um")
-                    (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VLD4A))]
   "TARGET_NEON"
 {
@@ -4997,7 +5012,7 @@
   [(set (match_operand:XI 0 "s_register_operand" "=w")
         (unspec:XI [(match_operand:OI 1 "neon_struct_operand" "Um")
                     (match_operand:XI 2 "s_register_operand" "0")
-                    (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VLD4B))]
   "TARGET_NEON"
 {
@@ -5019,7 +5034,7 @@
         (unspec:OI [(match_operand:<V_four_elem> 1 "neon_struct_operand" "Um")
                     (match_operand:OI 2 "s_register_operand" "0")
                     (match_operand:SI 3 "immediate_operand" "i")
-                    (unspec:VD [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VD_LANE [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VLD4_LANE))]
   "TARGET_NEON"
 {
@@ -5047,7 +5062,7 @@
         (unspec:XI [(match_operand:<V_four_elem> 1 "neon_struct_operand" "Um")
                     (match_operand:XI 2 "s_register_operand" "0")
                     (match_operand:SI 3 "immediate_operand" "i")
-                    (unspec:VMQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VQ_HS [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VLD4_LANE))]
   "TARGET_NEON"
 {
@@ -5132,7 +5147,7 @@
 (define_expand "vec_store_lanesxi<mode>"
   [(match_operand:XI 0 "neon_struct_operand")
    (match_operand:XI 1 "s_register_operand")
-   (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+   (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
   "TARGET_NEON"
 {
   emit_insn (gen_neon_vst4<mode> (operands[0], operands[1]));
@@ -5142,7 +5157,7 @@
 (define_expand "neon_vst4<mode>"
   [(match_operand:XI 0 "neon_struct_operand")
    (match_operand:XI 1 "s_register_operand")
-   (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+   (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
   "TARGET_NEON"
 {
   rtx mem;
@@ -5157,7 +5172,7 @@
 (define_insn "neon_vst4qa<mode>"
   [(set (match_operand:OI 0 "neon_struct_operand" "=Um")
         (unspec:OI [(match_operand:XI 1 "s_register_operand" "w")
-                    (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VST4A))]
   "TARGET_NEON"
 {
@@ -5177,7 +5192,7 @@
 (define_insn "neon_vst4qb<mode>"
   [(set (match_operand:OI 0 "neon_struct_operand" "=Um")
         (unspec:OI [(match_operand:XI 1 "s_register_operand" "w")
-                    (unspec:VQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+                    (unspec:VQ2 [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
                    UNSPEC_VST4B))]
   "TARGET_NEON"
 {
@@ -5199,7 +5214,7 @@
         (unspec:<V_four_elem>
            [(match_operand:OI 1 "s_register_operand" "w")
             (match_operand:SI 2 "immediate_operand" "i")
-            (unspec:VD [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+            (unspec:VD_LANE [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
            UNSPEC_VST4_LANE))]
   "TARGET_NEON"
 {
@@ -5227,7 +5242,7 @@
         (unspec:<V_four_elem>
            [(match_operand:XI 1 "s_register_operand" "w")
             (match_operand:SI 2 "immediate_operand" "i")
-            (unspec:VMQ [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
+            (unspec:VQ_HS [(const_int 0)] UNSPEC_VSTRUCTDUMMY)]
            UNSPEC_VST4_LANE))]
   "TARGET_NEON"
 {

@@ -3798,14 +3798,14 @@ compute_all_dependences (vec<data_reference_p> datarefs,
 
 /* Describes a location of a memory reference.  */
 
-typedef struct data_ref_loc_d
+struct data_ref_loc
 {
   /* The memory reference.  */
   tree ref;
 
   /* True if the memory reference is read.  */
   bool is_read;
-} data_ref_loc;
+};
 
 
 /* Stores the locations of memory references in STMT to REFERENCES.  Returns
@@ -3925,6 +3925,49 @@ get_references_in_stmt (gimple stmt, vec<data_ref_loc, va_heap> *references)
       references->safe_push (ref);
     }
   return clobbers_memory;
+}
+
+
+/* Returns true if the loop-nest has any data reference.  */
+
+bool
+loop_nest_has_data_refs (loop_p loop)
+{
+  basic_block *bbs = get_loop_body (loop);
+  vec<data_ref_loc> references;
+  references.create (3);
+
+  for (unsigned i = 0; i < loop->num_nodes; i++)
+    {
+      basic_block bb = bbs[i];
+      gimple_stmt_iterator bsi;
+
+      for (bsi = gsi_start_bb (bb); !gsi_end_p (bsi); gsi_next (&bsi))
+	{
+	  gimple stmt = gsi_stmt (bsi);
+	  get_references_in_stmt (stmt, &references);
+	  if (references.length ())
+	    {
+	      free (bbs);
+	      references.release ();
+	      return true;
+	    }
+	}
+    }
+  free (bbs);
+  references.release ();
+
+  if (loop->inner)
+    {
+      loop = loop->inner;
+      while (loop)
+	{
+	  if (loop_nest_has_data_refs (loop))
+	    return true;
+	  loop = loop->next;
+	}
+    }
+  return false;
 }
 
 /* Stores the data references in STMT to DATAREFS.  If there is an unanalyzable

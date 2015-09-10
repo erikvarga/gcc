@@ -95,6 +95,13 @@
 #endif
 
 
+/* Define if your target supports default stack protector and it is enabled.
+   */
+#ifndef USED_FOR_TARGET
+#undef ENABLE_DEFAULT_SSP
+#endif
+
+
 /* Define if you want more run-time sanity checks for dataflow. */
 #ifndef USED_FOR_TARGET
 #undef ENABLE_DF_CHECKING
@@ -1322,6 +1329,12 @@
 /* Define if you have a working <inttypes.h> header file. */
 #ifndef USED_FOR_TARGET
 #undef HAVE_INTTYPES_H
+#endif
+
+
+/* Define if isl_ctx_get_max_operations exists. */
+#ifndef USED_FOR_TARGET
+#undef HAVE_ISL_CTX_MAX_OPERATIONS
 #endif
 
 

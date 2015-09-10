@@ -66,12 +66,12 @@ enum vect_def_type {
 
 /* Structure to encapsulate information about a group of like
    instructions to be presented to the target cost model.  */
-typedef struct _stmt_info_for_cost {
+struct stmt_info_for_cost {
   int count;
   enum vect_cost_for_stmt kind;
   gimple stmt;
   int misalign;
-} stmt_info_for_cost;
+};
 
 
 typedef vec<stmt_info_for_cost> stmt_vector_for_cost;
@@ -646,8 +646,8 @@ typedef struct _stmt_vec_info {
      vectorization.  */
   bool vectorizable;
 
-  /* For loads only, true if this is a gather load.  */
-  bool gather_p;
+  /* For loads if this is a gather, for stores if this is a scatter.  */
+  bool gather_scatter_p;
 
   /* True if this is an access with loop-invariant stride.  */
   bool strided_p;
@@ -667,7 +667,7 @@ typedef struct _stmt_vec_info {
 #define STMT_VINFO_VEC_STMT(S)             (S)->vectorized_stmt
 #define STMT_VINFO_VECTORIZABLE(S)         (S)->vectorizable
 #define STMT_VINFO_DATA_REF(S)             (S)->data_ref_info
-#define STMT_VINFO_GATHER_P(S)		   (S)->gather_p
+#define STMT_VINFO_GATHER_SCATTER_P(S)	   (S)->gather_scatter_p
 #define STMT_VINFO_STRIDED_P(S)	   	   (S)->strided_p
 #define STMT_VINFO_SIMD_LANE_ACCESS_P(S)   (S)->simd_lane_access_p
 
@@ -707,10 +707,15 @@ typedef struct _stmt_vec_info {
 #define STMT_SLP_TYPE(S)                   (S)->slp_type
 
 struct dataref_aux {
-  tree base_decl;
-  bool base_misaligned;
   int misalignment;
+  /* If true the alignment of base_decl needs to be increased.  */
+  bool base_misaligned;
+  /* If true we know the base is at least vector element alignment aligned.  */
+  bool base_element_aligned;
+  tree base_decl;
 };
+
+#define DR_VECT_AUX(dr) ((dataref_aux *)(dr)->aux)
 
 #define VECT_MAX_COST 1000
 
@@ -910,14 +915,13 @@ destroy_cost_data (void *data)
   targetm.vectorize.destroy_cost_data (data);
 }
 
-
 /*-----------------------------------------------------------------*/
 /* Info on data references alignment.                              */
 /*-----------------------------------------------------------------*/
 inline void
 set_dr_misalignment (struct data_reference *dr, int val)
 {
-  dataref_aux *data_aux = (dataref_aux *) dr->aux;
+  dataref_aux *data_aux = DR_VECT_AUX (dr);
 
   if (!data_aux)
     {
@@ -931,8 +935,7 @@ set_dr_misalignment (struct data_reference *dr, int val)
 inline int
 dr_misalignment (struct data_reference *dr)
 {
-  gcc_assert (dr->aux);
-  return ((dataref_aux *) dr->aux)->misalignment;
+  return DR_VECT_AUX (dr)->misalignment;
 }
 
 /* Reflects actual alignment of first access in the vectorized loop,
@@ -1060,8 +1063,8 @@ extern bool vect_analyze_data_refs_alignment (loop_vec_info, bb_vec_info);
 extern bool vect_verify_datarefs_alignment (loop_vec_info, bb_vec_info);
 extern bool vect_analyze_data_ref_accesses (loop_vec_info, bb_vec_info);
 extern bool vect_prune_runtime_alias_test_list (loop_vec_info);
-extern tree vect_check_gather (gimple, loop_vec_info, tree *, tree *,
-			       int *);
+extern tree vect_check_gather_scatter (gimple, loop_vec_info, tree *, tree *,
+				       int *);
 extern bool vect_analyze_data_refs (loop_vec_info, bb_vec_info, int *,
 				    unsigned *);
 extern tree vect_create_data_ref_ptr (gimple, tree, struct loop *, tree,
@@ -1132,7 +1135,7 @@ extern void vect_slp_transform_bb (basic_block);
    Additional pattern recognition functions can (and will) be added
    in the future.  */
 typedef gimple (* vect_recog_func_ptr) (vec<gimple> *, tree *, tree *);
-#define NUM_PATTERNS 12
+#define NUM_PATTERNS 13
 void vect_pattern_recog (loop_vec_info, bb_vec_info);
 
 /* In tree-vectorizer.c.  */

@@ -191,8 +191,12 @@ lto_output_location (struct output_block *ob, struct bitpack_d *bp,
   bp_pack_value (bp, ob->current_col != xloc.column, 1);
 
   if (ob->current_file != xloc.file)
-    bp_pack_string (ob, bp, xloc.file, true);
+    {
+      bp_pack_string (ob, bp, xloc.file, true);
+      bp_pack_value (bp, xloc.sysp, 1);
+    }
   ob->current_file = xloc.file;
+  ob->current_sysp = xloc.sysp;
 
   if (ob->current_line != xloc.line)
     bp_pack_var_len_unsigned (bp, xloc.line);
@@ -2676,7 +2680,7 @@ lto_write_mode_table (void)
   ob = create_output_block (LTO_section_mode_table);
   bitpack_d bp = bitpack_create (ob->main_stream);
 
-  /* Ensure that for GET_MODE_INNER (m) != VOIDmode we have
+  /* Ensure that for GET_MODE_INNER (m) != m we have
      also the inner mode marked.  */
   for (int i = 0; i < (int) MAX_MACHINE_MODE; i++)
     if (streamer_mode_table[i])
@@ -2685,7 +2689,7 @@ lto_write_mode_table (void)
 	if (GET_MODE_INNER (m) != m)
 	  streamer_mode_table[(int) GET_MODE_INNER (m)] = 1;
       }
-  /* First stream modes that have GET_MODE_INNER (m) == VOIDmode,
+  /* First stream modes that have GET_MODE_INNER (m) == m,
      so that we can refer to them afterwards.  */
   for (int pass = 0; pass < 2; pass++)
     for (int i = 0; i < (int) MAX_MACHINE_MODE; i++)

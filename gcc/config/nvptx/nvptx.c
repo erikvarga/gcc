@@ -1,4 +1,3 @@
-
 /* Target code for NVPTX.
    Copyright (C) 2014-2015 Free Software Foundation, Inc.
    Contributed by Bernd Schmidt <bernds@codesourcery.com>
@@ -324,7 +323,8 @@ nvptx_write_function_decl (std::stringstream &s, const char *name, const_tree de
 
   /* Declare argument types.  */
   if ((args != NULL_TREE
-       && !(TREE_CODE (args) == TREE_LIST && TREE_VALUE (args) == void_type_node))
+       && !(TREE_CODE (args) == TREE_LIST
+	    && TREE_VALUE (args) == void_type_node))
       || is_main
       || return_in_mem
       || DECL_STATIC_CHAIN (decl))
@@ -408,8 +408,8 @@ walk_args_for_param (FILE *file, tree argtypes, tree args, bool write_copy,
 		mode = DFmode;
 
 	    }
-	  mode = arg_promotion (mode);
 	}
+      mode = arg_promotion (mode);
       while (count-- > 0)
 	{
 	  i++;
@@ -548,7 +548,7 @@ nvptx_declare_function_name (FILE *file, const char *name, const_tree decl)
   else if (TYPE_MODE (result_type) != VOIDmode)
     {
       machine_mode mode = arg_promotion (TYPE_MODE (result_type));
-      fprintf (file, ".reg%s %%retval;\n",
+      fprintf (file, "\t.reg%s %%retval;\n",
 	       nvptx_ptx_type_from_mode (mode, false));
     }
 
@@ -600,9 +600,11 @@ nvptx_declare_function_name (FILE *file, const char *name, const_tree decl)
   sz = get_frame_size ();
   if (sz > 0 || cfun->machine->has_call_with_sc)
     {
+      int alignment = crtl->stack_alignment_needed / BITS_PER_UNIT;
+
       fprintf (file, "\t.reg.u%d %%frame;\n"
-	       "\t.local.align 8 .b8 %%farray[" HOST_WIDE_INT_PRINT_DEC"];\n",
-	       BITS_PER_WORD, sz == 0 ? 1 : sz);
+	       "\t.local.align %d .b8 %%farray[" HOST_WIDE_INT_PRINT_DEC"];\n",
+	       BITS_PER_WORD, alignment, sz == 0 ? 1 : sz);
       fprintf (file, "\tcvta.local.u%d %%frame, %%farray;\n",
 	       BITS_PER_WORD);
     }
@@ -618,10 +620,10 @@ nvptx_declare_function_name (FILE *file, const char *name, const_tree decl)
   walk_args_for_param (file, TYPE_ARG_TYPES (fntype), DECL_ARGUMENTS (decl),
 		       true, return_in_mem);
   if (return_in_mem)
-    fprintf (file, "ld.param.u%d %%ar1, [%%in_ar1];\n",
+    fprintf (file, "\tld.param.u%d %%ar1, [%%in_ar1];\n",
 	     GET_MODE_BITSIZE (Pmode));
   if (stdarg_p (fntype))
-    fprintf (file, "ld.param.u%d %%argp, [%%in_argp];\n",
+    fprintf (file, "\tld.param.u%d %%argp, [%%in_argp];\n",
 	     GET_MODE_BITSIZE (Pmode));
 }
 
@@ -681,29 +683,30 @@ write_func_decl_from_insn (std::stringstream &s, rtx result, rtx pat,
 
   s << name;
 
-  int nargs = XVECLEN (pat, 0) - 1;
-  if (nargs > 0)
+  int arg_end = XVECLEN (pat, 0);
+      
+  if (1 < arg_end)
     {
+      const char *comma = "";
       s << " (";
-      for (int i = 0; i < nargs; i++)
+      for (int i = 1; i < arg_end; i++)
 	{
-	  rtx t = XEXP (XVECEXP (pat, 0, i + 1), 0);
+	  rtx t = XEXP (XVECEXP (pat, 0, i), 0);
 	  machine_mode mode = GET_MODE (t);
 	  int count = maybe_split_mode (&mode);
 
-	  while (count-- > 0)
+	  while (count--)
 	    {
-	      s << ".param";
+	      s << comma << ".param";
 	      s << nvptx_ptx_type_from_mode (mode, false);
 	      s << " ";
 	      if (callprototype)
 		s << "_";
 	      else
-		s << "%arg" << i;
+		s << "%arg" << i - 1;
 	      if (mode == QImode || mode == HImode)
 		s << "[1]";
-	      if (i + 1 < nargs || count > 0)
-		s << ", ";
+	      comma = ", ";
 	    }
 	}
       s << ")";
@@ -726,6 +729,14 @@ static bool
 nvptx_function_ok_for_sibcall (tree, tree)
 {
   return false;
+}
+
+/* Return Dynamic ReAlignment Pointer RTX.  For PTX there isn't any.  */
+
+static rtx
+nvptx_get_drap_rtx (void)
+{
+  return NULL_RTX;
 }
 
 /* Implement the TARGET_CALL_ARGS hook.  Record information about one
@@ -767,18 +778,16 @@ nvptx_end_call_args (void)
 void
 nvptx_expand_call (rtx retval, rtx address)
 {
-  int nargs;
+  int nargs = 0;
   rtx callee = XEXP (address, 0);
   rtx pat, t;
   rtvec vec;
   bool external_decl = false;
+  rtx varargs = NULL_RTX;
+  tree decl_type = NULL_TREE;
 
-  nargs = 0;
   for (t = cfun->machine->call_args; t; t = XEXP (t, 1))
     nargs++;
-
-  bool has_varargs = false;
-  tree decl_type = NULL_TREE;
 
   if (!call_insn_operand (callee, Pmode))
     {
@@ -806,31 +815,18 @@ nvptx_expand_call (rtx retval, rtx address)
 	  || TREE_CODE (cfun->machine->funtype) == METHOD_TYPE)
       && stdarg_p (cfun->machine->funtype))
     {
-      has_varargs = true;
+      varargs = gen_reg_rtx (Pmode);
+      if (Pmode == DImode)
+	emit_move_insn (varargs, stack_pointer_rtx);
+      else
+	emit_move_insn (varargs, stack_pointer_rtx);
       cfun->machine->has_call_with_varargs = true;
     }
-  vec = rtvec_alloc (nargs + 1 + (has_varargs ? 1 : 0));
+  vec = rtvec_alloc (nargs + 1 + (varargs ? 1 : 0));
   pat = gen_rtx_PARALLEL (VOIDmode, vec);
-  if (has_varargs)
-    {
-      rtx this_arg = gen_reg_rtx (Pmode);
-      if (Pmode == DImode)
-	emit_move_insn (this_arg, stack_pointer_rtx);
-      else
-	emit_move_insn (this_arg, stack_pointer_rtx);
-      XVECEXP (pat, 0, nargs + 1) = gen_rtx_USE (VOIDmode, this_arg);
-    }
 
-  /* Construct the call insn, including a USE for each argument pseudo
-     register.  These will be used when printing the insn.  */
-  int i;
-  rtx arg;
-  for (i = 1, arg = cfun->machine->call_args; arg; arg = XEXP (arg, 1), i++)
-    {
-      rtx this_arg = XEXP (arg, 0);
-      XVECEXP (pat, 0, i) = gen_rtx_USE (VOIDmode, this_arg);
-    }
-
+  int vec_pos = 0;
+  
   rtx tmp_retval = retval;
   t = gen_rtx_CALL (VOIDmode, address, const0_rtx);
   if (retval != NULL_RTX)
@@ -839,7 +835,20 @@ nvptx_expand_call (rtx retval, rtx address)
 	tmp_retval = gen_reg_rtx (GET_MODE (retval));
       t = gen_rtx_SET (tmp_retval, t);
     }
-  XVECEXP (pat, 0, 0) = t;
+  XVECEXP (pat, 0, vec_pos++) = t;
+
+  /* Construct the call insn, including a USE for each argument pseudo
+     register.  These will be used when printing the insn.  */
+  for (rtx arg = cfun->machine->call_args; arg; arg = XEXP (arg, 1))
+    {
+      rtx this_arg = XEXP (arg, 0);
+      XVECEXP (pat, 0, vec_pos++) = gen_rtx_USE (VOIDmode, this_arg);
+    }
+
+  if (varargs)
+      XVECEXP (pat, 0, vec_pos++) = gen_rtx_USE (VOIDmode, varargs);
+
+  gcc_assert (vec_pos = XVECLEN (pat, 0));
 
   /* If this is a libcall, decl_type is NULL. For a call to a non-libcall
      undeclared function, we'll have an external decl without arg types.
@@ -1490,16 +1499,14 @@ nvptx_output_call_insn (rtx_insn *insn, rtx result, rtx callee)
   static int labelno;
   bool needs_tgt = register_operand (callee, Pmode);
   rtx pat = PATTERN (insn);
-  int nargs = XVECLEN (pat, 0) - 1;
+  int arg_end = XVECLEN (pat, 0);
   tree decl = NULL_TREE;
 
   fprintf (asm_out_file, "\t{\n");
   if (result != NULL)
-    {
-      fprintf (asm_out_file, "\t\t.param%s %%retval_in;\n",
-	       nvptx_ptx_type_from_mode (arg_promotion (GET_MODE (result)),
-					 false));
-    }
+    fprintf (asm_out_file, "\t\t.param%s %%retval_in;\n",
+	     nvptx_ptx_type_from_mode (arg_promotion (GET_MODE (result)),
+				       false));
 
   /* Ensure we have a ptx declaration in the output if necessary.  */
   if (GET_CODE (callee) == SYMBOL_REF)
@@ -1519,20 +1526,20 @@ nvptx_output_call_insn (rtx_insn *insn, rtx result, rtx callee)
       fputs (s.str().c_str(), asm_out_file);
     }
 
-  for (int i = 0, argno = 0; i < nargs; i++)
+  for (int i = 1, argno = 0; i < arg_end; i++)
     {
-      rtx t = XEXP (XVECEXP (pat, 0, i + 1), 0);
+      rtx t = XEXP (XVECEXP (pat, 0, i), 0);
       machine_mode mode = GET_MODE (t);
       int count = maybe_split_mode (&mode);
 
-      while (count-- > 0)
+      while (count--)
 	fprintf (asm_out_file, "\t\t.param%s %%out_arg%d%s;\n",
 		 nvptx_ptx_type_from_mode (mode, false), argno++,
 		 mode == QImode || mode == HImode ? "[1]" : "");
     }
-  for (int i = 0, argno = 0; i < nargs; i++)
+  for (int i = 1, argno = 0; i < arg_end; i++)
     {
-      rtx t = XEXP (XVECEXP (pat, 0, i + 1), 0);
+      rtx t = XEXP (XVECEXP (pat, 0, i), 0);
       gcc_assert (REG_P (t));
       machine_mode mode = GET_MODE (t);
       int count = maybe_split_mode (&mode);
@@ -1544,7 +1551,7 @@ nvptx_output_call_insn (rtx_insn *insn, rtx result, rtx callee)
       else
 	{
 	  int n = 0;
-	  while (count-- > 0)
+	  while (count--)
 	    fprintf (asm_out_file, "\t\tst.param%s [%%out_arg%d], %%r%d$%d;\n",
 		     nvptx_ptx_type_from_mode (mode, false), argno++,
 		     REGNO (t), n++);
@@ -1564,33 +1571,30 @@ nvptx_output_call_insn (rtx_insn *insn, rtx result, rtx callee)
   else
     output_address (callee);
 
-  if (nargs > 0 || (decl && DECL_STATIC_CHAIN (decl)))
+  if (arg_end > 1 || (decl && DECL_STATIC_CHAIN (decl)))
     {
+      const char *comma = "";
+      
       fprintf (asm_out_file, ", (");
-      int i, argno;
-      for (i = 0, argno = 0; i < nargs; i++)
+      for (int i = 1, argno = 0; i < arg_end; i++)
 	{
-	  rtx t = XEXP (XVECEXP (pat, 0, i + 1), 0);
+	  rtx t = XEXP (XVECEXP (pat, 0, i), 0);
 	  machine_mode mode = GET_MODE (t);
 	  int count = maybe_split_mode (&mode);
 
-	  while (count-- > 0)
+	  while (count--)
 	    {
-	      fprintf (asm_out_file, "%%out_arg%d", argno++);
-	      if (i + 1 < nargs || count > 0)
-		fprintf (asm_out_file, ", ");
+	      fprintf (asm_out_file, "%s%%out_arg%d", comma, argno++);
+	      comma = ", ";
 	    }
 	}
       if (decl && DECL_STATIC_CHAIN (decl))
-	{
-	  if (i > 0)
-	    fprintf (asm_out_file, ", ");
-	  fprintf (asm_out_file, "%s",
-		   reg_names [OUTGOING_STATIC_CHAIN_REGNUM]);
-	}
+	fprintf (asm_out_file, "%s%s", comma,
+		 reg_names [OUTGOING_STATIC_CHAIN_REGNUM]);
 
       fprintf (asm_out_file, ")");
     }
+
   if (needs_tgt)
     {
       fprintf (asm_out_file, ", ");
@@ -1910,16 +1914,18 @@ nvptx_reorg_subreg (void)
     {
       next = NEXT_INSN (insn);
       if (!NONDEBUG_INSN_P (insn)
-	  || asm_noperands (insn) >= 0
+	  || asm_noperands (PATTERN (insn)) >= 0
 	  || GET_CODE (PATTERN (insn)) == USE
 	  || GET_CODE (PATTERN (insn)) == CLOBBER)
 	continue;
+
       qiregs.n_in_use = 0;
       hiregs.n_in_use = 0;
       siregs.n_in_use = 0;
       diregs.n_in_use = 0;
       extract_insn (insn);
       enum attr_subregs_ok s_ok = get_attr_subregs_ok (insn);
+
       for (int i = 0; i < recog_data.n_operands; i++)
 	{
 	  rtx op = recog_data.operand[i];
@@ -2120,6 +2126,8 @@ nvptx_file_end (void)
 #define TARGET_LIBCALL_VALUE nvptx_libcall_value
 #undef TARGET_FUNCTION_OK_FOR_SIBCALL
 #define TARGET_FUNCTION_OK_FOR_SIBCALL nvptx_function_ok_for_sibcall
+#undef TARGET_GET_DRAP_RTX
+#define TARGET_GET_DRAP_RTX nvptx_get_drap_rtx
 #undef TARGET_SPLIT_COMPLEX_ARG
 #define TARGET_SPLIT_COMPLEX_ARG hook_bool_const_tree_true
 #undef TARGET_RETURN_IN_MEMORY
