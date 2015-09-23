@@ -594,8 +594,8 @@ pentium4 pentium4m pentiumpro prescott iamcu"
 x86_64_archs="amdfam10 athlon64 athlon64-sse3 barcelona bdver1 bdver2 \
 bdver3 bdver4 btver1 btver2 k8 k8-sse3 opteron opteron-sse3 nocona \
 core2 corei7 corei7-avx core-avx-i core-avx2 atom slm nehalem westmere \
-sandybridge ivybridge haswell broadwell bonnell silvermont knl x86-64 \
-native"
+sandybridge ivybridge haswell broadwell bonnell silvermont knl \
+skylake-avx512 x86-64 native"
 
 # Additional x86 processors supported by --with-cpu=.  Each processor
 # MUST be separated by exactly one space.
@@ -3346,6 +3346,9 @@ if test x$with_cpu = x ; then
 	  ;;
       esac
       ;;
+    visium-*-*)
+      with_cpu=gr5
+      ;;
   esac
 
   # Avoid overriding --with-cpu-32 and --with-cpu-64 values.
@@ -4295,6 +4298,16 @@ case "${target}" in
 			;;
 		esac
 		;;
+	visium-*-*)
+		supported_defaults="cpu"
+		case $with_cpu in
+		  "" | gr5 | gr6)
+			;;
+		  *)    echo "Unknown cpu used in --with-cpu=$with_cpu" 1>&2
+			exit 1
+			;;
+		esac
+		;;
 esac
 
 # Set some miscellaneous flags for particular targets.
@@ -4448,6 +4461,9 @@ case ${target} in
 			target_cpu_default2="TARGET_CPU_v850e1"
 			;;
 		esac
+		;;
+	visium-*-*)
+		target_cpu_default2="TARGET_CPU_$with_cpu"
 		;;
 esac
 
