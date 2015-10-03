@@ -326,7 +326,12 @@ log_access_sequence (const sh_ams::access_sequence& as,
   if (dump_file == NULL)
     return;
 
-  log_msg ("access sequence:\n\n");
+  log_msg ("=====\naccess sequence %p: %s\n\n", (const void*)&as,
+	   as.accesses ().empty () ? "is empty" : "");
+
+  if (as.accesses ().empty ())
+    return;
+
   for (sh_ams::access_sequence::const_iterator it = as.accesses ().begin ();
        it != as.accesses ().end (); ++it)
     {
@@ -3777,81 +3782,77 @@ sh_ams::execute (function* fun)
     }
 
   log_msg ("\nprocessing extracted sequences\n");
-  for (std::list<access_sequence>::iterator as_it = sequences.begin ();
-       as_it != sequences.end ();)
+  for (std::list<access_sequence>::iterator as = sequences.begin ();
+       as != sequences.end ();)
     {
-      access_sequence& as = *as_it;
-      if (as.accesses ().empty ())
-        {
-          log_msg ("access sequence empty\n\n");
-          ++as_it;
-          continue;
-        }
-
-      log_access_sequence (as, false);
+      log_access_sequence (*as, false);
       log_msg ("\n\n");
 
-      log_msg ("add_missing_reg_mods\n");
-      as.add_missing_reg_mods ();
+      if (as->accesses ().empty ())
+	{
+	  ++as;
+	  continue;
+	}
 
-      log_access_sequence (as, false);
+      log_msg ("add_missing_reg_mods\n");
+      as->add_missing_reg_mods ();
+
+      log_access_sequence (*as, false);
       log_msg ("\n\n");
 
       log_msg ("find_reg_uses\n");
-      as.find_reg_uses (m_delegate);
+      as->find_reg_uses (m_delegate);
 
-      log_access_sequence (as, false);
+      log_access_sequence (*as, false);
       log_msg ("\n\n");
 
       log_msg ("find_reg_end_values\n");
-      as.find_reg_end_values ();
+      as->find_reg_end_values ();
 
-      log_access_sequence (as, false);
+      log_access_sequence (*as, false);
       log_msg ("\n\n");
 
       // Fill the sequence's MOD_INSNS with the insns of the accesses
       // that can be removed.
-      for (access_sequence::iterator it = as.accesses ().begin ();
-           it != as.accesses ().end (); ++it)
+      for (access_sequence::iterator it = as->accesses ().begin ();
+           it != as->accesses ().end (); ++it)
         {
           if (it->removable ()
               // Auto-mod mem access insns shouldn't be removed.
               && !find_reg_note (it->insn (), REG_INC, NULL_RTX))
-            it->set_mod_insn (as.create_mod_insn (it->insn (), shared_insn_list));
+            it->set_mod_insn (as->create_mod_insn (it->insn (), shared_insn_list));
         }
 
       log_msg ("split_access_sequence\n");
       if (m_options.split_sequences)
-        as_it = split_access_sequence (as_it, sequences);
+        as = split_access_sequence (as, sequences);
       else
-        ++as_it;
+        ++as;
     }
 
   log_msg ("\nprocessing split sequences\n");
-  for (std::list<access_sequence>::iterator as_it = sequences.begin ();
-       as_it != sequences.end (); ++as_it)
+  for (std::list<access_sequence>::iterator as = sequences.begin ();
+       as != sequences.end (); ++as)
     {
-      access_sequence& as = *as_it;
-      if (as.accesses ().empty ())
-        {
-          log_msg ("access sequence empty\n\n");
-          continue;
-        }
+      log_access_sequence (*as, false);
+      log_msg ("\n\n");
 
+      if (as->accesses ().empty ())
+	continue;
+
+      // FIXME: maybe have some counters in the access sequence to cache
+      // these numbers.
       typedef access_type_matches<load, store> mem_match;
-      if (as.begin<mem_match> () == as.end<mem_match> ())
+      if (as->begin<mem_match> () == as->end<mem_match> ())
         {
           log_msg ("access sequence doesn't have any real memory accesses\n\n");
           continue;
         }
 
-      log_access_sequence (as, false);
-      log_msg ("\n\n");
-
       log_msg ("doing adjacency analysis\n");
-      as.calculate_adjacency_info ();
+      as->calculate_adjacency_info ();
 
-      log_access_sequence (as, false);
+      log_access_sequence (*as, false);
       log_msg ("\n\n");
 
       log_msg ("updating access alternatives\n");
@@ -3859,13 +3860,14 @@ sh_ams::execute (function* fun)
 	typedef access_to_optimize match;
 	typedef filter_iterator<access_sequence::iterator, match> iter;
 
-	for (iter a = as.begin<match> (), a_end = as.end<match> ();
+	for (iter a = as->begin<match> (), a_end = as->end<match> ();
 	     a != a_end; ++a)
-	  as.update_access_alternatives (m_delegate, a,
-					 m_options.force_alt_validation,
-					 m_options.disable_alt_validation);
+	  as->update_access_alternatives (m_delegate, a,
+					  m_options.force_alt_validation,
+					  m_options.disable_alt_validation);
       }
-      log_access_sequence (as, true);
+
+      log_access_sequence (*as, true);
       log_msg ("\n\n");
 
       log_msg ("updating costs\n");
@@ -3873,21 +3875,21 @@ sh_ams::execute (function* fun)
 	typedef access_type_matches<load, store> match;
 	typedef filter_iterator<access_sequence::iterator, match> iter;
 
-	for (iter m = as.begin<match> (), mend = as.end<match> ();
+	for (iter m = as->begin<match> (), mend = as->end<match> ();
 	     m != mend; ++m)
 	  for (access::alternative_set::iterator
 		alt = m->alternatives ().begin ();
 	       alt != m->alternatives ().end (); ++alt)
-	    m_delegate.adjust_alternative_costs (*alt, as, m.base_iterator ());
+	    m_delegate.adjust_alternative_costs (*alt, *as, m.base_iterator ());
       }
 
-      as.update_cost (m_delegate);
-      int original_cost = as.cost ();
+      as->update_cost (m_delegate);
+      int original_cost = as->cost ();
 
-      log_access_sequence (as);
+      log_access_sequence (*as);
       log_msg ("\n\n");
 
-      if (as.cost_already_minimal ())
+      if (as->cost_already_minimal ())
         {
           log_msg ("costs are already minimal\n");
 
@@ -3898,15 +3900,15 @@ sh_ams::execute (function* fun)
         }
 
       log_msg ("gen_address_mod\n");
-      as.gen_address_mod (m_delegate, m_options.base_lookahead_count);
+      as->gen_address_mod (m_delegate, m_options.base_lookahead_count);
 
-      as.update_cost (m_delegate);
-      int new_cost = as.cost ();
+      as->update_cost (m_delegate);
+      int new_cost = as->cost ();
 
-      log_access_sequence (as, false);
+      log_access_sequence (*as, false);
       log_msg ("\n");
 
-      as.set_modify_insns (true);
+      as->set_modify_insns (true);
       if (new_cost >= original_cost)
 	{
 	  log_msg ("new_cost (%d) >= original_cost (%d)",
@@ -3915,14 +3917,14 @@ sh_ams::execute (function* fun)
 	  if (m_options.check_original_cost)
 	    {
 	      log_msg ("  not modifying\n");
-	      as.set_modify_insns (false);
+	      as->set_modify_insns (false);
 	    }
 	  else
 	    log_msg ("  modifying anyway\n");
 	}
 
-      if (as.modify_insns ())
-        as.release_mod_insns ();
+      if (as->modify_insns ())
+        as->release_mod_insns ();
 
       log_msg ("\n\n");
     }
