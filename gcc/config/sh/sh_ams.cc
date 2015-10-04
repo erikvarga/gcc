@@ -326,7 +326,12 @@ log_access_sequence (const sh_ams::access_sequence& as,
   if (dump_file == NULL)
     return;
 
-  log_msg ("access sequence:\n\n");
+  log_msg ("=====\naccess sequence %p: %s\n\n", (const void*)&as,
+	   as.accesses ().empty () ? "is empty" : "");
+
+  if (as.accesses ().empty ())
+    return;
+
   for (sh_ams::access_sequence::const_iterator it = as.accesses ().begin ();
        it != as.accesses ().end (); ++it)
     {
@@ -492,6 +497,11 @@ remove_incdec_note (rtx_insn* i, rtx reg)
 } // anonymous namespace
 
 // borrowed from C++11
+// could also put this into namespace std.  but std libs like libc++ (clang)
+// provide std::next/prev also if used in C++98 mode.  so we'd need something
+// like
+//    #if __cplusplus < 201103L && !defined (_LIBCPP_ITERATOR)
+// but that's a bit fragile, so let's not do it.
 
 namespace stdx
 {
@@ -569,6 +579,7 @@ sh_ams::options::options (void)
   cse = false;
   cse2 = false;
   gcse = false;
+  allow_mem_addr_change_new_insns = true;
   base_lookahead_count = 1;
 }
 
@@ -628,6 +639,10 @@ sh_ams::options::options (const std::string& str)
   for (kvi i = kv.find ("gcse"); i != kv.end (); i = kv.end ())
     parse_int (i->second).copy_if_valid_to (gcse);
 
+  for (kvi i = kv.find ("allow_mem_addr_change_new_insns");
+       i != kv.end (); i = kv.end ())
+    parse_int (i->second).copy_if_valid_to (allow_mem_addr_change_new_insns);
+
 //  error ("unknown AMS option");
 }
 
@@ -658,7 +673,7 @@ sh_ams::addr_expr::to_rtx (void) const
   // Surround with POST/PRE_INC/DEC if it is an auto_mod type.
   // FIXME: Also handle PRE_MODIFY and POST_MODIFY.  For that we might need
   // to have the mod being an addr_expr instead of the constant displacement.
-  // Moreover, we can't really distinguish of a post/pre mod with a
+  // Moreover, we can't really distinguish a post/pre mod with a
   // displacement != access size from a post/pre inc/dec.
   if (type () == pre_mod)
     r = disp () > 0 ? gen_rtx_PRE_INC (Pmode, r) : gen_rtx_PRE_DEC (Pmode, r);
@@ -937,10 +952,35 @@ sh_ams::access::set_effective_address (const addr_expr& new_addr_expr)
 }
 
 bool
-sh_ams::access::set_insn_mem_rtx (rtx new_addr)
+sh_ams::access::set_insn_mem_rtx (rtx new_addr, bool allow_new_insns)
 {
-  return validate_change (m_insn, m_mem_ref,
-			  replace_equiv_address (*m_mem_ref, new_addr), false);
+  // In some cases we might actually end up with 'new_addr' being not
+  // really a valid address.  validate_change will then use the
+  // target's 'legitimize_address' function to make a valid address out of
+  // it.  While doing so the target might emit new insns which we must
+  // capture and re-emit before the actual insn.
+  // If this happens it means that something with the alternatives or
+  // mem insn matching is not working as intended.
+
+  start_sequence ();
+  bool r = validate_change (m_insn, m_mem_ref,
+			    replace_equiv_address (*m_mem_ref, new_addr),
+			    false);
+
+  rtx_insn* new_insns = get_insns ();
+  end_sequence ();
+
+  if (r && !allow_new_insns && new_insns != NULL)
+    {
+      log_msg ("validate_change produced new insns: \n");
+      log_rtx (new_insns);
+      abort ();
+    }
+
+  if (r && new_insns != NULL)
+    emit_insn_before (new_insns, m_insn);
+
+  return r;
 }
 
 bool
@@ -2378,7 +2418,8 @@ start_addr_list::remove (access* start_addr)
 // Write the sequence into the insn stream.
 void
 sh_ams::access_sequence
-::update_insn_stream (std::list<shared_insn>& shared_insn_list)
+::update_insn_stream (std::list<shared_insn>& shared_insn_list,
+		      bool allow_mem_addr_change_new_insns)
 {
   log_msg ("update_insn_stream\n");
 
@@ -2533,7 +2574,8 @@ sh_ams::access_sequence
 	  // insns (which we don't handle right now at all).
 	  remove_incdec_notes (accs->insn ());
 
-	  if (!accs->set_insn_mem_rtx (new_addr))
+	  if (!accs->set_insn_mem_rtx (new_addr,
+				       allow_mem_addr_change_new_insns))
 	    {
 	      log_msg ("failed to replace mem rtx\n");
 	      log_rtx (accs->addr_rtx_in_insn ());
@@ -3549,10 +3591,10 @@ sh_ams::access_sequence
       log_msg ("\nvalidating alternatives for insn\n");
       log_insn (a->insn ());
 
-      #define log_invalidate_cont(msg) do { \
+      #define log_invalidate_cont(msg) do { if (dump_file != NULL) { \
 	log_msg ("alternative  "); \
 	log_addr_expr (alt->address ()); \
-	log_msg ("  invalid: %s\n", msg); \
+	log_msg ("  invalid: %s\n", msg); } \
 	alt->set_invalid (); \
 	goto Lcontinue; } while (0)
 
@@ -3731,74 +3773,68 @@ sh_ams::execute (function* fun)
     }
 
   log_msg ("\nprocessing extracted sequences\n");
-  for (std::list<access_sequence>::iterator as_it = sequences.begin ();
-       as_it != sequences.end ();)
+  for (std::list<access_sequence>::iterator as = sequences.begin ();
+       as != sequences.end ();)
     {
-      access_sequence& as = *as_it;
-      if (as.accesses ().empty ())
-        {
-          log_msg ("access sequence empty\n\n");
-          ++as_it;
-          continue;
-        }
-
-      log_access_sequence (as, false);
+      log_access_sequence (*as, false);
       log_msg ("\n\n");
 
-      log_msg ("add_missing_reg_mods\n");
-      as.add_missing_reg_mods ();
+      if (as->accesses ().empty ())
+	{
+	  ++as;
+	  continue;
+	}
 
-      log_access_sequence (as, false);
+      log_msg ("add_missing_reg_mods\n");
+      as->add_missing_reg_mods ();
+
+      log_access_sequence (*as, false);
       log_msg ("\n\n");
 
       log_msg ("find_reg_uses\n");
-      as.find_reg_uses (m_delegate);
+      as->find_reg_uses (m_delegate);
 
-      log_access_sequence (as, false);
+      log_access_sequence (*as, false);
       log_msg ("\n\n");
 
       log_msg ("find_reg_end_values\n");
-      as.find_reg_end_values ();
+      as->find_reg_end_values ();
 
-      log_access_sequence (as, false);
+      log_access_sequence (*as, false);
       log_msg ("\n\n");
 
       // Fill the sequence's MOD_INSNS with the insns of the accesses
       // that can be removed.
-      for (access_sequence::iterator it = as.accesses ().begin ();
-           it != as.accesses ().end (); ++it)
+      for (access_sequence::iterator it = as->accesses ().begin ();
+           it != as->accesses ().end (); ++it)
         {
           if (it->removable ()
               // Auto-mod mem access insns shouldn't be removed.
               && !find_reg_note (it->insn (), REG_INC, NULL_RTX))
-            it->set_mod_insn (as.create_mod_insn (it->insn (), shared_insn_list));
+            it->set_mod_insn (as->create_mod_insn (it->insn (), shared_insn_list));
         }
 
       log_msg ("split_access_sequence\n");
       if (m_options.split_sequences)
-        as_it = split_access_sequence (as_it, sequences);
+        as = split_access_sequence (as, sequences);
       else
-        ++as_it;
+        ++as;
     }
 
   log_msg ("\nprocessing split sequences\n");
-  for (std::list<access_sequence>::iterator as_it = sequences.begin ();
-       as_it != sequences.end (); ++as_it)
+  for (std::list<access_sequence>::iterator as = sequences.begin ();
+       as != sequences.end (); ++as)
     {
-      access_sequence& as = *as_it;
-      if (as.accesses ().empty ())
-        {
-          log_msg ("access sequence empty\n\n");
-          continue;
-        }
-
-      log_access_sequence (as, false);
+      log_access_sequence (*as, false);
       log_msg ("\n\n");
 
-      log_msg ("doing adjacency analysis\n");
-      as.calculate_adjacency_info ();
+      if (as->accesses ().empty ())
+	continue;
 
-      log_access_sequence (as, false);
+      log_msg ("doing adjacency analysis\n");
+      as->calculate_adjacency_info ();
+
+      log_access_sequence (*as, false);
       log_msg ("\n\n");
 
       log_msg ("updating access alternatives\n");
@@ -3806,13 +3842,14 @@ sh_ams::execute (function* fun)
 	typedef access_to_optimize match;
 	typedef filter_iterator<access_sequence::iterator, match> iter;
 
-	for (iter a = as.begin<match> (), a_end = as.end<match> ();
+	for (iter a = as->begin<match> (), a_end = as->end<match> ();
 	     a != a_end; ++a)
-	  as.update_access_alternatives (m_delegate, a,
-					 m_options.force_alt_validation,
-					 m_options.disable_alt_validation);
+	  as->update_access_alternatives (m_delegate, a,
+					  m_options.force_alt_validation,
+					  m_options.disable_alt_validation);
       }
-      log_access_sequence (as, true);
+
+      log_access_sequence (*as, true);
       log_msg ("\n\n");
 
       log_msg ("updating costs\n");
@@ -3820,21 +3857,21 @@ sh_ams::execute (function* fun)
 	typedef access_type_matches<load, store> match;
 	typedef filter_iterator<access_sequence::iterator, match> iter;
 
-	for (iter m = as.begin<match> (), mend = as.end<match> ();
+	for (iter m = as->begin<match> (), mend = as->end<match> ();
 	     m != mend; ++m)
 	  for (access::alternative_set::iterator
 		alt = m->alternatives ().begin ();
 	       alt != m->alternatives ().end (); ++alt)
-	    m_delegate.adjust_alternative_costs (*alt, as, m.base_iterator ());
+	    m_delegate.adjust_alternative_costs (*alt, *as, m.base_iterator ());
       }
 
-      as.update_cost (m_delegate);
-      int original_cost = as.cost ();
+      as->update_cost (m_delegate);
+      int original_cost = as->cost ();
 
-      log_access_sequence (as);
+      log_access_sequence (*as);
       log_msg ("\n\n");
 
-      if (as.cost_already_minimal ())
+      if (as->cost_already_minimal ())
         {
           log_msg ("costs are already minimal\n");
 
@@ -3845,15 +3882,15 @@ sh_ams::execute (function* fun)
         }
 
       log_msg ("gen_address_mod\n");
-      as.gen_address_mod (m_delegate, m_options.base_lookahead_count);
+      as->gen_address_mod (m_delegate, m_options.base_lookahead_count);
 
-      as.update_cost (m_delegate);
-      int new_cost = as.cost ();
+      as->update_cost (m_delegate);
+      int new_cost = as->cost ();
 
-      log_access_sequence (as, false);
+      log_access_sequence (*as, false);
       log_msg ("\n");
 
-      as.set_modify_insns (true);
+      as->set_modify_insns (true);
       if (new_cost >= original_cost)
 	{
 	  log_msg ("new_cost (%d) >= original_cost (%d)",
@@ -3862,14 +3899,14 @@ sh_ams::execute (function* fun)
 	  if (m_options.check_original_cost)
 	    {
 	      log_msg ("  not modifying\n");
-	      as.set_modify_insns (false);
+	      as->set_modify_insns (false);
 	    }
 	  else
 	    log_msg ("  modifying anyway\n");
 	}
 
-      if (as.modify_insns ())
-        as.release_mod_insns ();
+      if (as->modify_insns ())
+        as->release_mod_insns ();
 
       log_msg ("\n\n");
     }
@@ -3883,7 +3920,8 @@ sh_ams::execute (function* fun)
         {
           log_access_sequence (as, false);
           log_msg ("\n");
-          as.update_insn_stream (shared_insn_list);
+          as.update_insn_stream (shared_insn_list,
+				 m_options.allow_mem_addr_change_new_insns);
           log_msg ("\n\n");
         }
     }

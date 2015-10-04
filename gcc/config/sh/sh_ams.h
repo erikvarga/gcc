@@ -67,90 +67,9 @@
 #include <functional>
 #include <map>
 #include <set>
-#include <iterator>
 #include <string>
 
-template <typename Iter, typename Predicate>
-class filter_iterator
-  : public std::iterator<std::forward_iterator_tag,
-  			 typename std::iterator_traits<Iter>::value_type,
-  			 typename std::iterator_traits<Iter>::difference_type,
-  			 typename std::iterator_traits<Iter>::pointer,
-			 typename std::iterator_traits<Iter>::reference>,
-    private Predicate
-{
-public:
-  filter_iterator (void) { }
-
-  filter_iterator (Iter i, Iter iend, const Predicate& p = Predicate ())
-  : Predicate (p)
-  {
-    for (; i != iend && !predicate () (*i); ++i);
-
-    m_i = i;
-    m_end = iend;
-  }
-
-  Predicate& predicate (void) { return *this; }
-  const Predicate& predicate (void) const { return *this; }
-
-  operator Iter (void) const { return m_i; }
-
-  // FIXME: the base iterator wouldn't be needed if conversions to const
-  // iterator and to const iterator of Iter worked.
-  const Iter& base_iterator (void) const { return m_i; }
-
-  void swap (filter_iterator& other)
-  {
-    std::swap (m_i, other.m_i);
-    std::swap (m_end, other.m_end);
-  }
-
-  filter_iterator& operator = (Iter i)
-  {
-    for (; i != m_end && !predicate () (*i); ++i);
-
-    m_i = i;
-    return *this;
-  }
-
-  filter_iterator& operator ++ (void)
-  {
-    Iter i = m_i;
-    ++i;
-    for (; i != m_end && !predicate () (*i); ++i);
-
-    m_i = i;
-    return *this;
-  }
-
-  filter_iterator operator ++ (int)
-  {
-    filter_iterator r = *this;
-    operator++ ();
-    return r;
-  }
-
-  bool operator == (const filter_iterator& rhs) const { return m_i == rhs.m_i; }
-  bool operator != (const filter_iterator& rhs) const { return m_i != rhs.m_i; }
-
-  bool operator == (const Iter& rhs) const { return m_i == rhs; }
-  bool operator != (const Iter& rhs) const { return m_i != rhs; }
-
-  typename std::iterator_traits<Iter>::reference
-  operator * (void) const { return *m_i; }
-
-  // If Iter is a raw pointer we can't invoke m_i.operator -> on it.
-  typename std::iterator_traits<Iter>::pointer
-  operator -> (void) const { return &*m_i; }
-
-  // FIXME: conversion to const_iterator is not working.
-
-private:
-  Iter m_i;
-  Iter m_end;
-};
-
+#include "filter_iterator.h"
 
 class sh_ams : public rtl_opt_pass
 {
@@ -353,6 +272,9 @@ public:
 
   // an element in the access sequence.  can be a real memory access insn
   // or address register modification or address register use insn.
+  // FIXME: extend this to handle
+  //         - memory operands (e.g. SH's GBR mem logic insns)
+  //         - some kind of multiple use (e.g. SH's atomic insns)
   enum access_type_t { load, store, reg_mod, reg_use };
 
   class access
@@ -603,7 +525,7 @@ public:
     void set_cost (int new_cost) { m_cost = new_cost; }
     void adjust_cost (int d) { m_cost += d; }
 
-    bool set_insn_mem_rtx (rtx new_addr);
+    bool set_insn_mem_rtx (rtx new_addr, bool allow_new_insns);
     bool try_set_insn_mem_rtx (rtx new_addr);
 
     bool set_insn_use_rtx (rtx new_expr);
@@ -675,7 +597,8 @@ public:
 
     void gen_address_mod (delegate& dlg, int base_lookahead);
 
-    void update_insn_stream (std::list<shared_insn>& shared_insn_list);
+    void update_insn_stream (std::list<shared_insn>& shared_insn_list,
+			     bool allow_mem_addr_change_new_insns);
     bool modify_insns (void) const { return m_modify_insns; }
     void set_modify_insns (bool mod) { m_modify_insns = mod; }
 
@@ -1062,6 +985,12 @@ public:
 
     // Run global CSE after AMS.
     bool gcse;
+
+    // Allow new insns to be emitted when doing a validate_change to replace
+    // memory addresses in insns.  If new insns are emitted it usually means
+    // AMS is missing something.  It should usually not happen.  Enabled by
+    // default.
+    bool allow_mem_addr_change_new_insns;
 
     // Use this as a base look ahead count value for the algorithm that selects
     // alternatives.  Default is 1.
