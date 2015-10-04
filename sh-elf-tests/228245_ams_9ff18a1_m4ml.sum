@@ -1,0 +1,2009 @@
+Test Run By * on Sun Oct  4 21:28:51 2015
+Target is sh-unknown-elf
+Host   is sh-unknown-elf
+
+		=== libstdc++ tests ===
+
+Schedule of variations:
+    sh-sim/-m4/-ml
+
+Running target sh-sim/-m4/-ml
+Running gcc/libstdc++-v3/testsuite/libstdc++-abi/abi.exp ...
+Running gcc/libstdc++-v3/testsuite/libstdc++-dg/conformance.exp ...
+FAIL: 18_support/bad_alloc/cons_virtual_derivation.cc execution test
+FAIL: 18_support/bad_cast/cons_virtual_derivation.cc execution test
+FAIL: 18_support/bad_exception/59392.cc execution test
+FAIL: 18_support/bad_exception/cons_virtual_derivation.cc execution test
+FAIL: 18_support/bad_typeid/cons_virtual_derivation.cc execution test
+FAIL: 18_support/cxa_vec.cc execution test
+FAIL: 18_support/exception/38732.cc execution test
+FAIL: 18_support/uncaught_exception/14026.cc execution test
+FAIL: 18_support/uncaught_exceptions/uncaught_exceptions.cc execution test
+FAIL: 19_diagnostics/logic_error/cons_virtual_derivation.cc execution test
+FAIL: 19_diagnostics/logic_error/what-2.cc execution test
+FAIL: 19_diagnostics/runtime_error/cons_virtual_derivation.cc execution test
+FAIL: 19_diagnostics/runtime_error/what-2.cc execution test
+FAIL: 19_diagnostics/stdexcept.cc execution test
+FAIL: 19_diagnostics/system_error/cons_virtual_derivation.cc execution test
+FAIL: 19_diagnostics/system_error/what-2.cc execution test
+FAIL: 20_util/allocator/8230.cc execution test
+FAIL: 20_util/bad_function_call/cons_virtual_derivation.cc execution test
+FAIL: 20_util/bad_function_call/what.cc execution test
+FAIL: 20_util/function/1.cc execution test
+FAIL: 20_util/function/63840.cc execution test
+FAIL: 20_util/function/cons/55320.cc execution test
+FAIL: 20_util/hash/chi2_q_bit_flip_set.cc execution test
+FAIL: 20_util/hash/chi2_q_bit_string_set.cc execution test
+FAIL: 20_util/hash/chi2_q_numeric_pattern_set.cc execution test
+FAIL: 20_util/hash/chi2_q_uniform_random.cc execution test
+FAIL: 20_util/shared_ptr/cons/weak_ptr_expired.cc execution test
+FAIL: 21_strings/basic_string/capacity/wchar_t/18654.cc execution test
+FAIL: 21_strings/basic_string/cons/char/1.cc execution test
+FAIL: 21_strings/basic_string/cons/char/3.cc execution test
+FAIL: 21_strings/basic_string/cons/char/6.cc execution test
+FAIL: 21_strings/basic_string/cons/wchar_t/1.cc execution test
+FAIL: 21_strings/basic_string/cons/wchar_t/3.cc execution test
+FAIL: 21_strings/basic_string/element_access/char/1.cc execution test
+FAIL: 21_strings/basic_string/element_access/wchar_t/1.cc execution test
+FAIL: 21_strings/basic_string/element_access/wchar_t/2.cc execution test
+FAIL: 21_strings/basic_string/inserters_extractors/pod/10081-in.cc execution test
+FAIL: 21_strings/basic_string/inserters_extractors/wchar_t/10.cc execution test
+FAIL: 21_strings/basic_string/inserters_extractors/wchar_t/11.cc execution test
+FAIL: 21_strings/basic_string/inserters_extractors/wchar_t/28277.cc execution test
+FAIL: 21_strings/basic_string/modifiers/append/char/1.cc execution test
+FAIL: 21_strings/basic_string/modifiers/append/char/3.cc execution test
+FAIL: 21_strings/basic_string/modifiers/append/wchar_t/1.cc execution test
+FAIL: 21_strings/basic_string/modifiers/insert/char/1.cc execution test
+FAIL: 21_strings/basic_string/modifiers/insert/wchar_t/1.cc execution test
+FAIL: 21_strings/basic_string/operations/substr/char/1.cc execution test
+FAIL: 21_strings/basic_string/operations/substr/wchar_t/1.cc execution test
+FAIL: 21_strings/basic_string/requirements/exception/generation_prohibited.cc execution test
+FAIL: 22_locale/collate/transform/char/28277.cc execution test
+FAIL: 22_locale/facet/25421.cc execution test
+FAIL: 22_locale/global_templates/1.cc execution test
+FAIL: 22_locale/money_put/put/char/12971.cc execution test
+FAIL: 22_locale/money_put/put/char/4.cc execution test
+FAIL: 22_locale/money_put/put/char/6.cc execution test
+FAIL: 22_locale/money_put/put/wchar_t/12971.cc execution test
+FAIL: 22_locale/money_put/put/wchar_t/6.cc execution test
+FAIL: 22_locale/num_get/get/char/2.cc execution test
+FAIL: 22_locale/num_get/get/wchar_t/2.cc execution test
+FAIL: 22_locale/num_put/put/char/11.cc execution test
+FAIL: 22_locale/num_put/put/char/14220.cc execution test
+FAIL: 22_locale/num_put/put/char/23953.cc execution test
+FAIL: 22_locale/num_put/put/char/4.cc execution test
+FAIL: 22_locale/num_put/put/char/6.cc execution test
+FAIL: 22_locale/num_put/put/char/8.cc execution test
+FAIL: 22_locale/num_put/put/wchar_t/11.cc execution test
+FAIL: 22_locale/num_put/put/wchar_t/12.cc execution test
+FAIL: 22_locale/num_put/put/wchar_t/14220.cc execution test
+FAIL: 22_locale/num_put/put/wchar_t/23953.cc execution test
+FAIL: 22_locale/num_put/put/wchar_t/4.cc execution test
+FAIL: 22_locale/num_put/put/wchar_t/6.cc execution test
+FAIL: 22_locale/num_put/put/wchar_t/8.cc execution test
+FAIL: 22_locale/numpunct/members/pod/2.cc execution test
+FAIL: 22_locale/time_get/get_monthname/char/1.cc execution test
+FAIL: 22_locale/time_get/get_monthname/char/3.cc execution test
+FAIL: 22_locale/time_get/get_monthname/char/4.cc execution test
+FAIL: 22_locale/time_get/get_monthname/char/5.cc execution test
+FAIL: 22_locale/time_get/get_monthname/char/6.cc execution test
+FAIL: 22_locale/time_get/get_monthname/wchar_t/1.cc execution test
+FAIL: 22_locale/time_get/get_monthname/wchar_t/3.cc execution test
+FAIL: 22_locale/time_get/get_monthname/wchar_t/4.cc execution test
+FAIL: 22_locale/time_get/get_monthname/wchar_t/5.cc execution test
+FAIL: 22_locale/time_get/get_monthname/wchar_t/6.cc execution test
+FAIL: 22_locale/time_get/get_weekday/char/1.cc execution test
+FAIL: 22_locale/time_get/get_weekday/char/3.cc execution test
+FAIL: 22_locale/time_get/get_weekday/char/5.cc execution test
+FAIL: 22_locale/time_get/get_weekday/char/6.cc execution test
+FAIL: 22_locale/time_get/get_weekday/wchar_t/1.cc execution test
+FAIL: 22_locale/time_get/get_weekday/wchar_t/3.cc execution test
+FAIL: 22_locale/time_get/get_weekday/wchar_t/5.cc execution test
+FAIL: 22_locale/time_get/get_weekday/wchar_t/6.cc execution test
+FAIL: 22_locale/time_put/put/wchar_t/1.cc execution test
+FAIL: 22_locale/time_put/put/wchar_t/9.cc execution test
+FAIL: 23_containers/array/element_access/at_out_of_range.cc execution test
+FAIL: 23_containers/bitset/cons/1.cc execution test
+FAIL: 23_containers/bitset/cons/6282.cc execution test
+FAIL: 23_containers/bitset/operations/1.cc execution test
+FAIL: 23_containers/bitset/test/1.cc execution test
+FAIL: 23_containers/bitset/to_ulong/1.cc execution test
+FAIL: 23_containers/deque/capacity/29134-2.cc execution test
+FAIL: 23_containers/deque/cons/2.cc execution test
+FAIL: 23_containers/deque/requirements/exception/basic.cc execution test
+FAIL: 23_containers/deque/requirements/exception/propagation_consistent.cc execution test
+FAIL: 23_containers/forward_list/requirements/exception/basic.cc execution test
+FAIL: 23_containers/forward_list/requirements/exception/propagation_consistent.cc execution test
+FAIL: 23_containers/list/modifiers/3.cc execution test
+FAIL: 23_containers/list/modifiers/insert/25288.cc execution test
+FAIL: 23_containers/list/requirements/exception/basic.cc execution test
+FAIL: 23_containers/list/requirements/exception/propagation_consistent.cc execution test
+FAIL: 23_containers/map/element_access/1.cc execution test
+FAIL: 23_containers/map/init-list.cc execution test
+FAIL: 23_containers/map/requirements/exception/basic.cc execution test
+FAIL: 23_containers/map/requirements/exception/propagation_consistent.cc execution test
+FAIL: 23_containers/multimap/init-list.cc execution test
+FAIL: 23_containers/multimap/requirements/exception/basic.cc execution test
+FAIL: 23_containers/multimap/requirements/exception/propagation_consistent.cc execution test
+FAIL: 23_containers/multiset/requirements/exception/basic.cc execution test
+FAIL: 23_containers/multiset/requirements/exception/propagation_consistent.cc execution test
+FAIL: 23_containers/set/requirements/exception/basic.cc execution test
+FAIL: 23_containers/set/requirements/exception/propagation_consistent.cc execution test
+FAIL: 23_containers/unordered_map/dr761.cc execution test
+FAIL: 23_containers/unordered_map/erase/1.cc execution test
+FAIL: 23_containers/unordered_map/profile/hash_map.cc execution test
+FAIL: 23_containers/unordered_map/profile/unordered.cc execution test
+FAIL: 23_containers/unordered_map/requirements/exception/basic.cc execution test
+FAIL: 23_containers/unordered_map/requirements/exception/generation_prohibited.cc execution test
+FAIL: 23_containers/unordered_map/requirements/exception/propagation_consistent.cc execution test
+FAIL: 23_containers/unordered_multimap/erase/1.cc execution test
+FAIL: 23_containers/unordered_multimap/erase/24061-multimap.cc execution test
+FAIL: 23_containers/unordered_multimap/init-list.cc execution test
+FAIL: 23_containers/unordered_multimap/insert/53115.cc execution test
+FAIL: 23_containers/unordered_multimap/operations/count.cc execution test
+FAIL: 23_containers/unordered_multimap/operators/1.cc execution test
+FAIL: 23_containers/unordered_multimap/requirements/exception/basic.cc execution test
+FAIL: 23_containers/unordered_multimap/requirements/exception/generation_prohibited.cc execution test
+FAIL: 23_containers/unordered_multimap/requirements/exception/propagation_consistent.cc execution test
+FAIL: 23_containers/unordered_multiset/erase/1.cc execution test
+FAIL: 23_containers/unordered_multiset/erase/24061-multiset.cc execution test
+FAIL: 23_containers/unordered_multiset/insert/53115.cc execution test
+FAIL: 23_containers/unordered_multiset/insert/hash_policy.cc execution test
+FAIL: 23_containers/unordered_multiset/operations/count.cc execution test
+FAIL: 23_containers/unordered_multiset/operators/1.cc execution test
+FAIL: 23_containers/unordered_multiset/requirements/exception/basic.cc execution test
+FAIL: 23_containers/unordered_multiset/requirements/exception/generation_prohibited.cc execution test
+FAIL: 23_containers/unordered_multiset/requirements/exception/propagation_consistent.cc execution test
+FAIL: 23_containers/unordered_set/buckets/swap.cc execution test
+FAIL: 23_containers/unordered_set/erase/1.cc execution test
+FAIL: 23_containers/unordered_set/hash_policy/load_factor.cc execution test
+FAIL: 23_containers/unordered_set/hash_policy/rehash.cc execution test
+FAIL: 23_containers/unordered_set/insert/hash_policy.cc execution test
+FAIL: 23_containers/unordered_set/max_load_factor/robustness.cc execution test
+FAIL: 23_containers/unordered_set/requirements/exception/basic.cc execution test
+FAIL: 23_containers/unordered_set/requirements/exception/generation_prohibited.cc execution test
+FAIL: 23_containers/unordered_set/requirements/exception/propagation_consistent.cc execution test
+FAIL: 23_containers/vector/bool/modifiers/insert/31370.cc execution test
+FAIL: 23_containers/vector/capacity/2.cc execution test
+FAIL: 23_containers/vector/capacity/29134-2.cc execution test
+FAIL: 23_containers/vector/capacity/8230.cc execution test
+FAIL: 23_containers/vector/capacity/resize/1.cc execution test
+FAIL: 23_containers/vector/cons/4.cc execution test
+FAIL: 23_containers/vector/element_access/1.cc execution test
+FAIL: 23_containers/vector/ext_pointer/modifiers/element.cc execution test
+FAIL: 23_containers/vector/ext_pointer/modifiers/insert.cc execution test
+FAIL: 23_containers/vector/modifiers/insert/1.cc execution test
+FAIL: 23_containers/vector/modifiers/push_back/strong_guarantee.cc execution test
+FAIL: 23_containers/vector/requirements/exception/basic.cc execution test
+FAIL: 23_containers/vector/requirements/exception/propagation_consistent.cc execution test
+FAIL: 25_algorithms/copy/3.cc execution test
+FAIL: 25_algorithms/copy/streambuf_iterators/wchar_t/1.cc execution test
+FAIL: 25_algorithms/copy/streambuf_iterators/wchar_t/2.cc execution test
+FAIL: 25_algorithms/copy/streambuf_iterators/wchar_t/3.cc execution test
+FAIL: 25_algorithms/copy_n/3.cc execution test
+FAIL: 25_algorithms/find/istreambuf_iterators/wchar_t/1.cc execution test
+FAIL: 25_algorithms/heap/1.cc execution test
+FAIL: 25_algorithms/make_heap/complexity.cc execution test
+FAIL: 25_algorithms/nth_element/2.cc execution test
+FAIL: 25_algorithms/partial_sort/2.cc execution test
+FAIL: 25_algorithms/partial_sort_copy/2.cc execution test
+FAIL: 25_algorithms/pop_heap/complexity.cc execution test
+FAIL: 25_algorithms/push_heap/complexity.cc execution test
+FAIL: 25_algorithms/sort_heap/complexity.cc execution test
+FAIL: 25_algorithms/stable_partition/mem_check.cc execution test
+FAIL: 25_algorithms/stable_sort/mem_check.cc execution test
+FAIL: 26_numerics/complex/inserters_extractors/char/1.cc execution test
+FAIL: 26_numerics/complex/inserters_extractors/wchar_t/1.cc execution test
+FAIL: 26_numerics/random/bernoulli_distribution/operators/values.cc execution test
+FAIL: 26_numerics/random/binomial_distribution/operators/serialize.cc execution test
+FAIL: 26_numerics/random/binomial_distribution/operators/values.cc execution test
+FAIL: 26_numerics/random/binomial_distribution/operators/values2.cc execution test
+FAIL: 26_numerics/random/binomial_distribution/operators/values3.cc execution test
+FAIL: 26_numerics/random/binomial_distribution/operators/values4.cc execution test
+FAIL: 26_numerics/random/binomial_distribution/operators/values5.cc execution test
+FAIL: 26_numerics/random/chi_squared_distribution/operators/serialize.cc execution test
+FAIL: 26_numerics/random/discrete_distribution/operators/serialize.cc execution test
+FAIL: 26_numerics/random/discrete_distribution/operators/values.cc execution test
+FAIL: 26_numerics/random/fisher_f_distribution/operators/serialize.cc execution test
+FAIL: 26_numerics/random/gamma_distribution/operators/serialize.cc execution test
+FAIL: 26_numerics/random/geometric_distribution/operators/values.cc execution test
+FAIL: 26_numerics/random/knuth_b.cc execution test
+FAIL: 26_numerics/random/lognormal_distribution/operators/serialize.cc execution test
+FAIL: 26_numerics/random/negative_binomial_distribution/operators/serialize.cc execution test
+FAIL: 26_numerics/random/negative_binomial_distribution/operators/values.cc execution test
+FAIL: 26_numerics/random/normal_distribution/operators/serialize.cc execution test
+FAIL: 26_numerics/random/piecewise_constant_distribution/operators/serialize.cc execution test
+FAIL: 26_numerics/random/piecewise_linear_distribution/cons/range.cc execution test
+FAIL: 26_numerics/random/piecewise_linear_distribution/operators/serialize.cc execution test
+FAIL: 26_numerics/random/poisson_distribution/operators/serialize.cc execution test
+FAIL: 26_numerics/random/poisson_distribution/operators/values.cc execution test
+FAIL: 26_numerics/random/student_t_distribution/operators/serialize.cc execution test
+FAIL: 26_numerics/valarray/binary_closure.cc execution test
+FAIL: 27_io/basic_filebuf/cons/wchar_t/10132-1.cc execution test
+FAIL: 27_io/basic_filebuf/overflow/char/1.cc execution test
+FAIL: 27_io/basic_filebuf/overflow/char/13858.cc execution test
+FAIL: 27_io/basic_filebuf/overflow/char/9182-2.cc execution test
+FAIL: 27_io/basic_filebuf/overflow/wchar_t/13858.cc execution test
+FAIL: 27_io/basic_filebuf/seekoff/wchar_t/3.cc execution test
+FAIL: 27_io/basic_filebuf/seekpos/wchar_t/1.cc execution test
+FAIL: 27_io/basic_filebuf/sgetn/char/1-in.cc execution test
+FAIL: 27_io/basic_filebuf/sgetn/char/1-io.cc execution test
+FAIL: 27_io/basic_filebuf/sgetn/char/2-in.cc execution test
+FAIL: 27_io/basic_filebuf/sgetn/char/2-io.cc execution test
+FAIL: 27_io/basic_filebuf/sync/char/9182-1.cc execution test
+FAIL: 27_io/basic_filebuf/underflow/wchar_t/11544-1.cc execution test
+FAIL: 27_io/basic_filebuf/underflow/wchar_t/11544-2.cc execution test
+FAIL: 27_io/basic_filebuf/underflow/wchar_t/11603.cc execution test
+FAIL: 27_io/basic_fstream/cons/move.cc execution test
+FAIL: 27_io/basic_ifstream/cons/move.cc execution test
+FAIL: 27_io/basic_ios/copyfmt/char/1.cc execution test
+FAIL: 27_io/basic_ios/exceptions/char/1.cc execution test
+FAIL: 27_io/basic_ios/exceptions/char/2.cc execution test
+FAIL: 27_io/basic_ios/imbue/14072.cc execution test
+FAIL: 27_io/basic_istream/exceptions/char/9561.cc execution test
+FAIL: 27_io/basic_istream/exceptions/wchar_t/9561.cc execution test
+FAIL: 27_io/basic_istream/extractors_arithmetic/char/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_istream/extractors_arithmetic/char/exceptions_failbit.cc execution test
+FAIL: 27_io/basic_istream/extractors_arithmetic/char/exceptions_failbit_throw.cc execution test
+FAIL: 27_io/basic_istream/extractors_arithmetic/pod/3983-1.cc execution test
+FAIL: 27_io/basic_istream/extractors_arithmetic/wchar_t/13.cc execution test
+FAIL: 27_io/basic_istream/extractors_arithmetic/wchar_t/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_istream/extractors_arithmetic/wchar_t/exceptions_failbit.cc execution test
+FAIL: 27_io/basic_istream/extractors_arithmetic/wchar_t/exceptions_failbit_throw.cc execution test
+FAIL: 27_io/basic_istream/extractors_character/pod/3983-2.cc execution test
+FAIL: 27_io/basic_istream/extractors_character/wchar_t/4.cc execution test
+FAIL: 27_io/basic_istream/extractors_other/char/error_failbit.cc execution test
+FAIL: 27_io/basic_istream/extractors_other/char/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_istream/extractors_other/char/exceptions_failbit_throw.cc execution test
+FAIL: 27_io/basic_istream/extractors_other/char/exceptions_null.cc execution test
+FAIL: 27_io/basic_istream/extractors_other/pod/3983-3.cc execution test
+FAIL: 27_io/basic_istream/extractors_other/wchar_t/error_failbit.cc execution test
+FAIL: 27_io/basic_istream/extractors_other/wchar_t/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_istream/extractors_other/wchar_t/exceptions_failbit_throw.cc execution test
+FAIL: 27_io/basic_istream/extractors_other/wchar_t/exceptions_null.cc execution test
+FAIL: 27_io/basic_istream/getline/char/5.cc execution test
+FAIL: 27_io/basic_istream/getline/wchar_t/5.cc execution test
+FAIL: 27_io/basic_istream/ignore/wchar_t/2.cc execution test
+FAIL: 27_io/basic_istream/readsome/char/6746-2.cc execution test
+FAIL: 27_io/basic_istream/readsome/wchar_t/6746-2.cc execution test
+FAIL: 27_io/basic_istream/seekg/char/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_istream/seekg/wchar_t/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_istream/sentry/char/12297.cc execution test
+FAIL: 27_io/basic_istream/sentry/pod/1.cc execution test
+FAIL: 27_io/basic_istream/sentry/wchar_t/12297.cc execution test
+FAIL: 27_io/basic_istream/tellg/char/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_istream/tellg/wchar_t/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_istringstream/cons/move.cc execution test
+FAIL: 27_io/basic_ofstream/cons/move.cc execution test
+FAIL: 27_io/basic_ostream/exceptions/char/9561.cc execution test
+FAIL: 27_io/basic_ostream/exceptions/wchar_t/9561.cc execution test
+FAIL: 27_io/basic_ostream/flush/char/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_ostream/flush/wchar_t/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/char/1.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/char/4402.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/char/5.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/char/6.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/char/9555-oa.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/char/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/char/exceptions_failbit_throw.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/pod/23875.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/wchar_t/1.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/wchar_t/4402.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/wchar_t/5.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/wchar_t/6.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/wchar_t/9555-oa.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/wchar_t/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/wchar_t/exceptions_failbit_throw.cc execution test
+FAIL: 27_io/basic_ostream/inserters_character/char/9555-oc.cc execution test
+FAIL: 27_io/basic_ostream/inserters_character/wchar_t/11095-of.cc execution test
+FAIL: 27_io/basic_ostream/inserters_character/wchar_t/28277-3.cc execution test
+FAIL: 27_io/basic_ostream/inserters_character/wchar_t/28277-4.cc execution test
+FAIL: 27_io/basic_ostream/inserters_character/wchar_t/6.cc execution test
+FAIL: 27_io/basic_ostream/inserters_character/wchar_t/7.cc execution test
+FAIL: 27_io/basic_ostream/inserters_character/wchar_t/9555-oc.cc execution test
+FAIL: 27_io/basic_ostream/inserters_other/char/5.cc execution test
+FAIL: 27_io/basic_ostream/inserters_other/char/error_failbit.cc execution test
+FAIL: 27_io/basic_ostream/inserters_other/char/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_ostream/inserters_other/char/exceptions_failbit_throw.cc execution test
+FAIL: 27_io/basic_ostream/inserters_other/char/exceptions_null.cc execution test
+FAIL: 27_io/basic_ostream/inserters_other/wchar_t/5.cc execution test
+FAIL: 27_io/basic_ostream/inserters_other/wchar_t/error_failbit.cc execution test
+FAIL: 27_io/basic_ostream/inserters_other/wchar_t/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_ostream/inserters_other/wchar_t/exceptions_failbit_throw.cc execution test
+FAIL: 27_io/basic_ostream/inserters_other/wchar_t/exceptions_null.cc execution test
+FAIL: 27_io/basic_ostream/put/char/1.cc execution test
+FAIL: 27_io/basic_ostream/put/wchar_t/1.cc execution test
+FAIL: 27_io/basic_ostream/seekp/char/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_ostream/seekp/wchar_t/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_ostream/tellp/char/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_ostream/tellp/wchar_t/exceptions_badbit_throw.cc execution test
+FAIL: 27_io/basic_ostream/write/char/1.cc execution test
+FAIL: 27_io/basic_ostream/write/wchar_t/1.cc execution test
+FAIL: 27_io/basic_streambuf/overflow/char/2.cc execution test
+FAIL: 27_io/basic_streambuf/overflow/wchar_t/2.cc execution test
+FAIL: 27_io/basic_stringbuf/overflow/char/2.cc execution test
+FAIL: 27_io/basic_stringbuf/overflow/wchar_t/2.cc execution test
+FAIL: 27_io/basic_stringstream/str/char/3.cc execution test
+FAIL: 27_io/basic_stringstream/str/wchar_t/3.cc execution test
+FAIL: 27_io/ios_base/failure/cons_virtual_derivation.cc execution test
+FAIL: 27_io/ios_base/failure/what-2.cc execution test
+FAIL: 27_io/ios_base/storage/11584.cc execution test
+FAIL: 27_io/ios_base/storage/2.cc execution test
+FAIL: 27_io/manipulators/adjustfield/wchar_t/1.cc execution test
+FAIL: 27_io/manipulators/basefield/char/1.cc execution test
+FAIL: 27_io/manipulators/basefield/wchar_t/1.cc execution test
+FAIL: 27_io/objects/char/6.cc execution test
+FAIL: 27_io/objects/wchar_t/6.cc execution test
+FAIL: 28_regex/algorithms/regex_match/basic/empty_range.cc execution test
+FAIL: 28_regex/algorithms/regex_match/basic/string_01.cc execution test
+FAIL: 28_regex/algorithms/regex_match/cstring_bracket_01.cc execution test
+FAIL: 28_regex/algorithms/regex_match/ecma/char/61601.cc execution test
+FAIL: 28_regex/algorithms/regex_match/ecma/char/backref.cc execution test
+FAIL: 28_regex/algorithms/regex_match/ecma/char/hex.cc execution test
+FAIL: 28_regex/algorithms/regex_match/ecma/wchar_t/63199.cc execution test
+FAIL: 28_regex/algorithms/regex_match/ecma/wchar_t/hex.cc execution test
+FAIL: 28_regex/algorithms/regex_match/extended/cstring_plus.cc execution test
+FAIL: 28_regex/algorithms/regex_match/extended/cstring_questionmark.cc execution test
+FAIL: 28_regex/basic_regex/assign/char/string.cc execution test
+FAIL: 28_regex/basic_regex/ctors/basic/string_range_01_02_03.cc execution test
+FAIL: 28_regex/basic_regex/ctors/extended/string_range_01_02_03.cc execution test
+FAIL: 28_regex/regex_error/regex_error.cc execution test
+FAIL: abi/demangle/regression/cw-16.cc execution test
+FAIL: experimental/any/misc/any_cast.cc execution test
+FAIL: experimental/any/misc/any_cast_no_rtti.cc execution test
+FAIL: experimental/optional/assignment/1.cc execution test
+FAIL: experimental/optional/assignment/2.cc execution test
+FAIL: experimental/optional/assignment/3.cc execution test
+FAIL: experimental/optional/assignment/4.cc execution test
+FAIL: experimental/optional/cons/copy.cc execution test
+FAIL: experimental/optional/cons/move.cc execution test
+FAIL: experimental/optional/cons/value.cc execution test
+FAIL: experimental/optional/observers/3.cc execution test
+FAIL: experimental/string_view/element_access/char/1.cc execution test
+FAIL: experimental/string_view/element_access/wchar_t/1.cc execution test
+FAIL: experimental/string_view/operations/substr/char/1.cc execution test
+FAIL: experimental/string_view/operations/substr/wchar_t/1.cc execution test
+FAIL: ext/array_allocator/check_allocate_max_size.cc execution test
+FAIL: ext/bitmap_allocator/check_allocate_max_size.cc execution test
+FAIL: ext/concurrence_lock_error/cons_virtual_derivation.cc execution test
+FAIL: ext/concurrence_unlock_error/cons_virtual_derivation.cc execution test
+FAIL: ext/debug_allocator/check_deallocate_null.cc execution test
+FAIL: ext/forced_error/cons_virtual_derivation.cc execution test
+FAIL: ext/malloc_allocator/check_allocate_max_size.cc execution test
+FAIL: ext/mt_allocator/check_allocate_big_per_type.cc execution test
+FAIL: ext/mt_allocator/check_allocate_max_size.cc execution test
+FAIL: ext/mt_allocator/check_delete.cc execution test
+FAIL: ext/mt_allocator/check_new.cc execution test
+FAIL: ext/mt_allocator/deallocate_global-2.cc execution test
+FAIL: ext/mt_allocator/deallocate_global-4.cc execution test
+FAIL: ext/mt_allocator/tune-1.cc execution test
+FAIL: ext/mt_allocator/tune-2.cc execution test
+FAIL: ext/mt_allocator/tune-3.cc execution test
+FAIL: ext/mt_allocator/tune-4.cc execution test
+FAIL: ext/mt_allocator/variadic_construct.cc execution test
+FAIL: ext/new_allocator/check_allocate_max_size.cc execution test
+FAIL: ext/pb_ds/example/basic_priority_queue.cc execution test
+FAIL: ext/pb_ds/example/erase_if.cc execution test
+FAIL: ext/pb_ds/example/hash_illegal_resize.cc execution test
+FAIL: ext/pb_ds/example/priority_queue_xref.cc execution test
+FAIL: ext/pb_ds/example/ranged_hash.cc execution test
+FAIL: ext/pb_ds/example/tree_join.cc execution test
+FAIL: ext/pb_ds/regression/hash_map_rand.cc execution test
+FAIL: ext/pb_ds/regression/hash_set_rand.cc execution test
+FAIL: ext/pb_ds/regression/list_update_map_rand.cc execution test
+FAIL: ext/pb_ds/regression/list_update_set_rand.cc execution test
+FAIL: ext/pb_ds/regression/priority_queue_rand.cc execution test
+FAIL: ext/pb_ds/regression/priority_queues.cc execution test
+FAIL: ext/pb_ds/regression/tree_map_rand.cc execution test
+FAIL: ext/pb_ds/regression/tree_set_rand.cc execution test
+FAIL: ext/pb_ds/regression/trie_map_rand.cc execution test
+FAIL: ext/pb_ds/regression/trie_set_rand.cc execution test
+FAIL: ext/pool_allocator/allocate_chunk.cc execution test
+FAIL: ext/pool_allocator/check_allocate_max_size.cc execution test
+FAIL: ext/random/arcsine_distribution/operators/serialize.cc execution test
+FAIL: ext/random/hoyt_distribution/operators/serialize.cc execution test
+FAIL: ext/random/k_distribution/operators/serialize.cc execution test
+FAIL: ext/random/logistic_distribution/operators/serialize.cc execution test
+FAIL: ext/random/nakagami_distribution/operators/serialize.cc execution test
+FAIL: ext/random/normal_mv_distribution/operators/serialize.cc execution test
+FAIL: ext/random/pareto_distribution/operators/serialize.cc execution test
+FAIL: ext/random/rice_distribution/operators/serialize.cc execution test
+FAIL: ext/random/simd_fast_mersenne_twister_engine/cons/default.cc execution test
+FAIL: ext/random/triangular_distribution/operators/serialize.cc execution test
+FAIL: ext/random/uniform_on_sphere_distribution/operators/serialize.cc execution test
+FAIL: ext/rope/3.cc execution test
+FAIL: ext/throw_allocator/check_allocate_max_size.cc execution test
+FAIL: ext/throw_allocator/check_deallocate_null.cc execution test
+FAIL: ext/vstring/inserters_extractors/wchar_t/28277.cc execution test
+FAIL: ext/vstring/requirements/exception/generation_prohibited.cc execution test
+FAIL: ext/vstring/requirements/exception/propagation_consistent.cc execution test
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+FAIL: tr1/2_general_utilities/enable_shared_from_this/not_shared.cc execution test
+FAIL: tr1/2_general_utilities/enable_shared_from_this/not_shared2.cc execution test
+FAIL: tr1/2_general_utilities/enable_shared_from_this/not_shared3.cc execution test
+FAIL: tr1/2_general_utilities/shared_ptr/cons/weak_ptr_expired.cc execution test
+FAIL: tr1/3_function_objects/function/1.cc execution test
+FAIL: tr1/3_function_objects/function/63840.cc execution test
+FAIL: tr1/6_containers/array/element_access/at_out_of_range.cc execution test
+FAIL: tr1/6_containers/unordered_set/26132.cc execution test
+FAIL: tr1/8_c_compatibility/complex/50880.cc (test for excess errors)
+FAIL: tr1/8_c_compatibility/complex/functions.cc (test for excess errors)
+Running gcc/libstdc++-v3/testsuite/libstdc++-prettyprinters/prettyprinters.exp ...
+Running gcc/libstdc++-v3/testsuite/libstdc++-xmethods/xmethods.exp ...
+
+		=== libstdc++ Summary ===
+
+# of expected passes		8559
+# of unexpected failures	417
+# of expected failures		66
+# of unresolved testcases	1
+# of unsupported tests		750
+Test Run By * on Sun Oct  4 21:56:47 2015
+Target is sh-unknown-elf
+Host   is x86_64-pc-linux-gnu
+
+		=== g++ tests ===
+
+Schedule of variations:
+    sh-sim/-m4/-ml
+
+Running target sh-sim/-m4/-ml
+Running gcc/testsuite/g++.dg/asan/asan.exp ...
+Running gcc/testsuite/g++.dg/bprob/bprob.exp ...
+FAIL: g++.dg/bprob/g++-bprob-1.C execution: file g++-bprob-1.gcda does not exist,  -O0  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-1.C execution: file g++-bprob-1.gcda does not exist,  -O1  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-1.C execution: file g++-bprob-1.gcda does not exist,  -O2  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-1.C execution: file g++-bprob-1.gcda does not exist,  -O3  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-1.C execution: file g++-bprob-1.gcda does not exist,  -O3 -g  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-1.C execution: file g++-bprob-1.gcda does not exist,  -Os  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-1.C execution: file g++-bprob-1.gcda does not exist,  -g  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-2.C execution: file g++-bprob-2.gcda does not exist,  -O0  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-2.C execution: file g++-bprob-2.gcda does not exist,  -O1  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-2.C execution: file g++-bprob-2.gcda does not exist,  -O2  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-2.C execution: file g++-bprob-2.gcda does not exist,  -O3  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-2.C execution: file g++-bprob-2.gcda does not exist,  -O3 -g  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-2.C execution: file g++-bprob-2.gcda does not exist,  -Os  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-2.C execution: file g++-bprob-2.gcda does not exist,  -g  -fprofile-arcs
+Running gcc/testsuite/g++.dg/charset/charset.exp ...
+Running gcc/testsuite/g++.dg/cilk-plus/cilk-plus.exp ...
+Running gcc/testsuite/g++.dg/compat/compat.exp ...
+FAIL: g++.dg/compat/eh/ctor1 cp_compat_x_tst.o-cp_compat_y_tst.o execute 
+FAIL: g++.dg/compat/eh/ctor2 cp_compat_x_tst.o-cp_compat_y_tst.o execute 
+FAIL: g++.dg/compat/eh/dtor1 cp_compat_x_tst.o-cp_compat_y_tst.o execute 
+FAIL: g++.dg/compat/eh/filter1 cp_compat_x_tst.o-cp_compat_y_tst.o execute 
+FAIL: g++.dg/compat/eh/filter2 cp_compat_x_tst.o-cp_compat_y_tst.o execute 
+FAIL: g++.dg/compat/eh/new1 cp_compat_x_tst.o-cp_compat_y_tst.o execute 
+FAIL: g++.dg/compat/eh/nrv1 cp_compat_x_tst.o-cp_compat_y_tst.o execute 
+FAIL: g++.dg/compat/eh/spec3 cp_compat_x_tst.o-cp_compat_y_tst.o execute 
+FAIL: g++.dg/compat/eh/template1 cp_compat_x_tst.o-cp_compat_y_tst.o execute 
+FAIL: g++.dg/compat/eh/unexpected1 cp_compat_x_tst.o-cp_compat_y_tst.o execute 
+FAIL: g++.dg/compat/init/array5 cp_compat_x_tst.o-cp_compat_y_tst.o execute 
+Running gcc/testsuite/g++.dg/compat/struct-layout-1.exp ...
+Running gcc/testsuite/g++.dg/debug/debug.exp ...
+Running gcc/testsuite/g++.dg/debug/dwarf2/dwarf2.exp ...
+Running gcc/testsuite/g++.dg/dfp/dfp.exp ...
+Running gcc/testsuite/g++.dg/dg.exp ...
+FAIL: c-c++-common/pr44832.c  -std=gnu++11 (test for excess errors)
+FAIL: c-c++-common/pr44832.c  -std=gnu++14 (test for excess errors)
+FAIL: c-c++-common/pr44832.c  -std=gnu++98 (test for excess errors)
+FAIL: g++.dg/Wno-frame-address.C  -std=gnu++11 (test for excess errors)
+FAIL: g++.dg/Wno-frame-address.C  -std=gnu++14 (test for excess errors)
+FAIL: g++.dg/Wno-frame-address.C  -std=gnu++98 (test for excess errors)
+FAIL: g++.dg/cpp0x/bad_array_new1.C  -std=c++11 execution test
+FAIL: g++.dg/cpp0x/bad_array_new1.C  -std=c++14 execution test
+FAIL: g++.dg/cpp0x/bad_array_new2.C  -std=c++11 execution test
+FAIL: g++.dg/cpp0x/bad_array_new2.C  -std=c++14 execution test
+FAIL: g++.dg/cpp0x/inh-ctor12.C  -std=c++11 execution test
+FAIL: g++.dg/cpp0x/inh-ctor12.C  -std=c++14 execution test
+FAIL: g++.dg/cpp0x/initlist90.C  -std=c++11 execution test
+FAIL: g++.dg/cpp0x/initlist90.C  -std=c++14 execution test
+FAIL: g++.dg/cpp0x/lambda/lambda-eh2.C  -std=gnu++11 execution test
+FAIL: g++.dg/cpp0x/lambda/lambda-eh2.C  -std=gnu++14 execution test
+FAIL: g++.dg/cpp0x/noexcept03.C  -std=gnu++11 execution test
+FAIL: g++.dg/cpp0x/noexcept03.C  -std=gnu++14 execution test
+FAIL: g++.dg/cpp0x/noexcept04.C  -std=c++11 execution test
+FAIL: g++.dg/cpp0x/noexcept04.C  -std=c++14 execution test
+FAIL: g++.dg/cpp0x/noexcept06.C  -std=gnu++11 execution test
+FAIL: g++.dg/cpp0x/noexcept06.C  -std=gnu++14 execution test
+FAIL: g++.dg/cpp0x/noexcept07.C  -std=c++11 execution test
+FAIL: g++.dg/cpp0x/noexcept07.C  -std=c++14 execution test
+FAIL: g++.dg/cpp0x/nsdmi-eh1.C  -std=c++11 execution test
+FAIL: g++.dg/cpp0x/nsdmi-eh1.C  -std=c++14 execution test
+FAIL: g++.dg/cpp0x/nullptr21.C  -std=c++11 execution test
+FAIL: g++.dg/cpp0x/nullptr21.C  -std=c++14 execution test
+FAIL: g++.dg/cpp0x/range-for7.C  -std=c++11 execution test
+FAIL: g++.dg/cpp0x/range-for7.C  -std=c++14 execution test
+FAIL: g++.dg/cpp0x/variadic73.C  -std=c++11 execution test
+FAIL: g++.dg/cpp0x/variadic73.C  -std=c++14 execution test
+FAIL: g++.dg/cpp1y/sized-dealloc1.C  -std=c++11 execution test
+FAIL: g++.dg/cpp1y/sized-dealloc1.C  -std=c++14 execution test
+FAIL: g++.dg/cpp1y/sized-dealloc1.C  -std=c++98 execution test
+FAIL: g++.dg/eh/alias1.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/alias1.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/alias1.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/anon1.C  -std=c++11 execution test
+FAIL: g++.dg/eh/anon1.C  -std=c++14 execution test
+FAIL: g++.dg/eh/anon1.C  -std=c++98 execution test
+FAIL: g++.dg/eh/cond1.C  -std=c++11 execution test
+FAIL: g++.dg/eh/cond1.C  -std=c++14 execution test
+FAIL: g++.dg/eh/cond1.C  -std=c++98 execution test
+FAIL: g++.dg/eh/cond4.C  -std=c++11 execution test
+FAIL: g++.dg/eh/cond4.C  -std=c++14 execution test
+FAIL: g++.dg/eh/cond4.C  -std=c++98 execution test
+FAIL: g++.dg/eh/cond5.C  -std=c++11 execution test
+FAIL: g++.dg/eh/cond5.C  -std=c++14 execution test
+FAIL: g++.dg/eh/cond5.C  -std=c++98 execution test
+FAIL: g++.dg/eh/cond6.C  -std=c++11 execution test
+FAIL: g++.dg/eh/cond6.C  -std=c++14 execution test
+FAIL: g++.dg/eh/cond6.C  -std=c++98 execution test
+FAIL: g++.dg/eh/crossjump1.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/crossjump1.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/crossjump1.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/ctor1.C  -std=c++11 execution test
+FAIL: g++.dg/eh/ctor1.C  -std=c++14 execution test
+FAIL: g++.dg/eh/ctor1.C  -std=c++98 execution test
+FAIL: g++.dg/eh/ctor2.C  -std=c++11 execution test
+FAIL: g++.dg/eh/ctor2.C  -std=c++14 execution test
+FAIL: g++.dg/eh/ctor2.C  -std=c++98 execution test
+FAIL: g++.dg/eh/defarg1.C  -std=c++11 execution test
+FAIL: g++.dg/eh/defarg1.C  -std=c++14 execution test
+FAIL: g++.dg/eh/defarg1.C  -std=c++98 execution test
+FAIL: g++.dg/eh/delayslot1.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/delayslot1.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/delayslot1.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/dtor1.C  -std=c++11 execution test
+FAIL: g++.dg/eh/dtor1.C  -std=c++14 execution test
+FAIL: g++.dg/eh/dtor1.C  -std=c++98 execution test
+FAIL: g++.dg/eh/dtor3.C  -std=c++98 execution test
+FAIL: g++.dg/eh/elide1.C  -std=c++11 execution test
+FAIL: g++.dg/eh/elide1.C  -std=c++14 execution test
+FAIL: g++.dg/eh/elide1.C  -std=c++98 execution test
+FAIL: g++.dg/eh/elide2.C  -std=c++11 execution test
+FAIL: g++.dg/eh/elide2.C  -std=c++14 execution test
+FAIL: g++.dg/eh/elide2.C  -std=c++98 execution test
+FAIL: g++.dg/eh/filter1.C  -std=c++11 execution test
+FAIL: g++.dg/eh/filter1.C  -std=c++14 execution test
+FAIL: g++.dg/eh/filter1.C  -std=c++98 execution test
+FAIL: g++.dg/eh/filter2.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/filter2.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/filter2.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/forced1.C  -std=c++11 execution test
+FAIL: g++.dg/eh/forced1.C  -std=c++14 execution test
+FAIL: g++.dg/eh/forced1.C  -std=c++98 execution test
+FAIL: g++.dg/eh/forced2.C  -std=c++11 execution test
+FAIL: g++.dg/eh/forced2.C  -std=c++14 execution test
+FAIL: g++.dg/eh/forced2.C  -std=c++98 execution test
+FAIL: g++.dg/eh/forced3.C  -std=c++11 execution test
+FAIL: g++.dg/eh/forced3.C  -std=c++14 execution test
+FAIL: g++.dg/eh/forced3.C  -std=c++98 execution test
+FAIL: g++.dg/eh/forced4.C  -std=c++11 execution test
+FAIL: g++.dg/eh/forced4.C  -std=c++14 execution test
+FAIL: g++.dg/eh/forced4.C  -std=c++98 execution test
+FAIL: g++.dg/eh/fp-regs.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/fp-regs.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/fp-regs.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/gcsec1.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/gcsec1.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/gcsec1.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/ia64-2.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/ia64-2.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/ia64-2.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/init-temp1.C  -std=c++11 execution test
+FAIL: g++.dg/eh/init-temp1.C  -std=c++14 execution test
+FAIL: g++.dg/eh/init-temp1.C  -std=c++98 execution test
+FAIL: g++.dg/eh/loop1.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/loop1.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/loop1.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/loop2.C  -std=c++11 execution test
+FAIL: g++.dg/eh/loop2.C  -std=c++14 execution test
+FAIL: g++.dg/eh/loop2.C  -std=c++98 execution test
+FAIL: g++.dg/eh/new1.C  -std=c++11 execution test
+FAIL: g++.dg/eh/new1.C  -std=c++14 execution test
+FAIL: g++.dg/eh/new1.C  -std=c++98 execution test
+FAIL: g++.dg/eh/omit-frame-pointer.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/omit-frame-pointer.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/omit-frame-pointer.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/omit-frame-pointer2.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/omit-frame-pointer2.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/omit-frame-pointer2.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/partial1.C  -std=c++11 execution test
+FAIL: g++.dg/eh/partial1.C  -std=c++14 execution test
+FAIL: g++.dg/eh/partial1.C  -std=c++98 execution test
+FAIL: g++.dg/eh/pr29166.C  -std=c++11 execution test
+FAIL: g++.dg/eh/pr29166.C  -std=c++14 execution test
+FAIL: g++.dg/eh/pr29166.C  -std=c++98 execution test
+FAIL: g++.dg/eh/registers1.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/registers1.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/registers1.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/simd-1.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/simd-1.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/simd-1.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/simd-2.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/simd-2.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/simd-2.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/simd-3.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/simd-3.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/simd-3.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/spbp.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/spbp.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/spbp.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/spec10.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/spec10.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/spec10.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/spec3.C  -std=c++11 execution test
+FAIL: g++.dg/eh/spec3.C  -std=c++14 execution test
+FAIL: g++.dg/eh/spec3.C  -std=c++98 execution test
+FAIL: g++.dg/eh/spec7.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/spec7.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/spec7.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/spec9.C  -std=c++11 execution test
+FAIL: g++.dg/eh/spec9.C  -std=c++14 execution test
+FAIL: g++.dg/eh/spec9.C  -std=c++98 execution test
+FAIL: g++.dg/eh/synth2.C  -std=c++11 execution test
+FAIL: g++.dg/eh/synth2.C  -std=c++14 execution test
+FAIL: g++.dg/eh/synth2.C  -std=c++98 execution test
+FAIL: g++.dg/eh/template1.C  -std=c++11 execution test
+FAIL: g++.dg/eh/template1.C  -std=c++14 execution test
+FAIL: g++.dg/eh/template1.C  -std=c++98 execution test
+FAIL: g++.dg/eh/uncaught1.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/uncaught1.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/uncaught1.C  -std=gnu++98 execution test
+FAIL: g++.dg/eh/uncaught4.C  -std=c++11 execution test
+FAIL: g++.dg/eh/uncaught4.C  -std=c++14 execution test
+FAIL: g++.dg/eh/uncaught4.C  -std=c++98 execution test
+FAIL: g++.dg/eh/unexpected1.C  -std=c++11 execution test
+FAIL: g++.dg/eh/unexpected1.C  -std=c++14 execution test
+FAIL: g++.dg/eh/unexpected1.C  -std=c++98 execution test
+FAIL: g++.dg/eh/weak1.C  -std=gnu++11 execution test
+FAIL: g++.dg/eh/weak1.C  -std=gnu++14 execution test
+FAIL: g++.dg/eh/weak1.C  -std=gnu++98 execution test
+FAIL: g++.dg/ext/cleanup-5.C  -std=gnu++11 execution test
+FAIL: g++.dg/ext/cleanup-5.C  -std=gnu++14 execution test
+FAIL: g++.dg/ext/cleanup-5.C  -std=gnu++98 execution test
+FAIL: g++.dg/init/array15.C  -std=c++11 execution test
+FAIL: g++.dg/init/array15.C  -std=c++14 execution test
+FAIL: g++.dg/init/array15.C  -std=c++98 execution test
+FAIL: g++.dg/init/array16.C  -std=gnu++11 execution test
+FAIL: g++.dg/init/array16.C  -std=gnu++14 execution test
+FAIL: g++.dg/init/array16.C  -std=gnu++98 execution test
+FAIL: g++.dg/init/array5.C  -std=c++11 execution test
+FAIL: g++.dg/init/array5.C  -std=c++14 execution test
+FAIL: g++.dg/init/array5.C  -std=c++98 execution test
+FAIL: g++.dg/init/ctor1.C  -std=c++11 execution test
+FAIL: g++.dg/init/ctor1.C  -std=c++14 execution test
+FAIL: g++.dg/init/ctor1.C  -std=c++98 execution test
+FAIL: g++.dg/init/new36.C  -std=c++11 execution test
+FAIL: g++.dg/init/new36.C  -std=c++14 execution test
+FAIL: g++.dg/init/new36.C  -std=c++98 execution test
+FAIL: g++.dg/init/new39.C  -std=c++11 execution test
+FAIL: g++.dg/init/new39.C  -std=c++14 execution test
+FAIL: g++.dg/init/new39.C  -std=c++98 execution test
+FAIL: g++.dg/init/new40.C   execution test
+FAIL: g++.dg/init/placement2.C  -std=c++11 execution test
+FAIL: g++.dg/init/placement2.C  -std=c++14 execution test
+FAIL: g++.dg/init/placement2.C  -std=c++98 execution test
+FAIL: g++.dg/init/ref9.C  -std=c++11 execution test
+FAIL: g++.dg/init/ref9.C  -std=c++14 execution test
+FAIL: g++.dg/init/ref9.C  -std=c++98 execution test
+FAIL: g++.dg/ipa/pr63838.C  -std=gnu++11 execution test
+FAIL: g++.dg/ipa/pr63838.C  -std=gnu++14 execution test
+FAIL: g++.dg/ipa/pr63838.C  -std=gnu++98 execution test
+FAIL: g++.dg/ipa/pr64049-2.C  -std=gnu++11 execution test
+FAIL: g++.dg/ipa/pr64049-2.C  -std=gnu++14 execution test
+FAIL: g++.dg/ipa/pr64049-2.C  -std=gnu++98 execution test
+FAIL: g++.dg/opt/eh2.C  -std=gnu++11 execution test
+FAIL: g++.dg/opt/eh2.C  -std=gnu++14 execution test
+FAIL: g++.dg/opt/eh2.C  -std=gnu++98 execution test
+FAIL: g++.dg/opt/eh3.C  -std=gnu++11 execution test
+FAIL: g++.dg/opt/eh3.C  -std=gnu++14 execution test
+FAIL: g++.dg/opt/eh3.C  -std=gnu++98 execution test
+FAIL: g++.dg/opt/eh4.C  -std=gnu++11 execution test
+FAIL: g++.dg/opt/eh4.C  -std=gnu++14 execution test
+FAIL: g++.dg/opt/eh4.C  -std=gnu++98 execution test
+FAIL: g++.dg/opt/pr23478.C  -std=gnu++11 execution test
+FAIL: g++.dg/opt/pr23478.C  -std=gnu++14 execution test
+FAIL: g++.dg/opt/pr23478.C  -std=gnu++98 execution test
+FAIL: g++.dg/opt/pr36449.C  -std=gnu++11 execution test
+FAIL: g++.dg/opt/pr36449.C  -std=gnu++14 execution test
+FAIL: g++.dg/opt/pr36449.C  -std=gnu++98 execution test
+FAIL: g++.dg/other/pr55650.C  -std=gnu++11 (test for excess errors)
+FAIL: g++.dg/other/pr55650.C  -std=gnu++14 (test for excess errors)
+FAIL: g++.dg/other/pr55650.C  -std=gnu++98 (test for excess errors)
+FAIL: g++.dg/rtti/typeid10.C  -std=c++11 execution test
+FAIL: g++.dg/rtti/typeid10.C  -std=c++14 execution test
+FAIL: g++.dg/rtti/typeid10.C  -std=c++98 execution test
+FAIL: g++.dg/tree-ssa/pr61034.C  -std=gnu++11  scan-tree-dump-times fre2 "free" 10
+FAIL: g++.dg/tree-ssa/pr61034.C  -std=gnu++14  scan-tree-dump-times fre2 "free" 10
+FAIL: g++.dg/tree-ssa/pr61034.C  -std=gnu++98  scan-tree-dump-times fre2 "free" 10
+Running gcc/testsuite/g++.dg/gcov/gcov.exp ...
+Running gcc/testsuite/g++.dg/goacc-gomp/goacc-gomp.exp ...
+Running gcc/testsuite/g++.dg/goacc/goacc.exp ...
+Running gcc/testsuite/g++.dg/gomp/gomp.exp ...
+Running gcc/testsuite/g++.dg/graphite/graphite.exp ...
+Running gcc/testsuite/g++.dg/guality/guality.exp ...
+Running gcc/testsuite/g++.dg/lto/lto.exp ...
+FAIL: g++.dg/lto/20081109 cp_lto_20081109_0.o-cp_lto_20081109_1.o execute -O0 -flto -flto-partition=1to1 -fno-use-linker-plugin 
+FAIL: g++.dg/lto/20081109 cp_lto_20081109_0.o-cp_lto_20081109_1.o execute -O0 -flto -flto-partition=none -fuse-linker-plugin
+FAIL: g++.dg/lto/20081109 cp_lto_20081109_0.o-cp_lto_20081109_1.o execute -O0 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: g++.dg/lto/20081109 cp_lto_20081109_0.o-cp_lto_20081109_1.o execute -O2 -flto -flto-partition=1to1 -fno-use-linker-plugin 
+FAIL: g++.dg/lto/20081109 cp_lto_20081109_0.o-cp_lto_20081109_1.o execute -O2 -flto -flto-partition=none -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: g++.dg/lto/20081109 cp_lto_20081109_0.o-cp_lto_20081109_1.o execute -O2 -flto -fuse-linker-plugin
+Running gcc/testsuite/g++.dg/pch/pch.exp ...
+Running gcc/testsuite/g++.dg/plugin/plugin.exp ...
+Running gcc/testsuite/g++.dg/simulate-thread/simulate-thread.exp ...
+Running gcc/testsuite/g++.dg/special/ecos.exp ...
+Running gcc/testsuite/g++.dg/tls/tls.exp ...
+FAIL: g++.dg/tls/static-1.C  -std=gnu++11 execution test
+FAIL: g++.dg/tls/static-1.C  -std=gnu++14 execution test
+FAIL: g++.dg/tls/static-1.C  -std=gnu++98 execution test
+Running gcc/testsuite/g++.dg/tm/tm.exp ...
+Running gcc/testsuite/g++.dg/torture/dg-torture.exp ...
+FAIL: c-c++-common/torture/pr53505.c   -O1  execution test
+FAIL: c-c++-common/torture/pr53505.c   -O2  execution test
+FAIL: c-c++-common/torture/pr53505.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: c-c++-common/torture/pr53505.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: c-c++-common/torture/pr53505.c   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  execution test
+FAIL: c-c++-common/torture/pr53505.c   -O3 -g  execution test
+FAIL: c-c++-common/torture/pr53505.c   -Os  execution test
+FAIL: c-c++-common/torture/vector-subscript-1.c   -Os  execution test
+FAIL: c-c++-common/torture/vector-subscript-2.c   -Os  execution test
+FAIL: g++.dg/torture/pr49115.C   -O0  execution test
+FAIL: g++.dg/torture/pr49115.C   -O1  execution test
+FAIL: g++.dg/torture/pr49115.C   -O2  execution test
+FAIL: g++.dg/torture/pr49115.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: g++.dg/torture/pr49115.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: g++.dg/torture/pr49115.C   -O3 -g  execution test
+FAIL: g++.dg/torture/pr49115.C   -Os  execution test
+FAIL: g++.dg/torture/pr60750.C   -O0  execution test
+FAIL: g++.dg/torture/pr60750.C   -O1  execution test
+FAIL: g++.dg/torture/pr60750.C   -O2  execution test
+FAIL: g++.dg/torture/pr60750.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: g++.dg/torture/pr60750.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: g++.dg/torture/pr60750.C   -O3 -g  execution test
+FAIL: g++.dg/torture/pr60750.C   -Os  execution test
+FAIL: g++.dg/torture/vshuf-v16qi.C   -O1  execution test
+FAIL: g++.dg/torture/vshuf-v16qi.C   -Os  execution test
+FAIL: g++.dg/torture/vshuf-v2df.C   -Os  execution test
+FAIL: g++.dg/torture/vshuf-v2si.C   -O1  execution test
+FAIL: g++.dg/torture/vshuf-v2si.C   -O2  execution test
+FAIL: g++.dg/torture/vshuf-v2si.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: g++.dg/torture/vshuf-v2si.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: g++.dg/torture/vshuf-v2si.C   -Os  execution test
+FAIL: g++.dg/torture/vshuf-v8qi.C   -O1  execution test
+FAIL: g++.dg/torture/vshuf-v8qi.C   -O2  execution test
+FAIL: g++.dg/torture/vshuf-v8qi.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: g++.dg/torture/vshuf-v8qi.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: g++.dg/torture/vshuf-v8qi.C   -Os  execution test
+Running gcc/testsuite/g++.dg/torture/stackalign/stackalign.exp ...
+FAIL: g++.dg/torture/stackalign/eh-alloca-1.C   -O0  execution test
+FAIL: g++.dg/torture/stackalign/eh-alloca-1.C   -O0 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-alloca-1.C   -O1  execution test
+FAIL: g++.dg/torture/stackalign/eh-alloca-1.C   -O1 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-alloca-1.C   -O2  execution test
+FAIL: g++.dg/torture/stackalign/eh-alloca-1.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: g++.dg/torture/stackalign/eh-alloca-1.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-alloca-1.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: g++.dg/torture/stackalign/eh-alloca-1.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-alloca-1.C   -O2 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-alloca-1.C   -O3 -g  execution test
+FAIL: g++.dg/torture/stackalign/eh-alloca-1.C   -O3 -g -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-alloca-1.C   -Os  execution test
+FAIL: g++.dg/torture/stackalign/eh-alloca-1.C   -Os -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-global-1.C   -O0  execution test
+FAIL: g++.dg/torture/stackalign/eh-global-1.C   -O0 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-global-1.C   -O1  execution test
+FAIL: g++.dg/torture/stackalign/eh-global-1.C   -O1 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-global-1.C   -O2  execution test
+FAIL: g++.dg/torture/stackalign/eh-global-1.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: g++.dg/torture/stackalign/eh-global-1.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-global-1.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: g++.dg/torture/stackalign/eh-global-1.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-global-1.C   -O2 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-global-1.C   -O3 -g  execution test
+FAIL: g++.dg/torture/stackalign/eh-global-1.C   -O3 -g -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-global-1.C   -Os  execution test
+FAIL: g++.dg/torture/stackalign/eh-global-1.C   -Os -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-1.C   -O0  execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-1.C   -O0 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-1.C   -O1  execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-1.C   -O1 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-1.C   -O2  execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-1.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-1.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-1.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-1.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-1.C   -O2 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-1.C   -O3 -g  execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-1.C   -O3 -g -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-1.C   -Os  execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-1.C   -Os -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-2.C   -O0  execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-2.C   -O0 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-2.C   -O1  execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-2.C   -O1 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-2.C   -O2  execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-2.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-2.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-2.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-2.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-2.C   -O2 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-2.C   -O3 -g  execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-2.C   -O3 -g -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-2.C   -Os  execution test
+FAIL: g++.dg/torture/stackalign/eh-inline-2.C   -Os -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-1.C   -O0  execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-1.C   -O0 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-1.C   -O1  execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-1.C   -O1 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-1.C   -O2  execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-1.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-1.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-1.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-1.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-1.C   -O2 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-1.C   -O3 -g  execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-1.C   -O3 -g -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-1.C   -Os  execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-1.C   -Os -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-2.C   -O0  execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-2.C   -O0 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-2.C   -O1  execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-2.C   -O1 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-2.C   -O2  execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-2.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-2.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-2.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-2.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-2.C   -O2 -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-2.C   -O3 -g  execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-2.C   -O3 -g -fpic execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-2.C   -Os  execution test
+FAIL: g++.dg/torture/stackalign/eh-vararg-2.C   -Os -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -O0  execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -O0 -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -O1  execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -O1 -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -O2  execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -O2 -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -O3 -g  execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -O3 -g -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -Os  execution test
+FAIL: g++.dg/torture/stackalign/throw-1.C   -Os -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -O0  execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -O0 -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -O1  execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -O1 -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -O2  execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -O2 -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -O3 -g  execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -O3 -g -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -Os  execution test
+FAIL: g++.dg/torture/stackalign/throw-2.C   -Os -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -O0  execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -O0 -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -O1  execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -O1 -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -O2  execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -O2 -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -O3 -g  execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -O3 -g -fpic execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -Os  execution test
+FAIL: g++.dg/torture/stackalign/throw-3.C   -Os -fpic execution test
+Running gcc/testsuite/g++.dg/tree-prof/tree-prof.exp ...
+FAIL: g++.dg/tree-prof/indir-call-prof-2.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/indir-call-prof.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/inline_mismatch_args.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/morefunc.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/partition1.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/partition2.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/partition3.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/pr35545.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/pr51719.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/pr53460.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/pr57451.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/pr59255.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/pr63581.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/reorder.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+Running gcc/testsuite/g++.dg/tsan/tsan.exp ...
+Running gcc/testsuite/g++.dg/ubsan/ubsan.exp ...
+Running gcc/testsuite/g++.dg/vect/vect.exp ...
+Running gcc/testsuite/g++.old-deja/old-deja.exp ...
+FAIL: g++.old-deja/g++.abi/cxa_vec.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.abi/cxa_vec.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.abi/cxa_vec.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.brendan/eh1.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.brendan/eh1.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.brendan/eh1.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/badalloc1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/badalloc1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/badalloc1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/catch11.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/catch11.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/catch11.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/catch12.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/catch12.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/catch12.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/catch3.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/catch3.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/catch3.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/catch3p.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/catch3p.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/catch3p.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/catch4.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/catch4.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/catch4.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/catch4p.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/catch4p.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/catch4p.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/catch5.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/catch5.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/catch5.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/catch5p.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/catch5p.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/catch5p.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/catch6.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/catch6.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/catch6.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/catch6p.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/catch6p.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/catch6p.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/catch7.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/catch7.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/catch7.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/catch7p.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/catch7p.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/catch7p.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/catch8.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/catch8.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/catch8.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/catch8p.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/catch8p.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/catch8p.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/catch9.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/catch9.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/catch9.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/catch9p.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/catch9p.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/catch9p.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/catchptr1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/catchptr1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/catchptr1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/cleanup1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/cleanup1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/cleanup1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/cleanup2.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/cleanup2.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/cleanup2.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/flow1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/flow1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/flow1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/fntry1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/fntry1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/fntry1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/ia64-1.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/ia64-1.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/ia64-1.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/inline2.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/inline2.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/inline2.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/new1.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/new1.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/new1.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/new2.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.eh/new2.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.eh/new2.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.eh/pdel1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/pdel1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/pdel1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/pdel2.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/pdel2.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/pdel2.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/ptr1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/ptr1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/ptr1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/ptrmem1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/ptrmem1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/ptrmem1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/rethrow1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/rethrow1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/rethrow1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/rethrow2.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/rethrow2.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/rethrow2.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/rethrow3.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/rethrow3.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/rethrow3.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/rethrow4.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/rethrow4.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/rethrow4.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/rethrow5.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/rethrow5.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/rethrow5.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/rethrow6.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/rethrow6.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/rethrow6.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/spec1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/spec1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/spec1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/spec2.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/spec2.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/spec2.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/spec3.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/spec3.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/spec3.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/spec4.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/spec4.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/spec4.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/terminate1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/terminate1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/terminate1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/terminate2.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/terminate2.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/terminate2.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/tmpl1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/tmpl1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/tmpl1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/unwind1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/unwind1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/unwind1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/vbase1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/vbase1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/vbase1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/vbase2.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/vbase2.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/vbase2.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.eh/vbase4.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.eh/vbase4.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.eh/vbase4.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.martin/new1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.martin/new1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.martin/new1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.mike/dyncast1.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/dyncast1.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/dyncast1.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/dyncast2.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/dyncast2.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/dyncast2.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh10.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh10.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh10.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh12.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh12.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh12.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh14.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh14.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh14.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh16.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh16.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh16.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh17.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh17.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh17.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh18.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh18.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh18.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh2.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh2.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh2.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh21.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh21.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh21.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh23.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh23.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh23.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh24.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh24.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh24.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh25.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh25.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh25.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh26.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh26.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh26.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh27.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh27.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh27.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh28.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh28.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh28.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh29.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh29.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh29.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh3.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh3.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh3.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh31.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh31.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh31.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh33.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh33.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh33.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh34.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.mike/eh34.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.mike/eh34.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.mike/eh35.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh35.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh35.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh36.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh36.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh36.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh37.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh37.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh37.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh38.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh38.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh38.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh39.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh39.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh39.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh40.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh40.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh40.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh41.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh41.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh41.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh42.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh42.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh42.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh44.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh44.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh44.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh47.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh47.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh47.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh48.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh48.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh48.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh49.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh49.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh49.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh5.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh5.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh5.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh50.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh50.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh50.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh51.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh51.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh51.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh55.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh55.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh55.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh6.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh6.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh6.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/eh8.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/eh8.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/eh8.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/p7912.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/p7912.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/p7912.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.mike/p9706.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.mike/p9706.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.mike/p9706.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.oliva/delete3.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.oliva/delete3.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.oliva/delete3.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.oliva/new1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.oliva/new1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.oliva/new1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.other/array1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.other/array1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.other/array1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.other/eh3.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.other/eh3.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.other/eh3.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.other/init7.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.other/init7.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.other/init7.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.other/new7.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.other/new7.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.other/new7.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.other/singleton.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.other/singleton.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.other/singleton.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.other/vbase2.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.other/vbase2.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.other/vbase2.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.pt/fntry1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.pt/fntry1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.pt/fntry1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.robertl/eb31.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.robertl/eb31.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.robertl/eb31.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.robertl/eb50.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.robertl/eb50.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.robertl/eb50.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.robertl/eb66.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.robertl/eb66.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.robertl/eb66.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.robertl/eb88.C  -std=gnu++11 execution test
+FAIL: g++.old-deja/g++.robertl/eb88.C  -std=gnu++14 execution test
+FAIL: g++.old-deja/g++.robertl/eb88.C  -std=gnu++98 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-1.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-1.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-1.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-2.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-2.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-2.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-3.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-3.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-3.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-4.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-4.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-4.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-5.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-5.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.robertl/eh990323-5.C  -std=c++98 execution test
+FAIL: g++.old-deja/g++.robertl/ice990323-2.C  -std=c++11 execution test
+FAIL: g++.old-deja/g++.robertl/ice990323-2.C  -std=c++14 execution test
+FAIL: g++.old-deja/g++.robertl/ice990323-2.C  -std=c++98 execution test
+
+		=== g++ Summary ===
+
+# of expected passes		77332
+# of unexpected failures	778
+# of expected failures		252
+# of unresolved testcases	70
+# of unsupported tests		3685
+xg++  version 6.0.0 20150929 (experimental) (GCC) 
+
+Test Run By * on Sun Oct  4 21:28:52 2015
+Target is sh-unknown-elf
+Host   is x86_64-pc-linux-gnu
+
+		=== gcc tests ===
+
+Schedule of variations:
+    sh-sim/-m4/-ml
+
+Running target sh-sim/-m4/-ml
+Running gcc/testsuite/gcc.c-torture/compile/compile.exp ...
+FAIL: gcc.c-torture/compile/930623-1.c   -O1  (internal compiler error)
+FAIL: gcc.c-torture/compile/930623-1.c   -O1  (test for excess errors)
+FAIL: gcc.c-torture/compile/930623-1.c   -O2  (internal compiler error)
+FAIL: gcc.c-torture/compile/930623-1.c   -O2  (test for excess errors)
+FAIL: gcc.c-torture/compile/930623-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  (internal compiler error)
+FAIL: gcc.c-torture/compile/930623-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  (test for excess errors)
+FAIL: gcc.c-torture/compile/930623-1.c   -O3 -g  (internal compiler error)
+FAIL: gcc.c-torture/compile/930623-1.c   -O3 -g  (test for excess errors)
+FAIL: gcc.c-torture/compile/930623-1.c   -Os  (internal compiler error)
+FAIL: gcc.c-torture/compile/930623-1.c   -Os  (test for excess errors)
+Running gcc/testsuite/gcc.c-torture/execute/builtins/builtins.exp ...
+FAIL: gcc.c-torture/execute/builtins/memcpy-chk.c execution,  -Os 
+FAIL: gcc.c-torture/execute/builtins/memmove-chk.c execution,  -Os 
+FAIL: gcc.c-torture/execute/builtins/mempcpy-chk.c execution,  -Os 
+FAIL: gcc.c-torture/execute/builtins/pr22237.c execution,  -Og -g 
+FAIL: gcc.c-torture/execute/builtins/pr22237.c execution,  -Os 
+FAIL: gcc.c-torture/execute/builtins/snprintf-chk.c execution,  -O1 
+FAIL: gcc.c-torture/execute/builtins/snprintf-chk.c execution,  -O2 
+FAIL: gcc.c-torture/execute/builtins/snprintf-chk.c execution,  -O2 -flto -fno-use-linker-plugin -flto-partition=none 
+FAIL: gcc.c-torture/execute/builtins/snprintf-chk.c execution,  -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.c-torture/execute/builtins/snprintf-chk.c execution,  -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions 
+FAIL: gcc.c-torture/execute/builtins/snprintf-chk.c execution,  -O3 -g 
+FAIL: gcc.c-torture/execute/builtins/snprintf-chk.c execution,  -Og -g 
+FAIL: gcc.c-torture/execute/builtins/snprintf-chk.c execution,  -Os 
+FAIL: gcc.c-torture/execute/builtins/sprintf-chk.c execution,  -O1 
+FAIL: gcc.c-torture/execute/builtins/sprintf-chk.c execution,  -O2 
+FAIL: gcc.c-torture/execute/builtins/sprintf-chk.c execution,  -O2 -flto -fno-use-linker-plugin -flto-partition=none 
+FAIL: gcc.c-torture/execute/builtins/sprintf-chk.c execution,  -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.c-torture/execute/builtins/sprintf-chk.c execution,  -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions 
+FAIL: gcc.c-torture/execute/builtins/sprintf-chk.c execution,  -O3 -g 
+FAIL: gcc.c-torture/execute/builtins/sprintf-chk.c execution,  -Og -g 
+FAIL: gcc.c-torture/execute/builtins/sprintf-chk.c execution,  -Os 
+FAIL: gcc.c-torture/execute/builtins/stpcpy-chk.c execution,  -Os 
+FAIL: gcc.c-torture/execute/builtins/stpncpy-chk.c execution,  -Og -g 
+FAIL: gcc.c-torture/execute/builtins/strcat-chk.c execution,  -O1 
+FAIL: gcc.c-torture/execute/builtins/strcat-chk.c execution,  -O2 
+FAIL: gcc.c-torture/execute/builtins/strcat-chk.c execution,  -O2 -flto -fno-use-linker-plugin -flto-partition=none 
+FAIL: gcc.c-torture/execute/builtins/strcat-chk.c execution,  -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.c-torture/execute/builtins/strcat-chk.c execution,  -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions 
+FAIL: gcc.c-torture/execute/builtins/strcat-chk.c execution,  -O3 -g 
+FAIL: gcc.c-torture/execute/builtins/strcat-chk.c execution,  -Og -g 
+FAIL: gcc.c-torture/execute/builtins/strcpy-chk.c execution,  -Os 
+FAIL: gcc.c-torture/execute/builtins/strncat-chk.c execution,  -O1 
+FAIL: gcc.c-torture/execute/builtins/strncat-chk.c execution,  -O2 
+FAIL: gcc.c-torture/execute/builtins/strncat-chk.c execution,  -O2 -flto -fno-use-linker-plugin -flto-partition=none 
+FAIL: gcc.c-torture/execute/builtins/strncat-chk.c execution,  -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.c-torture/execute/builtins/strncat-chk.c execution,  -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions 
+FAIL: gcc.c-torture/execute/builtins/strncat-chk.c execution,  -O3 -g 
+FAIL: gcc.c-torture/execute/builtins/strncat-chk.c execution,  -Og -g 
+FAIL: gcc.c-torture/execute/builtins/strncpy-chk.c execution,  -O1 
+FAIL: gcc.c-torture/execute/builtins/strncpy-chk.c execution,  -Og -g 
+FAIL: gcc.c-torture/execute/builtins/strncpy-chk.c execution,  -Os 
+FAIL: gcc.c-torture/execute/builtins/strncpy.c execution,  -Os 
+FAIL: gcc.c-torture/execute/builtins/vsnprintf-chk.c execution,  -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+Running gcc/testsuite/gcc.c-torture/execute/execute.exp ...
+FAIL: gcc.c-torture/execute/20000422-1.c   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  execution test
+FAIL: gcc.c-torture/execute/20000422-1.c   -O3 -g  execution test
+FAIL: gcc.c-torture/execute/20000822-1.c   -O1  execution test
+FAIL: gcc.c-torture/execute/20000822-1.c   -Os  execution test
+FAIL: gcc.c-torture/execute/20010910-1.c   -Os  execution test
+FAIL: gcc.c-torture/execute/20021118-2.c   -Os  execution test
+FAIL: gcc.c-torture/execute/20021120-1.c   -O1  execution test
+FAIL: gcc.c-torture/execute/20021120-1.c   -O2  execution test
+FAIL: gcc.c-torture/execute/20021120-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.c-torture/execute/20021120-1.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.c-torture/execute/20021120-1.c   -O3 -g  execution test
+FAIL: gcc.c-torture/execute/20021120-1.c   -Os  execution test
+FAIL: gcc.c-torture/execute/20030717-1.c   -O1  execution test
+FAIL: gcc.c-torture/execute/20051113-1.c   -O1  execution test
+FAIL: gcc.c-torture/execute/20051113-1.c   -O2  execution test
+FAIL: gcc.c-torture/execute/20051113-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.c-torture/execute/20051113-1.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.c-torture/execute/20051113-1.c   -O3 -g  execution test
+FAIL: gcc.c-torture/execute/20060420-1.c   -O1  execution test
+FAIL: gcc.c-torture/execute/20060420-1.c   -O2  execution test
+FAIL: gcc.c-torture/execute/20060420-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.c-torture/execute/20060420-1.c   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  execution test
+FAIL: gcc.c-torture/execute/20060420-1.c   -Os  execution test
+FAIL: gcc.c-torture/execute/20120207-1.c   -O2  execution test
+FAIL: gcc.c-torture/execute/20120207-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.c-torture/execute/20120207-1.c   -O3 -g  execution test
+FAIL: gcc.c-torture/execute/921117-1.c   -O2  execution test
+FAIL: gcc.c-torture/execute/921117-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.c-torture/execute/921117-1.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.c-torture/execute/921117-1.c   -O3 -g  execution test
+FAIL: gcc.c-torture/execute/980205.c   -O1  execution test
+FAIL: gcc.c-torture/execute/980205.c   -O2  execution test
+FAIL: gcc.c-torture/execute/980205.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.c-torture/execute/980205.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.c-torture/execute/980205.c   -O3 -g  execution test
+FAIL: gcc.c-torture/execute/980205.c   -Os  execution test
+FAIL: gcc.c-torture/execute/loop-ivopts-2.c   -Os  execution test
+FAIL: gcc.c-torture/execute/memcpy-2.c   -Os  execution test
+FAIL: gcc.c-torture/execute/memset-2.c   -O2  execution test
+FAIL: gcc.c-torture/execute/memset-2.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.c-torture/execute/memset-2.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.c-torture/execute/memset-2.c   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  execution test
+FAIL: gcc.c-torture/execute/memset-2.c   -O3 -g  execution test
+FAIL: gcc.c-torture/execute/nest-stdar-1.c   -O1  execution test
+FAIL: gcc.c-torture/execute/nestfunc-3.c   -O1  execution test
+FAIL: gcc.c-torture/execute/nestfunc-3.c   -O2  execution test
+FAIL: gcc.c-torture/execute/nestfunc-3.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.c-torture/execute/nestfunc-3.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.c-torture/execute/nestfunc-3.c   -O3 -g  execution test
+FAIL: gcc.c-torture/execute/nestfunc-3.c   -Os  execution test
+FAIL: gcc.c-torture/execute/nestfunc-5.c   -O1  execution test
+FAIL: gcc.c-torture/execute/nestfunc-5.c   -Os  execution test
+FAIL: gcc.c-torture/execute/nestfunc-6.c   -O1  execution test
+FAIL: gcc.c-torture/execute/nestfunc-6.c   -O2  execution test
+FAIL: gcc.c-torture/execute/nestfunc-6.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.c-torture/execute/nestfunc-6.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.c-torture/execute/nestfunc-6.c   -O3 -g  execution test
+FAIL: gcc.c-torture/execute/nestfunc-6.c   -Os  execution test
+FAIL: gcc.c-torture/execute/pr28982a.c   -Os  execution test
+FAIL: gcc.c-torture/execute/pr33870-1.c   -Os  execution test
+FAIL: gcc.c-torture/execute/pr33870.c   -Os  execution test
+FAIL: gcc.c-torture/execute/pr39339.c   -O1  execution test
+FAIL: gcc.c-torture/execute/pr44575.c   -Os  execution test
+FAIL: gcc.c-torture/execute/pr47237.c   -O1  execution test
+FAIL: gcc.c-torture/execute/pr51933.c   -Os  execution test
+FAIL: gcc.c-torture/execute/pr53645-2.c   -Os  execution test
+FAIL: gcc.c-torture/execute/pr56205.c   -O1  execution test
+FAIL: gcc.c-torture/execute/pr56205.c   -O2  execution test
+FAIL: gcc.c-torture/execute/pr56205.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.c-torture/execute/pr56205.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.c-torture/execute/pr56205.c   -O3 -g  execution test
+FAIL: gcc.c-torture/execute/pr56205.c   -Os  execution test
+FAIL: gcc.c-torture/execute/scal-to-vec1.c   -Os  execution test
+FAIL: gcc.c-torture/execute/stdarg-1.c   -O1  execution test
+FAIL: gcc.c-torture/execute/stdarg-1.c   -Os  execution test
+FAIL: gcc.c-torture/execute/stdarg-3.c   -Os  execution test
+FAIL: gcc.c-torture/execute/strcpy-1.c   -Os  execution test
+FAIL: gcc.c-torture/execute/va-arg-16.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.c-torture/execute/va-arg-17.c   -O1  execution test
+FAIL: gcc.c-torture/execute/va-arg-17.c   -O2  execution test
+FAIL: gcc.c-torture/execute/va-arg-17.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.c-torture/execute/va-arg-17.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.c-torture/execute/va-arg-17.c   -O3 -g  execution test
+FAIL: gcc.c-torture/execute/va-arg-17.c   -Os  execution test
+FAIL: gcc.c-torture/execute/va-arg-18.c   -O1  execution test
+FAIL: gcc.c-torture/execute/va-arg-22.c   -Os  execution test
+FAIL: gcc.c-torture/execute/va-arg-24.c   -O1  execution test
+FAIL: gcc.c-torture/execute/va-arg-24.c   -Os  execution test
+FAIL: gcc.c-torture/execute/va-arg-26.c   -O1  execution test
+FAIL: gcc.c-torture/execute/va-arg-5.c   -O1  execution test
+FAIL: gcc.c-torture/execute/va-arg-5.c   -O2  execution test
+FAIL: gcc.c-torture/execute/va-arg-5.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.c-torture/execute/va-arg-5.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.c-torture/execute/va-arg-5.c   -O3 -g  execution test
+FAIL: gcc.c-torture/execute/va-arg-5.c   -Os  execution test
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+Running gcc/testsuite/gcc.c-torture/execute/ieee/ieee.exp ...
+FAIL: gcc.c-torture/execute/ieee/920810-1.c execution,  -Og -g 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-4.c execution,  -O2 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-4.c execution,  -O2 -flto -fno-use-linker-plugin -flto-partition=none 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-4.c execution,  -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-4f.c execution,  -O2 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-4f.c execution,  -O2 -flto -fno-use-linker-plugin -flto-partition=none 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-4f.c execution,  -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-4l.c execution,  -O2 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-4l.c execution,  -O2 -flto -fno-use-linker-plugin -flto-partition=none 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-4l.c execution,  -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-5.c execution,  -O2 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-5.c execution,  -O2 -flto -fno-use-linker-plugin -flto-partition=none 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-5.c execution,  -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-5.c execution,  -Og -g 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-5.c execution,  -Os 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8.c execution,  -O2 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8.c execution,  -O2 -flto -fno-use-linker-plugin -flto-partition=none 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8.c execution,  -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8.c execution,  -Og -g 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8.c execution,  -Os 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8f.c execution,  -O2 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8f.c execution,  -O2 -flto -fno-use-linker-plugin -flto-partition=none 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8f.c execution,  -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8f.c execution,  -Og -g 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8f.c execution,  -Os 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8l.c execution,  -O2 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8l.c execution,  -O2 -flto -fno-use-linker-plugin -flto-partition=none 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8l.c execution,  -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8l.c execution,  -Og -g 
+FAIL: gcc.c-torture/execute/ieee/fp-cmp-8l.c execution,  -Os 
+FAIL: gcc.c-torture/execute/ieee/pr38016.c execution,  -O1 
+FAIL: gcc.c-torture/execute/ieee/pr38016.c execution,  -O3 -g 
+FAIL: gcc.c-torture/execute/ieee/pr38016.c execution,  -Og -g 
+FAIL: gcc.c-torture/execute/ieee/pr38016.c execution,  -Os 
+FAIL: gcc.c-torture/execute/ieee/pr50310.c execution,  -Og -g 
+Running gcc/testsuite/gcc.c-torture/unsorted/unsorted.exp ...
+FAIL: gcc.c-torture/unsorted/dump-noaddr.c.272r.sh_ams,  -O1  comparison
+FAIL: gcc.c-torture/unsorted/dump-noaddr.c.272r.sh_ams,  -O2  comparison
+FAIL: gcc.c-torture/unsorted/dump-noaddr.c.272r.sh_ams,  -O2 -flto -fno-use-linker-plugin -flto-partition=none  comparison
+FAIL: gcc.c-torture/unsorted/dump-noaddr.c.272r.sh_ams,  -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  comparison
+FAIL: gcc.c-torture/unsorted/dump-noaddr.c.272r.sh_ams,  -O3 -g  comparison
+FAIL: gcc.c-torture/unsorted/dump-noaddr.c.272r.sh_ams,  -Og -g  comparison
+FAIL: gcc.c-torture/unsorted/dump-noaddr.c.272r.sh_ams,  -Os  comparison
+Running gcc/testsuite/gcc.dg/asan/asan.exp ...
+Running gcc/testsuite/gcc.dg/atomic/atomic.exp ...
+Running gcc/testsuite/gcc.dg/autopar/autopar.exp ...
+Running gcc/testsuite/gcc.dg/charset/charset.exp ...
+Running gcc/testsuite/gcc.dg/cilk-plus/cilk-plus.exp ...
+Running gcc/testsuite/gcc.dg/compat/compat.exp ...
+Running gcc/testsuite/gcc.dg/compat/struct-layout-1.exp ...
+Running gcc/testsuite/gcc.dg/cpp/cpp.exp ...
+Running gcc/testsuite/gcc.dg/cpp/trad/trad.exp ...
+Running gcc/testsuite/gcc.dg/debug/debug.exp ...
+Running gcc/testsuite/gcc.dg/debug/dwarf2/dwarf2.exp ...
+FAIL: gcc.dg/debug/dwarf2/stacked-qualified-types-3.c scan-assembler-times DIE \\([^\n]*\\) DW_TAG_(?:const|volatile|atomic|restrict)_type 8
+Running gcc/testsuite/gcc.dg/dfp/dfp.exp ...
+Running gcc/testsuite/gcc.dg/dg.exp ...
+FAIL: c-c++-common/pr44832.c  -Wc++-compat  (test for excess errors)
+FAIL: gcc.dg/Wno-frame-address.c (test for excess errors)
+FAIL: gcc.dg/cleanup-12.c execution test
+FAIL: gcc.dg/cleanup-13.c execution test
+FAIL: gcc.dg/cleanup-5.c execution test
+FAIL: gcc.dg/pr38616.c execution test
+FAIL: gcc.dg/pr47793.c (test for excess errors)
+FAIL: gcc.dg/pr47893.c execution test
+FAIL: gcc.dg/pr48141.c (test for excess errors)
+FAIL: gcc.dg/pr48159-2.c (test for excess errors)
+FAIL: gcc.dg/profile-generate-3.c (test for excess errors)
+FAIL: gcc.dg/trampoline-1.c execution test
+WARNING: program timed out.
+Running gcc/testsuite/gcc.dg/fixed-point/fixed-point.exp ...
+Running gcc/testsuite/gcc.dg/format/format.exp ...
+Running gcc/testsuite/gcc.dg/goacc-gomp/goacc-gomp.exp ...
+Running gcc/testsuite/gcc.dg/goacc/goacc.exp ...
+Running gcc/testsuite/gcc.dg/gomp/gomp.exp ...
+Running gcc/testsuite/gcc.dg/graphite/graphite.exp ...
+FAIL: gcc.dg/graphite/block-5.c execution test
+FAIL: gcc.dg/graphite/interchange-0.c execution test
+FAIL: gcc.dg/graphite/interchange-1.c execution test
+FAIL: gcc.dg/graphite/interchange-10.c execution test
+FAIL: gcc.dg/graphite/interchange-11.c execution test
+FAIL: gcc.dg/graphite/interchange-12.c execution test
+FAIL: gcc.dg/graphite/interchange-14.c execution test
+FAIL: gcc.dg/graphite/interchange-15.c execution test
+FAIL: gcc.dg/graphite/interchange-2.c execution test
+FAIL: gcc.dg/graphite/interchange-3.c execution test
+FAIL: gcc.dg/graphite/interchange-4.c execution test
+FAIL: gcc.dg/graphite/interchange-7.c execution test
+FAIL: gcc.dg/graphite/interchange-mvt.c execution test
+FAIL: gcc.dg/graphite/isl-ast-gen-single-loop-3.c execution test
+FAIL: gcc.dg/graphite/pr46185.c execution test
+FAIL: gcc.dg/graphite/run-id-1.c execution test
+FAIL: gcc.dg/graphite/uns-block-1.c execution test
+FAIL: gcc.dg/graphite/uns-interchange-12.c execution test
+FAIL: gcc.dg/graphite/uns-interchange-14.c execution test
+FAIL: gcc.dg/graphite/uns-interchange-15.c execution test
+FAIL: gcc.dg/graphite/uns-interchange-9.c execution test
+FAIL: gcc.dg/graphite/uns-interchange-mvt.c execution test
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+Running gcc/testsuite/gcc.dg/guality/guality.exp ...
+Running gcc/testsuite/gcc.dg/ipa/ipa.exp ...
+FAIL: gcc.dg/ipa/iinline-attr.c scan-ipa-dump inline "hooray[^\\n]*inline copy in test"
+Running gcc/testsuite/gcc.dg/lto/lto.exp ...
+FAIL: gcc.dg/lto/20090210 c_lto_20090210_0.o-c_lto_20090210_1.o link, -O0 -flto -flto-partition=1to1 -fno-use-linker-plugin 
+FAIL: gcc.dg/lto/20090210 c_lto_20090210_0.o-c_lto_20090210_1.o link, -O0 -flto -flto-partition=none -fuse-linker-plugin
+FAIL: gcc.dg/lto/20090210 c_lto_20090210_0.o-c_lto_20090210_1.o link, -O0 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.dg/lto/20090210 c_lto_20090210_0.o-c_lto_20090210_1.o link, -O2 -flto -flto-partition=1to1 -fno-use-linker-plugin 
+FAIL: gcc.dg/lto/20090210 c_lto_20090210_0.o-c_lto_20090210_1.o link, -O2 -flto -flto-partition=none -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.dg/lto/20090210 c_lto_20090210_0.o-c_lto_20090210_1.o link, -O2 -flto -fuse-linker-plugin
+FAIL: gcc.dg/lto/pr54709 c_lto_pr54709_0.o-c_lto_pr54709_1.o link,  -fPIC -fvisibility=hidden -flto 
+FAIL: gcc.dg/lto/pr61526 c_lto_pr61526_0.o-c_lto_pr61526_1.o link,  -fPIC -flto -flto-partition=1to1 
+FAIL: gcc.dg/lto/pr64415 c_lto_pr64415_0.o-c_lto_pr64415_1.o link,  -O -flto -fpic 
+Running gcc/testsuite/gcc.dg/noncompile/noncompile.exp ...
+Running gcc/testsuite/gcc.dg/pch/pch.exp ...
+Running gcc/testsuite/gcc.dg/plugin/plugin.exp ...
+Running gcc/testsuite/gcc.dg/simulate-thread/simulate-thread.exp ...
+Running gcc/testsuite/gcc.dg/special/mips-abi.exp ...
+Running gcc/testsuite/gcc.dg/special/special.exp ...
+Running gcc/testsuite/gcc.dg/tls/tls.exp ...
+FAIL: gcc.dg/tls/opt-12.c (test for excess errors)
+FAIL: gcc.dg/tls/thr-init-2.c execution test
+Running gcc/testsuite/gcc.dg/tm/tm.exp ...
+Running gcc/testsuite/gcc.dg/torture/dg-torture.exp ...
+FAIL: c-c++-common/torture/pr53505.c   -O1  execution test
+FAIL: c-c++-common/torture/pr53505.c   -O2  execution test
+FAIL: c-c++-common/torture/pr53505.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: c-c++-common/torture/pr53505.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: c-c++-common/torture/pr53505.c   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  execution test
+FAIL: c-c++-common/torture/pr53505.c   -O3 -g  execution test
+FAIL: c-c++-common/torture/pr53505.c   -Os  execution test
+FAIL: c-c++-common/torture/vector-subscript-1.c   -Os  execution test
+FAIL: c-c++-common/torture/vector-subscript-2.c   -Os  execution test
+FAIL: gcc.dg/torture/matrix-1.c   -O1  execution test
+FAIL: gcc.dg/torture/matrix-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/matrix-1.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/matrix-1.c   -Os  execution test
+FAIL: gcc.dg/torture/matrix-2.c   -O2  execution test
+FAIL: gcc.dg/torture/matrix-2.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/matrix-2.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/matrix-2.c   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  execution test
+FAIL: gcc.dg/torture/matrix-2.c   -O3 -g  execution test
+FAIL: gcc.dg/torture/matrix-2.c   -Os  execution test
+FAIL: gcc.dg/torture/matrix-5.c   -O1  execution test
+FAIL: gcc.dg/torture/matrix-5.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/matrix-5.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/matrix-6.c   -O1  execution test
+FAIL: gcc.dg/torture/matrix-6.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/matrix-6.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/matrix-6.c   -Os  execution test
+FAIL: gcc.dg/torture/pr45830.c   -O1  execution test
+FAIL: gcc.dg/torture/pr45830.c   -O2  execution test
+FAIL: gcc.dg/torture/pr45830.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/pr45830.c   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  execution test
+FAIL: gcc.dg/torture/pr45830.c   -O3 -g  execution test
+FAIL: gcc.dg/torture/pr45967-2.c   -O2  execution test
+FAIL: gcc.dg/torture/pr45967-2.c   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  execution test
+FAIL: gcc.dg/torture/pr45967-2.c   -O3 -g  execution test
+FAIL: gcc.dg/torture/pr52028.c   -O1  execution test
+FAIL: gcc.dg/torture/pr52028.c   -O2  execution test
+FAIL: gcc.dg/torture/pr52028.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/pr52028.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/pr52028.c   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  execution test
+FAIL: gcc.dg/torture/pr52028.c   -O3 -g  execution test
+FAIL: gcc.dg/torture/pr52028.c   -Os  execution test
+FAIL: gcc.dg/torture/pr53366-1.c   -O1  execution test
+FAIL: gcc.dg/torture/pr53366-1.c   -O2  execution test
+FAIL: gcc.dg/torture/pr53366-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/pr53366-1.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/pr53366-1.c   -Os  execution test
+FAIL: gcc.dg/torture/pr56407.c   -Os  execution test
+FAIL: gcc.dg/torture/pr59038.c   -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  execution test
+FAIL: gcc.dg/torture/transpose-1.c   -O1  execution test
+FAIL: gcc.dg/torture/transpose-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/transpose-1.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/transpose-1.c   -Os  execution test
+FAIL: gcc.dg/torture/transpose-2.c   -O1  execution test
+FAIL: gcc.dg/torture/transpose-2.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/transpose-2.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/transpose-2.c   -Os  execution test
+FAIL: gcc.dg/torture/transpose-3.c   -O1  execution test
+FAIL: gcc.dg/torture/transpose-3.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/transpose-3.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/transpose-3.c   -Os  execution test
+FAIL: gcc.dg/torture/transpose-4.c   -O1  execution test
+FAIL: gcc.dg/torture/transpose-4.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/transpose-4.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/transpose-4.c   -Os  execution test
+FAIL: gcc.dg/torture/transpose-5.c   -O1  execution test
+FAIL: gcc.dg/torture/transpose-5.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/transpose-5.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/transpose-5.c   -Os  execution test
+FAIL: gcc.dg/torture/transpose-6.c   -O1  execution test
+FAIL: gcc.dg/torture/transpose-6.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/transpose-6.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/transpose-6.c   -Os  execution test
+FAIL: gcc.dg/torture/vec-cvt-1.c   -Os  execution test
+FAIL: gcc.dg/torture/vshuf-v16hi.c   -O2  execution test
+FAIL: gcc.dg/torture/vshuf-v16sf.c   -O2  execution test
+FAIL: gcc.dg/torture/vshuf-v16si.c   -O2  execution test
+FAIL: gcc.dg/torture/vshuf-v32hi.c   -O2  execution test
+FAIL: gcc.dg/torture/vshuf-v4df.c   -O2  execution test
+FAIL: gcc.dg/torture/vshuf-v4hi.c   -O2  execution test
+FAIL: gcc.dg/torture/vshuf-v4sf.c   -O2  execution test
+FAIL: gcc.dg/torture/vshuf-v4si.c   -O2  execution test
+FAIL: gcc.dg/torture/vshuf-v8df.c   -O2  execution test
+FAIL: gcc.dg/torture/vshuf-v8hi.c   -O2  execution test
+FAIL: gcc.dg/torture/vshuf-v8sf.c   -O2  execution test
+FAIL: gcc.dg/torture/vshuf-v8si.c   -O2  execution test
+WARNING: program timed out.
+WARNING: program timed out.
+Running gcc/testsuite/gcc.dg/torture/stackalign/stackalign.exp ...
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O1  (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O1  (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O1 -fpic (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O1 -fpic (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2  (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2  (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2 -fpic (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2 -fpic (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O3 -g  (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O3 -g  (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O3 -g -fpic (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O3 -g -fpic (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -Os  (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -Os  (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -Os -fpic (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -Os -fpic (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-3.c   -O1  execution test
+FAIL: gcc.dg/torture/stackalign/builtin-apply-3.c   -O1 -fpic execution test
+FAIL: gcc.dg/torture/stackalign/builtin-apply-3.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic execution test
+FAIL: gcc.dg/torture/stackalign/builtin-apply-3.c   -O2 -fpic execution test
+FAIL: gcc.dg/torture/stackalign/builtin-apply-3.c   -O3 -g -fpic execution test
+FAIL: gcc.dg/torture/stackalign/builtin-apply-4.c   -O1  execution test
+FAIL: gcc.dg/torture/stackalign/builtin-apply-4.c   -O1 -fpic execution test
+FAIL: gcc.dg/torture/stackalign/builtin-apply-4.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic execution test
+FAIL: gcc.dg/torture/stackalign/builtin-apply-4.c   -O2 -fpic execution test
+FAIL: gcc.dg/torture/stackalign/builtin-apply-4.c   -O3 -g -fpic execution test
+FAIL: gcc.dg/torture/stackalign/nested-5.c   -O1  execution test
+FAIL: gcc.dg/torture/stackalign/nested-5.c   -O1 -fpic execution test
+FAIL: gcc.dg/torture/stackalign/nested-5.c   -Os  execution test
+FAIL: gcc.dg/torture/stackalign/nested-5.c   -Os -fpic execution test
+FAIL: gcc.dg/torture/stackalign/nested-6.c   -O1  execution test
+FAIL: gcc.dg/torture/stackalign/nested-6.c   -O1 -fpic execution test
+FAIL: gcc.dg/torture/stackalign/nested-6.c   -O2  execution test
+FAIL: gcc.dg/torture/stackalign/nested-6.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/stackalign/nested-6.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic execution test
+FAIL: gcc.dg/torture/stackalign/nested-6.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/stackalign/nested-6.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects -fpic execution test
+FAIL: gcc.dg/torture/stackalign/nested-6.c   -O2 -fpic execution test
+FAIL: gcc.dg/torture/stackalign/nested-6.c   -O3 -g  execution test
+FAIL: gcc.dg/torture/stackalign/nested-6.c   -O3 -g -fpic execution test
+FAIL: gcc.dg/torture/stackalign/nested-6.c   -Os  execution test
+FAIL: gcc.dg/torture/stackalign/nested-6.c   -Os -fpic execution test
+Running gcc/testsuite/gcc.dg/torture/tls/tls.exp ...
+FAIL: gcc.dg/torture/tls/run-gd.c   -O0  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O0  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O0  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O1  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O1  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O1  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O2  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O2  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O2  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O3 -g  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O3 -g  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O3 -g  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -Os  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -Os  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -Os  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ie.c   -O0  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O0  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O0  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O1  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O1  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O1  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O2  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O2  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O2  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O3 -g  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O3 -g  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O3 -g  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -Os  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -Os  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -Os  execution test
+FAIL: gcc.dg/torture/tls/run-ld.c   -O0  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O0  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O0  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O1  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O1  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O1  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O2  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O2  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O2  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O3 -g  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O3 -g  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O3 -g  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -Os  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -Os  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -Os  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-le.c   -O0  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O0  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O0  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O1  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O1  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O1  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O2  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O2  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O2  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O3 -g  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O3 -g  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O3 -g  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -Os  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -Os  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -Os  execution test
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O0  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O0  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O0  execution test
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O1  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O1  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O1  execution test
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O2  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O2  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O2  execution test
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O3 -g  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O3 -g  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O3 -g  execution test
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -Os  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -Os  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -Os  execution test
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O0  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O0  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O0  execution test
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O1  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O1  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O1  execution test
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O2  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O2  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O2  execution test
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O3 -g  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O3 -g  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O3 -g  execution test
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -Os  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -Os  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -Os  execution test
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O0  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O0  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O1  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O1  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O2  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O2  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O3 -g  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O3 -g  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -Os  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -Os  -fpic  (test for excess errors)
+Running gcc/testsuite/gcc.dg/tree-prof/tree-prof.exp ...
+FAIL: gcc.dg/tree-prof/20041218-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/20050826-2.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/bb-reorg.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/cmpsf-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/cold_partition_label.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/comp-goto-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/crossmodule-indircall-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/crossmodule-indircall-1a.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/ic-misattribution-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/ic-misattribution-1a.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/indir-call-prof.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/inliner-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/merge_block.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/peel-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr34999.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr44777.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr45354.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr47187.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr49299-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr49299-2.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr50907.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr52027.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr52150.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr59003.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/prof-robust-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/stringop-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/stringop-2.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/switch-case-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/switch-case-2.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/time-profiler-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/time-profiler-2.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/tracer-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/unroll-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/update-cunroll-2.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/update-loopch.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/update-tailcall.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/va-arg-pack-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/val-prof-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/val-prof-2.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/val-prof-3.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/val-prof-4.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/val-prof-5.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/val-prof-6.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/wcoverage-mismatch.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+Running gcc/testsuite/gcc.dg/tree-ssa/tree-ssa.exp ...
+FAIL: gcc.dg/tree-ssa/pr65447.c scan-tree-dump-not ivopts "\\nuse 5\\n"
+FAIL: gcc.dg/tree-ssa/ssa-dom-thread-8.c execution test
+Running gcc/testsuite/gcc.dg/tsan/tsan.exp ...
+Running gcc/testsuite/gcc.dg/ubsan/ubsan.exp ...
+Running gcc/testsuite/gcc.dg/vect/costmodel/i386/i386-costmodel-vect.exp ...
+Running gcc/testsuite/gcc.dg/vect/costmodel/ppc/ppc-costmodel-vect.exp ...
+Running gcc/testsuite/gcc.dg/vect/costmodel/spu/spu-costmodel-vect.exp ...
+Running gcc/testsuite/gcc.dg/vect/costmodel/x86_64/x86_64-costmodel-vect.exp ...
+Running gcc/testsuite/gcc.dg/vect/vect.exp ...
+Running gcc/testsuite/gcc.dg/vmx/vmx.exp ...
+Running gcc/testsuite/gcc.dg/vxworks/vxworks.exp ...
+Running gcc/testsuite/gcc.dg/weak/weak.exp ...
+Running gcc/testsuite/gcc.misc-tests/acker1.exp ...
+Running gcc/testsuite/gcc.misc-tests/arm-isr.exp ...
+Running gcc/testsuite/gcc.misc-tests/bprob.exp ...
+FAIL: gcc.misc-tests/bprob-1.c execution: file bprob-1.gcda does not exist,  -O2  -fprofile-arcs
+FAIL: gcc.misc-tests/bprob-1.c execution: file bprob-1.gcda does not exist,  -O3   -fprofile-arcs
+FAIL: gcc.misc-tests/bprob-2.c execution: file bprob-2.gcda does not exist,  -O2  -fprofile-arcs
+FAIL: gcc.misc-tests/bprob-2.c execution: file bprob-2.gcda does not exist,  -O3   -fprofile-arcs
+Running gcc/testsuite/gcc.misc-tests/dectest.exp ...
+Running gcc/testsuite/gcc.misc-tests/dhry.exp ...
+Running gcc/testsuite/gcc.misc-tests/gcov.exp ...
+Running gcc/testsuite/gcc.misc-tests/godump.exp ...
+Running gcc/testsuite/gcc.misc-tests/help.exp ...
+Running gcc/testsuite/gcc.misc-tests/i386-prefetch.exp ...
+Running gcc/testsuite/gcc.misc-tests/linkage.exp ...
+Running gcc/testsuite/gcc.misc-tests/matrix1.exp ...
+Running gcc/testsuite/gcc.misc-tests/mg-2.exp ...
+Running gcc/testsuite/gcc.misc-tests/mg.exp ...
+Running gcc/testsuite/gcc.misc-tests/options.exp ...
+Running gcc/testsuite/gcc.misc-tests/output.exp ...
+Running gcc/testsuite/gcc.misc-tests/sieve.exp ...
+Running gcc/testsuite/gcc.misc-tests/sort2.exp ...
+Running gcc/testsuite/gcc.target/aarch64/aapcs64/aapcs64.exp ...
+Running gcc/testsuite/gcc.target/aarch64/aarch64.exp ...
+Running gcc/testsuite/gcc.target/aarch64/acle/acle.exp ...
+Running gcc/testsuite/gcc.target/aarch64/advsimd-intrinsics/advsimd-intrinsics.exp ...
+Running gcc/testsuite/gcc.target/aarch64/fp16/fp16.exp ...
+Running gcc/testsuite/gcc.target/aarch64/simd/simd.exp ...
+Running gcc/testsuite/gcc.target/alpha/alpha.exp ...
+Running gcc/testsuite/gcc.target/arc/arc.exp ...
+Running gcc/testsuite/gcc.target/arm/aapcs/aapcs.exp ...
+Running gcc/testsuite/gcc.target/arm/acle/acle.exp ...
+Running gcc/testsuite/gcc.target/arm/arm.exp ...
+Running gcc/testsuite/gcc.target/arm/lto/lto.exp ...
+Running gcc/testsuite/gcc.target/arm/neon/neon.exp ...
+Running gcc/testsuite/gcc.target/arm/simd/simd.exp ...
+Running gcc/testsuite/gcc.target/avr/avr.exp ...
+Running gcc/testsuite/gcc.target/avr/torture/avr-torture.exp ...
+Running gcc/testsuite/gcc.target/bfin/bfin.exp ...
+Running gcc/testsuite/gcc.target/bfin/builtins/bfin-builtins.exp ...
+Running gcc/testsuite/gcc.target/cris/cris.exp ...
+Running gcc/testsuite/gcc.target/cris/torture/cris-torture.exp ...
+Running gcc/testsuite/gcc.target/epiphany/epiphany.exp ...
+Running gcc/testsuite/gcc.target/frv/frv.exp ...
+Running gcc/testsuite/gcc.target/h8300/h8300.exp ...
+Running gcc/testsuite/gcc.target/hppa/hppa.exp ...
+Running gcc/testsuite/gcc.target/i386/i386.exp ...
+Running gcc/testsuite/gcc.target/i386/iamcu/abi-iamcu.exp ...
+Running gcc/testsuite/gcc.target/i386/math-torture/math-torture.exp ...
+Running gcc/testsuite/gcc.target/i386/mpx/mpx.exp ...
+Running gcc/testsuite/gcc.target/i386/stackalign/stackalign.exp ...
+Running gcc/testsuite/gcc.target/ia64/ia64.exp ...
+Running gcc/testsuite/gcc.target/m68k/m68k.exp ...
+Running gcc/testsuite/gcc.target/microblaze/microblaze.exp ...
+Running gcc/testsuite/gcc.target/mips/inter/mips16-inter.exp ...
+Running gcc/testsuite/gcc.target/mips/mips-nonpic/mips-nonpic.exp ...
+Running gcc/testsuite/gcc.target/mips/mips.exp ...
+Running gcc/testsuite/gcc.target/nds32/nds32.exp ...
+Running gcc/testsuite/gcc.target/nios2/nios2.exp ...
+Running gcc/testsuite/gcc.target/nvptx/nvptx.exp ...
+Running gcc/testsuite/gcc.target/powerpc/powerpc.exp ...
+Running gcc/testsuite/gcc.target/rl78/rl78.exp ...
+Running gcc/testsuite/gcc.target/rx/rx.exp ...
+Running gcc/testsuite/gcc.target/s390/s390.exp ...
+Running gcc/testsuite/gcc.target/sh/sh.exp ...
+FAIL: gcc.target/sh/ams-11.c scan-assembler-times fmov.s\t@\\(r0,r[0-9]+ 1
+FAIL: gcc.target/sh/ams-11.c scan-assembler-times fmov.s\t@r[0-9]+,fr 1
+FAIL: gcc.target/sh/ams-12.c scan-assembler-not stc\tgbr
+FAIL: gcc.target/sh/ams-12.c scan-assembler-times mov.l\t@\\([0-9]+,gbr 3
+FAIL: gcc.target/sh/ams-15.c scan-assembler-not add
+FAIL: gcc.target/sh/ams-15.c scan-assembler-times mov.l\t@r[0-9]+\\+ 3
+FAIL: gcc.target/sh/ams-17.c scan-assembler-times shll2 2
+FAIL: gcc.target/sh/ams-4.c scan-assembler-times mov.[bwl]\t@\\(r0,r[0-9]+ 3
+FAIL: gcc.target/sh/ams-5.c scan-assembler-times mov.l\tr[0-9]+,@\\(24,r[0-9]+ 1
+FAIL: gcc.target/sh/ams-5.c scan-assembler-times mov.l\tr[0-9]+,@\\(32,r[0-9]+ 1
+FAIL: gcc.target/sh/ams-5.c scan-assembler-times mov.l\tr[0-9]+,@\\(r0,r[0-9]+ 1
+FAIL: gcc.target/sh/ams-5.c scan-assembler-times mov.l\tr[0-9]+,@r[0-9]+ 1
+FAIL: gcc.target/sh/ams-6.c scan-assembler-times fmov.s\t@\\(r0,r[0-9]+ 1
+FAIL: gcc.target/sh/ams-6.c scan-assembler-times fmov.s\t@r[0-9]+ 2
+FAIL: gcc.target/sh/ams-6.c scan-assembler-times fmov.s\tfr[0-9]+,@r[0-9]+ 2
+FAIL: gcc.target/sh/ams-8.c scan-assembler-times add\tr[0-9]+,r[0-9]+ 4
+FAIL: gcc.target/sh/ams-8.c scan-assembler-times shll2 1
+FAIL: gcc.target/sh/ams-9.c scan-assembler-times mov.l\t@\\(12,r[0-9]+ 3
+FAIL: gcc.target/sh/ams-9.c scan-assembler-times mov.l\t@\\(4,r[0-9]+ 3
+FAIL: gcc.target/sh/ams-9.c scan-assembler-times mov.l\t@\\(8,r[0-9]+ 3
+FAIL: gcc.target/sh/ams-9.c scan-assembler-times mov.l\t@r[0-9]+ 3
+FAIL: gcc.target/sh/pr50749-qihisi-postinc-2.c scan-assembler-times mov.l\t@r[0-9]+\\+,r[0-9]+ 5
+FAIL: gcc.target/sh/pr50749-qihisi-postinc-4.c scan-assembler-times mov.l\t@r[0-9]+\\+,r[0-9]+ 3
+FAIL: gcc.target/sh/pr50749-qihisi-predec-4.c scan-assembler-times mov.b\tr[0-9]+,@-r[0-9]+ 3
+FAIL: gcc.target/sh/pr50749-qihisi-predec-4.c scan-assembler-times mov.l\tr[0-9]+,@-r[0-9]+ 3
+FAIL: gcc.target/sh/pr50749-qihisi-predec-4.c scan-assembler-times mov.w\tr[0-9]+,@-r[0-9]+ 3
+FAIL: gcc.target/sh/pr50751-2.c scan-assembler-times add 2
+FAIL: gcc.target/sh/pr50751-5.c scan-assembler-times add 2
+FAIL: gcc.target/sh/pr54236-1.c scan-assembler-times negc 2
+FAIL: gcc.target/sh/pr54760-2.c scan-assembler-times stc\tgbr 0
+FAIL: gcc.target/sh/pr54760-5.c scan-assembler-not stc\tgbr
+FAIL: gcc.target/sh/pr54760-6.c scan-assembler-not stc\tgbr
+Running gcc/testsuite/gcc.target/sh/torture/sh-torture.exp ...
+Running gcc/testsuite/gcc.target/sparc/sparc.exp ...
+Running gcc/testsuite/gcc.target/spu/ea/ea.exp ...
+Running gcc/testsuite/gcc.target/spu/spu.exp ...
+Running gcc/testsuite/gcc.target/tic6x/builtins/c6x-builtins.exp ...
+Running gcc/testsuite/gcc.target/tic6x/tic6x.exp ...
+Running gcc/testsuite/gcc.target/vax/vax.exp ...
+Running gcc/testsuite/gcc.target/visium/visium.exp ...
+Running gcc/testsuite/gcc.target/x86_64/abi/abi-x86_64.exp ...
+Running gcc/testsuite/gcc.target/x86_64/abi/avx/abi-avx.exp ...
+Running gcc/testsuite/gcc.target/x86_64/abi/avx512f/abi-avx512f.exp ...
+Running gcc/testsuite/gcc.target/x86_64/abi/callabi/callabi.exp ...
+Running gcc/testsuite/gcc.target/xstormy16/xstormy16.exp ...
+Running gcc/testsuite/gcc.test-framework/test-framework.exp ...
+
+		=== gcc Summary ===
+
+# of expected passes		76833
+# of unexpected failures	561
+# of expected failures		99
+# of unresolved testcases	216
+# of unsupported tests		1697
+xgcc  version 6.0.0 20150929 (experimental) (GCC) 
+
