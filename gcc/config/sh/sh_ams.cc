@@ -1297,7 +1297,8 @@ std::pair<rtx, bool> sh_ams::find_reg_value_1 (rtx reg, rtx pat)
 // Find the value that REG was last set to, starting the search from INSN.
 // Return that value along with the modifying insn and the register in the
 // modifying pattern's SET_SRC (which is always the same register as REG,
-// but might have a different machine mode).
+// but might have a different machine mode).  If the reg's previous value
+// can't be determined, return the insn where the search ended.
 // If the register was modified because of an auto-inc/dec memory
 // access, also return the mode of that access.
 // FIXME: make use of other info such as REG_EQUAL notes.
@@ -1307,7 +1308,8 @@ sh_ams::find_reg_value_result sh_ams::find_reg_value (rtx reg, rtx_insn* insn)
 
   // Go back through the insn list until we find the last instruction
   // that modified the register.
-  for (rtx_insn* i = insn; i != NULL_RTX; i = prev_nonnote_insn_bb (i))
+  rtx_insn* i;
+  for (i = insn; i != NULL_RTX; i = prev_nonnote_insn_bb (i))
     {
       if (BARRIER_P (i))
 	break;
@@ -1345,7 +1347,7 @@ sh_ams::find_reg_value_result sh_ams::find_reg_value (rtx reg, rtx_insn* insn)
             }
         }
     }
-  return find_reg_value_result (reg, reg, NULL);
+  return find_reg_value_result (reg, reg, i);
 }
 
 // Return a non_mod_addr if it can be created with the given scale and
@@ -3431,15 +3433,28 @@ sh_ams::access_sequence::add_missing_reg_mods (void)
             std::for_each (inserted_reg_mods.begin (), inserted_reg_mods.end (),
                            std::mem_fun (&access::mark_unremovable));
 
-          end_insn = NULL;
-          for (std::vector<access*>::iterator mods = inserted_reg_mods.begin ();
-               mods != inserted_reg_mods.end (); ++mods)
+          if (inserted_reg_mods.empty ())
             {
-              access& acc = **mods;
-              if (regs_equal (acc.address_reg (), reg) && acc.insn ())
+              // If no modifications were found, continue the search from
+              // the insn where the register's value tracing ends.
+              rtx_insn* search_end_insn = find_reg_value (reg, end_insn).mod_insn;
+              end_insn = search_end_insn ? prev_nonnote_insn_bb (search_end_insn)
+                                         : NULL;
+            }
+          else
+            {
+              // Otherwise, continue the search from the insn of the
+              // inserted reg_mod.
+              end_insn = NULL;
+              for (std::vector<access*>::iterator mods = inserted_reg_mods.begin ();
+                   mods != inserted_reg_mods.end (); ++mods)
                 {
-                  end_insn = prev_nonnote_insn_bb (acc.insn ());
-                  break;
+                  access& acc = **mods;
+                  if (regs_equal (acc.address_reg (), reg) && acc.insn ())
+                    {
+                      end_insn = prev_nonnote_insn_bb (acc.insn ());
+                      break;
+                    }
                 }
             }
         }
