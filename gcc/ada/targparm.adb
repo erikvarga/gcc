@@ -44,14 +44,13 @@ package body Targparm is
       BDC,  --   Backend_Divide_Checks
       BOC,  --   Backend_Overflow_Checks
       CLA,  --   Command_Line_Args
-      CLI,  --   CLI (.NET)
       CRT,  --   Configurable_Run_Times
       D32,  --   Duration_32_Bits
       DEN,  --   Denorm
       EXS,  --   Exit_Status_Supported
       FEL,  --   Frontend_Layout
+      FEX,  --   Frontend_Exceptions
       FFO,  --   Fractional_Fixed_Ops
-      JVM,  --   JVM
       MOV,  --   Machine_Overflows
       MRN,  --   Machine_Rounds
       PAS,  --   Preallocated_Stacks
@@ -66,7 +65,7 @@ package body Targparm is
       SNZ,  --   Signed_Zeros
       SSL,  --   Suppress_Standard_Library
       UAM,  --   Use_Ada_Main_Program_Name
-      ZCD); --   ZCX_By_Default
+      ZCX); --   ZCX_By_Default
 
    Targparm_Flags : array (Targparm_Tags) of Boolean := (others => False);
    --  Flag is set True if corresponding parameter is scanned
@@ -79,14 +78,13 @@ package body Targparm is
    BDC_Str : aliased constant Source_Buffer := "Backend_Divide_Checks";
    BOC_Str : aliased constant Source_Buffer := "Backend_Overflow_Checks";
    CLA_Str : aliased constant Source_Buffer := "Command_Line_Args";
-   CLI_Str : aliased constant Source_Buffer := "CLI";
    CRT_Str : aliased constant Source_Buffer := "Configurable_Run_Time";
    D32_Str : aliased constant Source_Buffer := "Duration_32_Bits";
    DEN_Str : aliased constant Source_Buffer := "Denorm";
    EXS_Str : aliased constant Source_Buffer := "Exit_Status_Supported";
    FEL_Str : aliased constant Source_Buffer := "Frontend_Layout";
+   FEX_Str : aliased constant Source_Buffer := "Frontend_Exceptions";
    FFO_Str : aliased constant Source_Buffer := "Fractional_Fixed_Ops";
-   JVM_Str : aliased constant Source_Buffer := "JVM";
    MOV_Str : aliased constant Source_Buffer := "Machine_Overflows";
    MRN_Str : aliased constant Source_Buffer := "Machine_Rounds";
    PAS_Str : aliased constant Source_Buffer := "Preallocated_Stacks";
@@ -101,7 +99,7 @@ package body Targparm is
    SNZ_Str : aliased constant Source_Buffer := "Signed_Zeros";
    SSL_Str : aliased constant Source_Buffer := "Suppress_Standard_Library";
    UAM_Str : aliased constant Source_Buffer := "Use_Ada_Main_Program_Name";
-   ZCD_Str : aliased constant Source_Buffer := "ZCX_By_Default";
+   ZCX_Str : aliased constant Source_Buffer := "ZCX_By_Default";
 
    --  The following defines a set of pointers to the above strings,
    --  indexed by the tag values.
@@ -114,14 +112,13 @@ package body Targparm is
       BDC_Str'Access,
       BOC_Str'Access,
       CLA_Str'Access,
-      CLI_Str'Access,
       CRT_Str'Access,
       D32_Str'Access,
       DEN_Str'Access,
       EXS_Str'Access,
       FEL_Str'Access,
+      FEX_Str'Access,
       FFO_Str'Access,
-      JVM_Str'Access,
       MOV_Str'Access,
       MRN_Str'Access,
       PAS_Str'Access,
@@ -136,7 +133,7 @@ package body Targparm is
       SNZ_Str'Access,
       SSL_Str'Access,
       UAM_Str'Access,
-      ZCD_Str'Access);
+      ZCX_Str'Access);
 
    -----------------------
    -- Local Subprograms --
@@ -294,6 +291,17 @@ package body Targparm is
                  "pragma Profile (Ravenscar);"
          then
             Set_Profile_Restrictions (Ravenscar);
+            Opt.Task_Dispatching_Policy := 'F';
+            Opt.Locking_Policy          := 'C';
+            P := P + 27;
+            goto Line_Loop_Continue;
+
+         --  Test for pragma Profile (GNAT_Extended_Ravenscar);
+
+         elsif System_Text (P .. P + 40) =
+                 "pragma Profile (GNAT_Extended_Ravenscar);"
+         then
+            Set_Profile_Restrictions (GNAT_Extended_Ravenscar);
             Opt.Task_Dispatching_Policy := 'F';
             Opt.Locking_Policy          := 'C';
             P := P + 27;
@@ -794,33 +802,13 @@ package body Targparm is
                      when BDC => Backend_Divide_Checks_On_Target     := Result;
                      when BOC => Backend_Overflow_Checks_On_Target   := Result;
                      when CLA => Command_Line_Args_On_Target         := Result;
-                     when CLI =>
-                        if Result then
-                           VM_Target := CLI_Target;
-                           Tagged_Type_Expansion := False;
-                        end if;
-                        --  This is wrong, this processing should be done in
-                        --  Gnat1drv.Adjust_Global_Switches. It is not the
-                        --  right level for targparm to know about tagged
-                        --  type extension???
-
                      when CRT => Configurable_Run_Time_On_Target     := Result;
                      when D32 => Duration_32_Bits_On_Target          := Result;
                      when DEN => Denorm_On_Target                    := Result;
                      when EXS => Exit_Status_Supported_On_Target     := Result;
                      when FEL => Frontend_Layout_On_Target           := Result;
+                     when FEX => Frontend_Exceptions_On_Target       := Result;
                      when FFO => Fractional_Fixed_Ops_On_Target      := Result;
-
-                     when JVM =>
-                        if Result then
-                           VM_Target := JVM_Target;
-                           Tagged_Type_Expansion := False;
-                        end if;
-                        --  This is wrong, this processing should be done in
-                        --  Gnat1drv.Adjust_Global_Switches. It is not the
-                        --  right level for targparm to know about tagged
-                        --  type extension???
-
                      when MOV => Machine_Overflows_On_Target         := Result;
                      when MRN => Machine_Rounds_On_Target            := Result;
                      when PAS => Preallocated_Stacks_On_Target       := Result;
@@ -835,7 +823,7 @@ package body Targparm is
                      when SSL => Suppress_Standard_Library_On_Target := Result;
                      when SNZ => Signed_Zeros_On_Target              := Result;
                      when UAM => Use_Ada_Main_Program_Name_On_Target := Result;
-                     when ZCD => ZCX_By_Default_On_Target            := Result;
+                     when ZCX => ZCX_By_Default_On_Target            := Result;
 
                      goto Line_Loop_Continue;
                   end case;

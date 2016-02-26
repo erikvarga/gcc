@@ -1,7 +1,7 @@
 /* Subroutines used for code generation on the Lattice Mico32 architecture.
    Contributed by Jon Beniston <jon@beniston.com>
 
-   Copyright (C) 2009-2015 Free Software Foundation, Inc.
+   Copyright (C) 2009-2016 Free Software Foundation, Inc.
 
    This file is part of GCC.
 
@@ -23,41 +23,20 @@
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
-#include "tree.h"
+#include "target.h"
 #include "rtl.h"
+#include "tree.h"
 #include "df.h"
+#include "tm_p.h"
+#include "optabs.h"
 #include "regs.h"
-#include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "insn-config.h"
-#include "conditions.h"
-#include "insn-flags.h"
-#include "insn-attr.h"
-#include "insn-codes.h"
+#include "emit-rtl.h"
 #include "recog.h"
 #include "output.h"
-#include "fold-const.h"
 #include "calls.h"
-#include "flags.h"
 #include "alias.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
-#include "emit-rtl.h"
-#include "varasm.h"
-#include "stmt.h"
 #include "expr.h"
-#include "reload.h"
-#include "tm_p.h"
-#include "diagnostic-core.h"
-#include "optabs.h"
-#include "libfuncs.h"
-#include "target.h"
-#include "langhooks.h"
 #include "tm-constrs.h"
 #include "builtins.h"
 
@@ -519,7 +498,7 @@ lm32_print_operand (FILE * file, rtx op, int letter)
   else if (code == HIGH)
     output_addr_const (file, XEXP (op, 0));  
   else if (code == MEM)
-    output_address (XEXP (op, 0));
+    output_address (GET_MODE (op), XEXP (op, 0));
   else if (letter == 'z' && GET_CODE (op) == CONST_INT && INTVAL (op) == 0)
     fprintf (file, "%s", reg_names[0]);
   else if (GET_CODE (op) == CONST_DOUBLE)
@@ -572,7 +551,7 @@ lm32_print_operand_address (FILE * file, rtx addr)
       break;
 
     case MEM:
-      output_address (XEXP (addr, 0));
+      output_address (VOIDmode, XEXP (addr, 0));
       break;
 
     case PLUS:

@@ -1,5 +1,5 @@
 /* Gimple Represented as Polyhedra.
-   Copyright (C) 2006-2015 Free Software Foundation, Inc.
+   Copyright (C) 2006-2016 Free Software Foundation, Inc.
    Contributed by Sebastian Pop <sebastian.pop@inria.fr>.
 
 This file is part of GCC.
@@ -27,19 +27,9 @@ along with GCC; see the file COPYING3.  If not see
    The wiki page http://gcc.gnu.org/wiki/Graphite contains pointers to
    the related work.  */
 
+#define USES_ISL
+
 #include "config.h"
-
-#ifdef HAVE_isl
-/* Workaround for GMP 5.1.3 bug, see PR56019.  */
-#include <stddef.h>
-
-#include <isl/constraint.h>
-#include <isl/set.h>
-#include <isl/map.h>
-#include <isl/options.h>
-#include <isl/union_map.h>
-#endif
-
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
@@ -59,13 +49,10 @@ along with GCC; see the file COPYING3.  If not see
 #include "tree-ssa-loop.h"
 #include "tree-data-ref.h"
 #include "tree-scalar-evolution.h"
-#include "graphite-poly.h"
 #include "dbgcnt.h"
 #include "tree-parloops.h"
 #include "tree-cfgcleanup.h"
-#include "graphite-scop-detection.h"
-#include "graphite-isl-ast-to-gimple.h"
-#include "graphite-sese-to-poly.h"
+#include "graphite.h"
 
 /* Print global statistics to FILE.  */
 
@@ -144,7 +131,7 @@ print_graphite_scop_statistics (FILE* file, scop_p scop)
       gimple_stmt_iterator psi;
       loop_p loop = bb->loop_father;
 
-      if (!bb_in_sese_p (bb, SCOP_REGION (scop)))
+      if (!bb_in_sese_p (bb, scop->scop_info->region))
 	continue;
 
       n_bbs++;
@@ -162,7 +149,7 @@ print_graphite_scop_statistics (FILE* file, scop_p scop)
 	  n_p_stmts += bb->count;
 	}
 
-      if (loop->header == bb && loop_in_sese_p (loop, SCOP_REGION (scop)))
+      if (loop->header == bb && loop_in_sese_p (loop, scop->scop_info->region))
 	{
 	  n_loops++;
 	  n_p_loops += bb->count;
@@ -171,8 +158,8 @@ print_graphite_scop_statistics (FILE* file, scop_p scop)
 
   fprintf (file, "\nFunction Name: %s\n", current_function_name ());
 
-  edge scop_begin = scop->region->entry;
-  edge scop_end = scop->region->exit;
+  edge scop_begin = scop->scop_info->region.entry;
+  edge scop_end = scop->scop_info->region.exit;
 
   fprintf (file, "\nSCoP (entry_edge (bb_%d, bb_%d), ",
 	   scop_begin->src->index, scop_begin->dest->index);
@@ -268,7 +255,7 @@ graphite_finalize (bool need_cfg_cleanup_p)
       scev_reset ();
       cleanup_tree_cfg ();
       profile_status_for_fn (cfun) = PROFILE_ABSENT;
-      release_recorded_exits ();
+      release_recorded_exits (cfun);
       tree_estimate_probability ();
     }
 
@@ -276,6 +263,20 @@ graphite_finalize (bool need_cfg_cleanup_p)
 
   if (dump_file && dump_flags)
     print_loops (dump_file, 3);
+}
+
+/* Deletes all scops in SCOPS.  */
+
+static void
+free_scops (vec<scop_p> scops)
+{
+  int i;
+  scop_p scop;
+
+  FOR_EACH_VEC_ELT (scops, i, scop)
+    free_scop (scop);
+
+  scops.release ();
 }
 
 isl_ctx *the_isl_ctx;
@@ -314,17 +315,19 @@ graphite_transform_loops (void)
   FOR_EACH_VEC_ELT (scops, i, scop)
     if (dbg_cnt (graphite_scop))
       {
-	scop->ctx = ctx;
-	build_poly_scop (scop);
+	scop->isl_context = ctx;
+	if (!build_poly_scop (scop))
+	  continue;
 
-	if (dump_file && dump_flags)
-	  print_scop (dump_file, scop, 3);
+	if (!apply_poly_transforms (scop))
+	  continue;
 
-	if (POLY_SCOP_P (scop)
-	    && apply_poly_transforms (scop)
-	    && graphite_regenerate_ast_isl (scop))
-	  need_cfg_cleanup_p = true;
-
+	need_cfg_cleanup_p = true;
+	/* When code generation is not successful, do not continue
+	   generating code for the next scops: the IR has to be cleaned up
+	   and could be in an inconsistent state.  */
+	if (!graphite_regenerate_ast_isl (scop))
+	  break;
       }
 
   free_scops (scops);
@@ -333,12 +336,12 @@ graphite_transform_loops (void)
   isl_ctx_free (ctx);
 }
 
-#else /* If ISL is not available: #ifndef HAVE_isl.  */
+#else /* If isl is not available: #ifndef HAVE_isl.  */
 
 static void
 graphite_transform_loops (void)
 {
-  sorry ("Graphite loop optimizations cannot be used (ISL is not available).");
+  sorry ("Graphite loop optimizations cannot be used (isl is not available).");
 }
 
 #endif
@@ -362,7 +365,7 @@ gate_graphite_transforms (void)
      is turned on.  */
   if (flag_graphite_identity
       || flag_loop_parallelize_all
-      || flag_loop_optimize_isl)
+      || flag_loop_nest_optimize)
     flag_graphite = 1;
 
   return flag_graphite != 0;

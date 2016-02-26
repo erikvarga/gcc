@@ -1,5 +1,5 @@
 /* File used to generate params.list
-   Copyright (C) 2015 Free Software Foundation, Inc.
+   Copyright (C) 2015-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -19,5 +19,8 @@ along with GCC; see the file COPYING3.  If not see
 
 #define DEFPARAM(enumerator, option, nocmsgid, default, min, max) \
   enumerator,
+#define DEFPARAMENUM5(enumerator, option, nocmsgid, default, \
+		      v0, v1, v2, v3, v4) enumerator,
 #include "params.def"
 #undef DEFPARAM
+#undef DEFPARAMENUM5

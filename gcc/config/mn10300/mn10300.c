@@ -1,5 +1,5 @@
 /* Subroutines for insn-output.c for Matsushita MN10300 series
-   Copyright (C) 1996-2015 Free Software Foundation, Inc.
+   Copyright (C) 1996-2016 Free Software Foundation, Inc.
    Contributed by Jeff Law (law@cygnus.com).
 
    This file is part of GCC.
@@ -22,41 +22,29 @@
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
-#include "tree.h"
+#include "target.h"
 #include "rtl.h"
+#include "tree.h"
+#include "cfghooks.h"
+#include "cfgloop.h"
 #include "df.h"
+#include "tm_p.h"
+#include "optabs.h"
+#include "regs.h"
+#include "emit-rtl.h"
+#include "recog.h"
+#include "diagnostic-core.h"
 #include "alias.h"
 #include "stor-layout.h"
 #include "varasm.h"
 #include "calls.h"
-#include "regs.h"
-#include "insn-config.h"
-#include "conditions.h"
 #include "output.h"
 #include "insn-attr.h"
-#include "flags.h"
-#include "recog.h"
 #include "reload.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "insn-codes.h"
-#include "optabs.h"
-#include "diagnostic-core.h"
-#include "tm_p.h"
 #include "tm-constrs.h"
-#include "target.h"
 #include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "opts.h"
-#include "cfgloop.h"
 #include "dumpfile.h"
 #include "builtins.h"
 
@@ -251,7 +239,7 @@ mn10300_print_operand (FILE *file, rtx x, int code)
 	{
 	case MEM:
 	  fputc ('(', file);
-	  output_address (XEXP (x, 0));
+	  output_address (GET_MODE (x), XEXP (x, 0));
 	  fputc (')', file);
 	  break;
 
@@ -270,7 +258,7 @@ mn10300_print_operand (FILE *file, rtx x, int code)
 	{
 	case MEM:
 	  fputc ('(', file);
-	  output_address (XEXP (x, 0));
+	  output_address (GET_MODE (x), XEXP (x, 0));
 	  fputc (')', file);
 	  break;
 
@@ -285,18 +273,17 @@ mn10300_print_operand (FILE *file, rtx x, int code)
 	case CONST_DOUBLE:
 	  {
 	    long val[2];
-	    REAL_VALUE_TYPE rv;
 
 	    switch (GET_MODE (x))
 	      {
 	      case DFmode:
-		REAL_VALUE_FROM_CONST_DOUBLE (rv, x);
-		REAL_VALUE_TO_TARGET_DOUBLE (rv, val);
+		REAL_VALUE_TO_TARGET_DOUBLE
+		  (*CONST_DOUBLE_REAL_VALUE (x), val);
 		fprintf (file, "0x%lx", val[0]);
 		break;;
 	      case SFmode:
-		REAL_VALUE_FROM_CONST_DOUBLE (rv, x);
-		REAL_VALUE_TO_TARGET_SINGLE (rv, val[0]);
+		REAL_VALUE_TO_TARGET_SINGLE
+		  (*CONST_DOUBLE_REAL_VALUE (x), val[0]);
 		fprintf (file, "0x%lx", val[0]);
 		break;;
 	      case VOIDmode:
@@ -330,7 +317,7 @@ mn10300_print_operand (FILE *file, rtx x, int code)
 	case MEM:
 	  fputc ('(', file);
 	  x = adjust_address (x, SImode, 4);
-	  output_address (XEXP (x, 0));
+	  output_address (GET_MODE (x), XEXP (x, 0));
 	  fputc (')', file);
 	  break;
 
@@ -345,13 +332,12 @@ mn10300_print_operand (FILE *file, rtx x, int code)
 	case CONST_DOUBLE:
 	  {
 	    long val[2];
-	    REAL_VALUE_TYPE rv;
 
 	    switch (GET_MODE (x))
 	      {
 	      case DFmode:
-		REAL_VALUE_FROM_CONST_DOUBLE (rv, x);
-		REAL_VALUE_TO_TARGET_DOUBLE (rv, val);
+		REAL_VALUE_TO_TARGET_DOUBLE
+		  (*CONST_DOUBLE_REAL_VALUE (x), val);
 		fprintf (file, "0x%lx", val[1]);
 		break;;
 	      case SFmode:
@@ -383,9 +369,10 @@ mn10300_print_operand (FILE *file, rtx x, int code)
     case 'A':
       fputc ('(', file);
       if (REG_P (XEXP (x, 0)))
-	output_address (gen_rtx_PLUS (SImode, XEXP (x, 0), const0_rtx));
+	output_address (VOIDmode, gen_rtx_PLUS (SImode,
+						XEXP (x, 0), const0_rtx));
       else
-	output_address (XEXP (x, 0));
+	output_address (VOIDmode, XEXP (x, 0));
       fputc (')', file);
       break;
 
@@ -416,12 +403,12 @@ mn10300_print_operand (FILE *file, rtx x, int code)
 	{
 	case MEM:
 	  fputc ('(', file);
-	  output_address (XEXP (x, 0));
+	  output_address (GET_MODE (x), XEXP (x, 0));
 	  fputc (')', file);
 	  break;
 
 	case PLUS:
-	  output_address (x);
+	  output_address (VOIDmode, x);
 	  break;
 
 	case REG:
@@ -436,10 +423,8 @@ mn10300_print_operand (FILE *file, rtx x, int code)
 	case CONST_DOUBLE:
 	  {
 	    unsigned long val;
-	    REAL_VALUE_TYPE rv;
 
-	    REAL_VALUE_FROM_CONST_DOUBLE (rv, x);
-	    REAL_VALUE_TO_TARGET_SINGLE (rv, val);
+	    REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (x), val);
 	    fprintf (file, "0x%lx", val);
 	    break;
 	  }

@@ -1,5 +1,5 @@
 /* Subroutines for insn-output.c for Tensilica's Xtensa architecture.
-   Copyright (C) 2001-2015 Free Software Foundation, Inc.
+   Copyright (C) 2001-2016 Free Software Foundation, Inc.
    Contributed by Bob Wilson (bwilson@tensilica.com) at Tensilica.
 
 This file is part of GCC.
@@ -22,47 +22,30 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
+#include "target.h"
+#include "rtl.h"
 #include "tree.h"
 #include "gimple.h"
-#include "rtl.h"
+#include "cfghooks.h"
 #include "df.h"
+#include "tm_p.h"
+#include "stringpool.h"
+#include "optabs.h"
 #include "regs.h"
-#include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "insn-config.h"
-#include "conditions.h"
-#include "insn-flags.h"
-#include "insn-attr.h"
-#include "insn-codes.h"
+#include "emit-rtl.h"
 #include "recog.h"
+#include "diagnostic-core.h"
+#include "cfgrtl.h"
 #include "output.h"
 #include "fold-const.h"
-#include "stringpool.h"
 #include "stor-layout.h"
 #include "calls.h"
 #include "varasm.h"
-#include "flags.h"
 #include "alias.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
 #include "reload.h"
-#include "tm_p.h"
-#include "diagnostic-core.h"
-#include "optabs.h"
-#include "libfuncs.h"
-#include "target.h"
 #include "langhooks.h"
-#include "internal-fn.h"
-#include "gimple-fold.h"
-#include "tree-eh.h"
 #include "gimplify.h"
 #include "builtins.h"
 #include "dumpfile.h"
@@ -2335,7 +2318,7 @@ print_operand (FILE *file, rtx x, int letter)
 	  && (GET_MODE (x) == DFmode || GET_MODE (x) == DImode))
 	{
 	  x = adjust_address (x, GET_MODE (x) == DFmode ? SFmode : SImode, 4);
-	  output_address (XEXP (x, 0));
+	  output_address (GET_MODE (x), XEXP (x, 0));
 	}
       else
 	output_operand_lossage ("invalid %%N value");
@@ -2397,12 +2380,10 @@ print_operand (FILE *file, rtx x, int letter)
 	}
       else if (GET_CODE (x) == CONST_DOUBLE)
 	{
-	  REAL_VALUE_TYPE r;
-	  REAL_VALUE_FROM_CONST_DOUBLE (r, x);
 	  if (GET_MODE (x) == SFmode)
 	    {
 	      long l;
-	      REAL_VALUE_TO_TARGET_SINGLE (r, l);
+	      REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (x), l);
 	      fprintf (file, "0x%08lx@%c", l, letter == 't' ? 'h' : 'l');
 	    }
 	  else
@@ -2436,10 +2417,8 @@ print_operand (FILE *file, rtx x, int letter)
       if (GET_CODE (x) == CONST_DOUBLE &&
 	  GET_MODE (x) == SFmode)
 	{
-	  REAL_VALUE_TYPE r;
 	  long l;
-	  REAL_VALUE_FROM_CONST_DOUBLE (r, x);
-	  REAL_VALUE_TO_TARGET_SINGLE (r, l);
+	  REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (x), l);
 	  fprintf (file, "0x%08lx", l);
 	  break;
 	}
@@ -2450,7 +2429,7 @@ print_operand (FILE *file, rtx x, int letter)
       if (GET_CODE (x) == REG || GET_CODE (x) == SUBREG)
 	fprintf (file, "%s", reg_names[xt_true_regnum (x)]);
       else if (GET_CODE (x) == MEM)
-	output_address (XEXP (x, 0));
+	output_address (GET_MODE (x), XEXP (x, 0));
       else if (GET_CODE (x) == CONST_INT)
 	fprintf (file, "%ld", INTVAL (x));
       else
@@ -2555,7 +2534,6 @@ void
 xtensa_output_literal (FILE *file, rtx x, machine_mode mode, int labelno)
 {
   long value_long[2];
-  REAL_VALUE_TYPE r;
   int size;
   rtx first, second;
 
@@ -2566,18 +2544,19 @@ xtensa_output_literal (FILE *file, rtx x, machine_mode mode, int labelno)
     case MODE_FLOAT:
       gcc_assert (GET_CODE (x) == CONST_DOUBLE);
 
-      REAL_VALUE_FROM_CONST_DOUBLE (r, x);
       switch (mode)
 	{
 	case SFmode:
-	  REAL_VALUE_TO_TARGET_SINGLE (r, value_long[0]);
+	  REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (x),
+				       value_long[0]);
 	  if (HOST_BITS_PER_LONG > 32)
 	    value_long[0] &= 0xffffffff;
 	  fprintf (file, "0x%08lx\n", value_long[0]);
 	  break;
 
 	case DFmode:
-	  REAL_VALUE_TO_TARGET_DOUBLE (r, value_long);
+	  REAL_VALUE_TO_TARGET_DOUBLE (*CONST_DOUBLE_REAL_VALUE (x),
+				       value_long);
 	  if (HOST_BITS_PER_LONG > 32)
 	    {
 	      value_long[0] &= 0xffffffff;

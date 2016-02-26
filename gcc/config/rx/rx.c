@@ -1,5 +1,5 @@
 /* Subroutines used for code generation on Renesas RX processors.
-   Copyright (C) 2008-2015 Free Software Foundation, Inc.
+   Copyright (C) 2008-2016 Free Software Foundation, Inc.
    Contributed by Red Hat.
 
    This file is part of GCC.
@@ -26,44 +26,25 @@
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
-#include "tree.h"
+#include "target.h"
 #include "rtl.h"
+#include "tree.h"
+#include "cfghooks.h"
 #include "df.h"
-#include "alias.h"
+#include "tm_p.h"
+#include "regs.h"
+#include "emit-rtl.h"
+#include "diagnostic-core.h"
 #include "varasm.h"
 #include "stor-layout.h"
 #include "calls.h"
-#include "regs.h"
-#include "insn-config.h"
-#include "conditions.h"
 #include "output.h"
-#include "insn-attr.h"
 #include "flags.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "insn-codes.h"
-#include "optabs.h"
-#include "libfuncs.h"
-#include "recog.h"
-#include "diagnostic-core.h"
 #include "toplev.h"
-#include "reload.h"
-#include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "tm_p.h"
-#include "debug.h"
-#include "target.h"
 #include "langhooks.h"
 #include "opts.h"
-#include "cgraph.h"
 #include "builtins.h"
 
 /* This file should be included last.  */
@@ -398,7 +379,7 @@ rx_mode_dependent_address_p (const_rtx addr, addr_space_t as ATTRIBUTE_UNUSED)
    reference whose address is ADDR.  */
 
 static void
-rx_print_operand_address (FILE * file, rtx addr)
+rx_print_operand_address (FILE * file, machine_mode /*mode*/, rtx addr)
 {
   switch (GET_CODE (addr))
     {
@@ -709,7 +690,7 @@ rx_print_operand (FILE * file, rtx op, int letter)
 	case MEM:
 	  if (! WORDS_BIG_ENDIAN)
 	    op = adjust_address (op, SImode, 4);
-	  output_address (XEXP (op, 0));
+	  output_address (GET_MODE (op), XEXP (op, 0));
 	  break;
 	default:
 	  gcc_unreachable ();
@@ -733,7 +714,7 @@ rx_print_operand (FILE * file, rtx op, int letter)
 	case MEM:
 	  if (WORDS_BIG_ENDIAN)
 	    op = adjust_address (op, SImode, 4);
-	  output_address (XEXP (op, 0));
+	  output_address (GET_MODE (op), XEXP (op, 0));
 	  break;
 	default:
 	  gcc_unreachable ();
@@ -865,11 +846,11 @@ rx_print_operand (FILE * file, rtx op, int letter)
 	  }
 
 	case MEM:
-	  output_address (XEXP (op, 0));
+	  output_address (GET_MODE (op), XEXP (op, 0));
 	  break;
 
 	case PLUS:
-	  output_address (op);
+	  output_address (VOIDmode, op);
 	  break;
 
 	case REG:
@@ -886,10 +867,8 @@ rx_print_operand (FILE * file, rtx op, int letter)
 	case CONST_DOUBLE:
 	  {
 	    unsigned long val;
-	    REAL_VALUE_TYPE rv;
 
-	    REAL_VALUE_FROM_CONST_DOUBLE (rv, op);
-	    REAL_VALUE_TO_TARGET_SINGLE (rv, val);
+	    REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (op), val);
 	    if (print_hash)
 	      fprintf (file, "#");
 	    fprintf (file, TARGET_AS100_SYNTAX ? "0%lxH" : "0x%lx", val);
@@ -936,7 +915,7 @@ rx_print_operand (FILE * file, rtx op, int letter)
 	case SYMBOL_REF:
 	case LABEL_REF:
 	case CODE_LABEL:
-	  rx_print_operand_address (file, op);
+	  rx_print_operand_address (file, VOIDmode, op);
 	  break;
 
 	default:
@@ -1561,7 +1540,7 @@ rx_get_stack_layout (unsigned int * lowest,
      PUSHM.
 
      FIXME: Is it worth improving this heuristic ?  */
-  pushed_mask = (-1 << low) & ~(-1 << (high + 1));
+  pushed_mask = (HOST_WIDE_INT_M1U << low) & ~(HOST_WIDE_INT_M1U << (high + 1));
   unneeded_pushes = (pushed_mask & (~ save_mask)) & pushed_mask;
 
   if ((fixed_reg && fixed_reg <= high)
@@ -1667,7 +1646,7 @@ ok_for_max_constant (HOST_WIDE_INT val)
 
   /* rx_max_constant_size specifies the maximum number
      of bytes that can be used to hold a signed value.  */
-  return IN_RANGE (val, (-1 << (rx_max_constant_size * 8)),
+  return IN_RANGE (val, (HOST_WIDE_INT_M1U << (rx_max_constant_size * 8)),
 		        ( 1 << (rx_max_constant_size * 8)));
 }
 
@@ -2878,6 +2857,9 @@ rx_warn_func_return (tree decl)
 static bool
 rx_function_ok_for_sibcall (tree decl, tree exp ATTRIBUTE_UNUSED)
 {
+  if (TARGET_JSR)
+    return false;
+
   /* Do not allow indirect tailcalls.  The
      sibcall patterns do not support them.  */
   if (decl == NULL)
@@ -2902,7 +2884,7 @@ rx_file_start (void)
 static bool
 rx_is_ms_bitfield_layout (const_tree record_type ATTRIBUTE_UNUSED)
 {
-  /* The packed attribute overrides the MS behaviour.  */
+  /* The packed attribute overrides the MS behavior.  */
   return ! TYPE_PACKED (record_type);
 }
 

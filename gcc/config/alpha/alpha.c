@@ -1,5 +1,5 @@
 /* Subroutines used for code generation on the DEC Alpha.
-   Copyright (C) 1992-2015 Free Software Foundation, Inc.
+   Copyright (C) 1992-2016 Free Software Foundation, Inc.
    Contributed by Richard Kenner (kenner@vlsi1.ultra.nyu.edu)
 
 This file is part of GCC.
@@ -23,57 +23,41 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
+#include "target.h"
+#include "rtl.h"
 #include "tree.h"
 #include "gimple.h"
-#include "rtl.h"
 #include "df.h"
+#include "tm_p.h"
 #include "ssa.h"
+#include "expmed.h"
+#include "optabs.h"
+#include "regs.h"
+#include "emit-rtl.h"
+#include "recog.h"
+#include "diagnostic-core.h"
 #include "alias.h"
 #include "fold-const.h"
 #include "stor-layout.h"
 #include "calls.h"
 #include "varasm.h"
-#include "regs.h"
-#include "insn-config.h"
-#include "conditions.h"
 #include "output.h"
 #include "insn-attr.h"
-#include "flags.h"
-#include "recog.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "insn-codes.h"
-#include "optabs.h"
 #include "reload.h"
 #include "except.h"
-#include "diagnostic-core.h"
-#include "tm_p.h"
-#include "target.h"
 #include "common/common-target.h"
 #include "debug.h"
 #include "langhooks.h"
 #include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "internal-fn.h"
-#include "gimple-fold.h"
-#include "tree-eh.h"
 #include "tree-pass.h"
 #include "context.h"
-#include "pass_manager.h"
 #include "gimple-iterator.h"
 #include "gimplify.h"
 #include "tree-stdarg.h"
 #include "tm-constrs.h"
 #include "libfuncs.h"
-#include "opts.h"
 #include "params.h"
 #include "builtins.h"
 #include "rtl-iter.h"
@@ -111,7 +95,7 @@ static int inside_function = FALSE;
 
 /* The number of cycles of latency we should assume on memory reads.  */
 
-int alpha_memory_latency = 3;
+static int alpha_memory_latency = 3;
 
 /* Whether the function needs the GP.  */
 
@@ -1355,6 +1339,36 @@ alpha_legitimize_reload_address (rtx x,
   return NULL_RTX;
 }
 
+/* Return the cost of moving between registers of various classes.  Moving
+   between FLOAT_REGS and anything else except float regs is expensive.
+   In fact, we make it quite expensive because we really don't want to
+   do these moves unless it is clearly worth it.  Optimizations may
+   reduce the impact of not being able to allocate a pseudo to a
+   hard register.  */
+
+static int
+alpha_register_move_cost (machine_mode /*mode*/,
+			  reg_class_t from, reg_class_t to)
+{
+  if ((from == FLOAT_REGS) == (to == FLOAT_REGS))
+    return 2;
+
+  if (TARGET_FIX)
+    return (from == FLOAT_REGS) ? 6 : 8;
+
+  return 4 + 2 * alpha_memory_latency;
+}
+
+/* Return the cost of moving data of MODE from a register to
+   or from memory.  On the Alpha, bump this up a bit.  */
+
+static int
+alpha_memory_move_cost (machine_mode /*mode*/, reg_class_t /*regclass*/,
+			bool /*in*/)
+{
+  return 2 * alpha_memory_latency;
+}
+
 /* Compute a (partial) cost for rtx X.  Return true if the complete
    cost has been computed, and false if subexpressions should be
    scanned.  In either case, *TOTAL contains the cost result.  */
@@ -5057,10 +5071,20 @@ get_round_mode_suffix (void)
   gcc_unreachable ();
 }
 
-/* Print an operand.  Recognize special options, documented below.  */
+/* Implement TARGET_PRINT_OPERAND_PUNCT_VALID_P.  */
 
-void
-print_operand (FILE *file, rtx x, int code)
+static bool
+alpha_print_operand_punct_valid_p (unsigned char code)
+{
+  return (code == '/' || code == ',' || code == '-' || code == '~'
+	  || code == '#' || code == '*' || code == '&');
+}
+
+/* Implement TARGET_PRINT_OPERAND.  The alpha-specific
+   operand codes are documented below.  */
+
+static void
+alpha_print_operand (FILE *file, rtx x, int code)
 {
   int i;
 
@@ -5080,6 +5104,8 @@ print_operand (FILE *file, rtx x, int code)
       break;
 
     case '/':
+      /* Generates the instruction suffix.  The TRAP_SUFFIX and ROUND_SUFFIX
+	 attributes are examined to determine what is appropriate.  */
       {
 	const char *trap = get_trap_mode_suffix ();
 	const char *round = get_round_mode_suffix ();
@@ -5090,12 +5116,14 @@ print_operand (FILE *file, rtx x, int code)
       }
 
     case ',':
-      /* Generates single precision instruction suffix.  */
+      /* Generates single precision suffix for floating point
+	 instructions (s for IEEE, f for VAX).  */
       fputc ((TARGET_FLOAT_VAX ? 'f' : 's'), file);
       break;
 
     case '-':
-      /* Generates double precision instruction suffix.  */
+      /* Generates double precision suffix for floating point
+	 instructions (t for IEEE, g for VAX).  */
       fputc ((TARGET_FLOAT_VAX ? 'g' : 't'), file);
       break;
 
@@ -5343,7 +5371,7 @@ print_operand (FILE *file, rtx x, int code)
       if (REG_P (x))
 	fprintf (file, "%s", reg_names[REGNO (x)]);
       else if (MEM_P (x))
-	output_address (XEXP (x, 0));
+	output_address (GET_MODE (x), XEXP (x, 0));
       else if (GET_CODE (x) == CONST && GET_CODE (XEXP (x, 0)) == UNSPEC)
 	{
 	  switch (XINT (XEXP (x, 0), 1))
@@ -5366,8 +5394,10 @@ print_operand (FILE *file, rtx x, int code)
     }
 }
 
-void
-print_operand_address (FILE *file, rtx addr)
+/* Implement TARGET_PRINT_OPERAND_ADDRESS.  */
+
+static void
+alpha_print_operand_address (FILE *file, machine_mode /*mode*/, rtx addr)
 {
   int basereg = 31;
   HOST_WIDE_INT offset = 0;
@@ -5574,11 +5604,9 @@ alpha_function_arg (cumulative_args_t cum_v, machine_mode mode,
     basereg = 16;
   else
     {
-#ifdef ENABLE_CHECKING
       /* With alpha_split_complex_arg, we shouldn't see any raw complex
 	 values here.  */
-      gcc_assert (!COMPLEX_MODE_P (mode));
-#endif
+      gcc_checking_assert (!COMPLEX_MODE_P (mode));
 
       /* Set up defaults for FP operands passed in FP registers, and
 	 integral operands passed in integer registers.  */
@@ -5629,7 +5657,7 @@ alpha_function_arg_advance (cumulative_args_t cum_v, machine_mode mode,
 {
   CUMULATIVE_ARGS *cum = get_cumulative_args (cum_v);
   bool onstack = targetm.calls.must_pass_in_stack (mode, type);
-  int increment = onstack ? 6 : ALPHA_ARG_SIZE (mode, type, named);
+  int increment = onstack ? 6 : ALPHA_ARG_SIZE (mode, type);
 
 #if TARGET_ABI_OSF
   *cum += increment;
@@ -5651,10 +5679,10 @@ alpha_arg_partial_bytes (cumulative_args_t cum_v,
 
 #if TARGET_ABI_OPEN_VMS
   if (cum->num_args < 6
-      && 6 < cum->num_args + ALPHA_ARG_SIZE (mode, type, named))
+      && 6 < cum->num_args + ALPHA_ARG_SIZE (mode, type))
     words = 6 - cum->num_args;
 #elif TARGET_ABI_OSF
-  if (*cum < 6 && 6 < *cum + ALPHA_ARG_SIZE (mode, type, named))
+  if (*cum < 6 && 6 < *cum + ALPHA_ARG_SIZE (mode, type))
     words = 6 - *cum;
 #else
 #error Unhandled ABI
@@ -5738,9 +5766,9 @@ alpha_pass_by_reference (cumulative_args_t ca ATTRIBUTE_UNUSED,
    On Alpha the value is found in $0 for integer functions and
    $f0 for floating-point functions.  */
 
-rtx
-function_value (const_tree valtype, const_tree func ATTRIBUTE_UNUSED,
-		machine_mode mode)
+static rtx
+alpha_function_value_1 (const_tree valtype, const_tree func ATTRIBUTE_UNUSED,
+			machine_mode mode)
 {
   unsigned int regnum, dummy ATTRIBUTE_UNUSED;
   enum mode_class mclass;
@@ -5793,6 +5821,33 @@ function_value (const_tree valtype, const_tree func ATTRIBUTE_UNUSED,
     }
 
   return gen_rtx_REG (mode, regnum);
+}
+
+/* Implement TARGET_FUNCTION_VALUE.  */
+
+static rtx
+alpha_function_value (const_tree valtype, const_tree fn_decl_or_type,
+		      bool /*outgoing*/)
+{
+  return alpha_function_value_1 (valtype, fn_decl_or_type, VOIDmode);
+}
+
+/* Implement TARGET_LIBCALL_VALUE.  */
+
+static rtx
+alpha_libcall_value (machine_mode mode, const_rtx /*fun*/)
+{
+  return alpha_function_value_1 (NULL_TREE, NULL_TREE, mode);
+}
+
+/* Implement TARGET_FUNCTION_VALUE_REGNO_P.
+
+   On the Alpha, $0 $1 and $f0 $f1 are the only register thus used.  */
+
+static bool
+alpha_function_value_regno_p (const unsigned int regno)
+{
+  return (regno == 0 || regno == 1 || regno == 32 || regno == 33);
 }
 
 /* TCmode complex values are passed by invisible reference.  We
@@ -9765,7 +9820,7 @@ alpha_atomic_assign_expand_fenv (tree *hold, tree *clear, tree *update)
 
        __ieee_set_fp_control (masked_fenv);  */
 
-  fenv_var = create_tmp_var (long_unsigned_type_node);
+  fenv_var = create_tmp_var_raw (long_unsigned_type_node);
   get_fpscr
     = build_fn_decl ("__ieee_get_fp_control",
 		     build_function_type_list (long_unsigned_type_node, NULL));
@@ -9794,7 +9849,7 @@ alpha_atomic_assign_expand_fenv (tree *hold, tree *clear, tree *update)
 
        __atomic_feraiseexcept (new_fenv_var);  */
 
-  new_fenv_var = create_tmp_var (long_unsigned_type_node);
+  new_fenv_var = create_tmp_var_raw (long_unsigned_type_node);
   reload_fenv = build2 (MODIFY_EXPR, long_unsigned_type_node, new_fenv_var,
 			build_call_expr (get_fpscr, 0));
   restore_fnenv = build_call_expr (set_fpscr, 1, fenv_var);
@@ -9895,6 +9950,13 @@ alpha_atomic_assign_expand_fenv (tree *hold, tree *clear, tree *update)
 #define TARGET_STDARG_OPTIMIZE_HOOK alpha_stdarg_optimize_hook
 #endif
 
+#undef TARGET_PRINT_OPERAND
+#define TARGET_PRINT_OPERAND alpha_print_operand
+#undef TARGET_PRINT_OPERAND_ADDRESS
+#define TARGET_PRINT_OPERAND_ADDRESS alpha_print_operand_address
+#undef TARGET_PRINT_OPERAND_PUNCT_VALID_P
+#define TARGET_PRINT_OPERAND_PUNCT_VALID_P alpha_print_operand_punct_valid_p
+
 /* Use 16-bits anchor.  */
 #undef TARGET_MIN_ANCHOR_OFFSET
 #define TARGET_MIN_ANCHOR_OFFSET -0x7fff - 1
@@ -9903,6 +9965,10 @@ alpha_atomic_assign_expand_fenv (tree *hold, tree *clear, tree *update)
 #undef TARGET_USE_BLOCKS_FOR_CONSTANT_P
 #define TARGET_USE_BLOCKS_FOR_CONSTANT_P hook_bool_mode_const_rtx_true
 
+#undef TARGET_REGISTER_MOVE_COST
+#define TARGET_REGISTER_MOVE_COST alpha_register_move_cost
+#undef TARGET_MEMORY_MOVE_COST
+#define TARGET_MEMORY_MOVE_COST alpha_memory_move_cost
 #undef TARGET_RTX_COSTS
 #define TARGET_RTX_COSTS alpha_rtx_costs
 #undef TARGET_ADDRESS_COST
@@ -9915,6 +9981,13 @@ alpha_atomic_assign_expand_fenv (tree *hold, tree *clear, tree *update)
 #define TARGET_PROMOTE_FUNCTION_MODE default_promote_function_mode_always_promote
 #undef TARGET_PROMOTE_PROTOTYPES
 #define TARGET_PROMOTE_PROTOTYPES hook_bool_const_tree_false
+
+#undef TARGET_FUNCTION_VALUE
+#define TARGET_FUNCTION_VALUE alpha_function_value
+#undef TARGET_LIBCALL_VALUE
+#define TARGET_LIBCALL_VALUE alpha_libcall_value
+#undef TARGET_FUNCTION_VALUE_REGNO_P
+#define TARGET_FUNCTION_VALUE_REGNO_P alpha_function_value_regno_p
 #undef TARGET_RETURN_IN_MEMORY
 #define TARGET_RETURN_IN_MEMORY alpha_return_in_memory
 #undef TARGET_PASS_BY_REFERENCE

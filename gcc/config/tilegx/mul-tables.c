@@ -1,5 +1,5 @@
 /* Constant multiply table for TILE-Gx.
-   Copyright (C) 2011-2015 Free Software Foundation, Inc.
+   Copyright (C) 2011-2016 Free Software Foundation, Inc.
    Contributed by Walter Lee (walt@tilera.com)
 
    This file is part of GCC.
@@ -25,21 +25,8 @@
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "tree.h"
 #include "rtl.h"
-#include "flags.h"
-#include "alias.h"
-#include "insn-config.h"
 #include "expmed.h"
-#include "dojump.h"
-#include "explow.h"
-#include "calls.h"
-#include "emit-rtl.h"
-#include "varasm.h"
-#include "stmt.h"
-#include "expr.h"
-#include "insn-codes.h"
-#include "optabs.h"
 #include "tilegx-multiply.h"
 
 const enum insn_code tilegx_multiply_insn_seq_decode_opcode[] = {

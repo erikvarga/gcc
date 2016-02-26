@@ -1,5 +1,5 @@
 /* RTL reader for GCC.
-   Copyright (C) 1987-2015 Free Software Foundation, Inc.
+   Copyright (C) 1987-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -53,9 +53,6 @@ struct mapping {
   /* For iterators, records the current value of the iterator.  */
   struct map_value *current_value;
 };
-
-/* Vector definitions for the above.  */
-typedef struct mapping *mapping_ptr;
 
 /* A structure for abstracting the common parts of iterators.  */
 struct iterator_group {
@@ -117,7 +114,7 @@ static rtx read_rtx_variadic (rtx);
 static struct iterator_group modes, codes, ints, substs;
 
 /* All iterators used in the current rtx.  */
-static vec<mapping_ptr> current_iterators;
+static vec<mapping *> current_iterators;
 
 /* The list of all iterator uses in the current rtx.  */
 static vec<iterator_use> iterator_uses;

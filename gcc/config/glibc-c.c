@@ -1,5 +1,5 @@
 /* C-family target hooks initializer for targets possibly using glibc.
-   Copyright (C) 2012-2015 Free Software Foundation, Inc.
+   Copyright (C) 2012-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -21,9 +21,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "c-family/c-target.h"
-#include "alias.h"
-#include "symtab.h"
-#include "options.h"
 #include "c-family/c-target-def.h"
 
 /* Implement TARGET_C_PREINCLUDE for glibc targets.  */

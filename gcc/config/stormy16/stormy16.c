@@ -1,5 +1,5 @@
 /* Xstormy16 target functions.
-   Copyright (C) 1997-2015 Free Software Foundation, Inc.
+   Copyright (C) 1997-2016 Free Software Foundation, Inc.
    Contributed by Red Hat, Inc.
 
    This file is part of GCC.
@@ -22,46 +22,26 @@
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
+#include "target.h"
+#include "rtl.h"
 #include "tree.h"
 #include "gimple.h"
-#include "rtl.h"
 #include "df.h"
-#include "regs.h"
-#include "insn-config.h"
-#include "conditions.h"
-#include "insn-flags.h"
-#include "output.h"
-#include "insn-attr.h"
-#include "flags.h"
+#include "tm_p.h"
+#include "stringpool.h"
+#include "optabs.h"
+#include "emit-rtl.h"
 #include "recog.h"
 #include "diagnostic-core.h"
-#include "alias.h"
+#include "output.h"
 #include "fold-const.h"
-#include "stringpool.h"
 #include "stor-layout.h"
 #include "varasm.h"
 #include "calls.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "insn-codes.h"
-#include "optabs.h"
-#include "except.h"
-#include "target.h"
-#include "tm_p.h"
 #include "langhooks.h"
 #include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "internal-fn.h"
-#include "gimple-fold.h"
-#include "tree-eh.h"
 #include "gimplify.h"
 #include "reload.h"
 #include "builtins.h"
@@ -1682,7 +1662,8 @@ xstormy16_asm_out_constructor (rtx symbol, int priority)
    Print a memory address as an operand to reference that memory location.  */
 
 static void
-xstormy16_print_operand_address (FILE *file, rtx address)
+xstormy16_print_operand_address (FILE *file, machine_mode /*mode*/,
+				 rtx address)
 {
   HOST_WIDE_INT offset;
   int pre_dec, post_inc;
@@ -1789,7 +1770,7 @@ xstormy16_print_operand (FILE *file, rtx x, int code)
       else if (LABEL_P (x))
 	output_asm_label (x);
       else
-	xstormy16_print_operand_address (file, x);
+	xstormy16_print_operand_address (file, VOIDmode, x);
       return;
 
     case 'o':
@@ -1845,7 +1826,7 @@ xstormy16_print_operand (FILE *file, rtx x, int code)
       break;
 
     case MEM:
-      xstormy16_print_operand_address (file, XEXP (x, 0));
+      xstormy16_print_operand_address (file, GET_MODE (x), XEXP (x, 0));
       break;
 
     default:

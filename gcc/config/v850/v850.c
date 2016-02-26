@@ -1,5 +1,5 @@
 /* Subroutines for insn-output.c for NEC V850 series
-   Copyright (C) 1996-2015 Free Software Foundation, Inc.
+   Copyright (C) 1996-2016 Free Software Foundation, Inc.
    Contributed by Jeff Law (law@cygnus.com).
 
    This file is part of GCC.
@@ -22,37 +22,25 @@
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
-#include "tree.h"
+#include "target.h"
 #include "rtl.h"
+#include "tree.h"
 #include "df.h"
-#include "alias.h"
+#include "tm_p.h"
 #include "stringpool.h"
+#include "insn-config.h"
+#include "regs.h"
+#include "emit-rtl.h"
+#include "recog.h"
+#include "diagnostic-core.h"
 #include "stor-layout.h"
 #include "varasm.h"
 #include "calls.h"
-#include "regs.h"
-#include "insn-config.h"
 #include "conditions.h"
 #include "output.h"
 #include "insn-attr.h"
-#include "flags.h"
-#include "recog.h"
-#include "expmed.h"
-#include "dojump.h"
-#include "explow.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "diagnostic-core.h"
-#include "tm_p.h"
-#include "target.h"
 #include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "opts.h"
 #include "builtins.h"
 
 /* This file should be included last.  */
@@ -62,7 +50,7 @@
 #define streq(a,b) (strcmp (a, b) == 0)
 #endif
 
-static void v850_print_operand_address (FILE *, rtx);
+static void v850_print_operand_address (FILE *, machine_mode, rtx);
 
 /* Names of the various data areas used on the v850.  */
 const char * GHS_default_section_names [(int) COUNT_OF_GHS_SECTION_KINDS];
@@ -277,20 +265,17 @@ const_double_split (rtx x, HOST_WIDE_INT * p_high, HOST_WIDE_INT * p_low)
   if (GET_CODE (x) == CONST_DOUBLE)
     {
       long t[2];
-      REAL_VALUE_TYPE rv;
 
       switch (GET_MODE (x))
 	{
 	case DFmode:
-	  REAL_VALUE_FROM_CONST_DOUBLE (rv, x);
-	  REAL_VALUE_TO_TARGET_DOUBLE (rv, t);
+	  REAL_VALUE_TO_TARGET_DOUBLE (*CONST_DOUBLE_REAL_VALUE (x), t);
 	  *p_high = t[1];	/* since v850 is little endian */
 	  *p_low = t[0];	/* high is second word */
 	  return;
 
 	case SFmode:
-	  REAL_VALUE_FROM_CONST_DOUBLE (rv, x);
-	  REAL_VALUE_TO_TARGET_SINGLE (rv, *p_high);
+	  REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (x), *p_high);
 	  *p_low = 0;
 	  return;
 
@@ -555,10 +540,13 @@ v850_print_operand (FILE * file, rtx x, int code)
 	  fprintf (file, reg_names[REGNO (x) + 1]);
 	  break;
 	case MEM:
-	  x = XEXP (adjust_address (x, SImode, 4), 0);
-	  v850_print_operand_address (file, x);
-	  if (GET_CODE (x) == CONST_INT)
-	    fprintf (file, "[r0]");
+	  {
+	    machine_mode mode = GET_MODE (x);
+	    x = XEXP (adjust_address (x, SImode, 4), 0);
+	    v850_print_operand_address (file, mode, x);
+	    if (GET_CODE (x) == CONST_INT)
+	      fprintf (file, "[r0]");
+	  }
 	  break;
 	  
 	case CONST_INT:
@@ -632,10 +620,11 @@ v850_print_operand (FILE * file, rtx x, int code)
 	{
 	case MEM:
 	  if (GET_CODE (XEXP (x, 0)) == CONST_INT)
-	    output_address (gen_rtx_PLUS (SImode, gen_rtx_REG (SImode, 0),
+	    output_address (GET_MODE (x),
+			    gen_rtx_PLUS (SImode, gen_rtx_REG (SImode, 0),
 					  XEXP (x, 0)));
 	  else
-	    output_address (XEXP (x, 0));
+	    output_address (GET_MODE (x), XEXP (x, 0));
 	  break;
 
 	case REG:
@@ -653,7 +642,7 @@ v850_print_operand (FILE * file, rtx x, int code)
 	case CONST:
 	case LABEL_REF:
 	case CODE_LABEL:
-	  v850_print_operand_address (file, x);
+	  v850_print_operand_address (file, VOIDmode, x);
 	  break;
 	default:
 	  gcc_unreachable ();
@@ -667,7 +656,7 @@ v850_print_operand (FILE * file, rtx x, int code)
 /* Output assembly language output for the address ADDR to FILE.  */
 
 static void
-v850_print_operand_address (FILE * file, rtx addr)
+v850_print_operand_address (FILE * file, machine_mode /*mode*/, rtx addr)
 {
   switch (GET_CODE (addr))
     {

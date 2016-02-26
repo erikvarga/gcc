@@ -1,5 +1,5 @@
 /* Subroutines used for macro/preprocessor support on the ia-32.
-   Copyright (C) 2008-2015 Free Software Foundation, Inc.
+   Copyright (C) 2008-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -20,15 +20,9 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
-#include "tm.h"
-#include "alias.h"
-#include "tree.h"
-#include "options.h"
-#include "tm_p.h"
-#include "flags.h"
-#include "c-family/c-common.h"
 #include "target.h"
-#include "cpplib.h"
+#include "c-family/c-common.h"
+#include "tm_p.h"
 #include "c-family/c-pragma.h"
 
 static bool ix86_pragma_target_parse (tree, tree);
@@ -122,6 +116,10 @@ ix86_target_macros_internal (HOST_WIDE_INT isa_flag,
     case PROCESSOR_BDVER4:
       def_or_undef (parse_in, "__bdver4");
       def_or_undef (parse_in, "__bdver4__");
+      break;
+    case PROCESSOR_ZNVER1:
+      def_or_undef (parse_in, "__znver1");
+      def_or_undef (parse_in, "__znver1__");
       break;
     case PROCESSOR_BTVER1:
       def_or_undef (parse_in, "__btver1");
@@ -251,6 +249,9 @@ ix86_target_macros_internal (HOST_WIDE_INT isa_flag,
       break;
     case PROCESSOR_BDVER4:
       def_or_undef (parse_in, "__tune_bdver4__");
+      break;
+    case PROCESSOR_ZNVER1:
+      def_or_undef (parse_in, "__tune_znver1__");
       break;
     case PROCESSOR_BTVER1:
       def_or_undef (parse_in, "__tune_btver1__");
@@ -424,6 +425,8 @@ ix86_target_macros_internal (HOST_WIDE_INT isa_flag,
     def_or_undef (parse_in, "__SSE2_MATH__");
   if (isa_flag & OPTION_MASK_ISA_CLFLUSHOPT)
     def_or_undef (parse_in, "__CLFLUSHOPT__");
+  if (isa_flag & OPTION_MASK_ISA_CLZERO)
+    def_or_undef (parse_in, "__CLZERO__");
   if (isa_flag & OPTION_MASK_ISA_XSAVEC)
     def_or_undef (parse_in, "__XSAVEC__");
   if (isa_flag & OPTION_MASK_ISA_XSAVES)
@@ -436,6 +439,8 @@ ix86_target_macros_internal (HOST_WIDE_INT isa_flag,
     def_or_undef (parse_in, "__CLWB__");
   if (isa_flag & OPTION_MASK_ISA_MWAITX)
     def_or_undef (parse_in, "__MWAITX__");
+  if (isa_flag & OPTION_MASK_ISA_PKU)
+    def_or_undef (parse_in, "__PKU__");
   if (TARGET_IAMCU)
     {
       def_or_undef (parse_in, "__iamcu");
@@ -583,6 +588,9 @@ ix86_target_macros (void)
 			       ix86_tune,
 			       ix86_fpmath,
 			       cpp_define);
+
+  cpp_define (parse_in, "__SEG_FS");
+  cpp_define (parse_in, "__SEG_GS");
 }
 
 
@@ -596,6 +604,9 @@ ix86_register_pragmas (void)
 {
   /* Update pragma hook to allow parsing #pragma GCC target.  */
   targetm.target_option.pragma_parse = ix86_pragma_target_parse;
+
+  c_register_addr_space ("__seg_fs", ADDR_SPACE_SEG_FS);
+  c_register_addr_space ("__seg_gs", ADDR_SPACE_SEG_GS);
 
 #ifdef REGISTER_SUBTARGET_PRAGMAS
   REGISTER_SUBTARGET_PRAGMAS ();

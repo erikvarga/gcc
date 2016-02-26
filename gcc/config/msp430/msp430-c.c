@@ -1,5 +1,5 @@
 /* MSP430 C-specific support
-   Copyright (C) 2013-2015 Free Software Foundation, Inc.
+   Copyright (C) 2013-2016 Free Software Foundation, Inc.
    Contributed by Red Hat, Inc.
 
    This file is part of GCC.
@@ -22,8 +22,6 @@
 #include "system.h"
 #include "coretypes.h"
 #include "tm.h"
-#include "alias.h"
-#include "tree.h"
 #include "c-family/c-common.h"
 #include "msp430-protos.h"
 

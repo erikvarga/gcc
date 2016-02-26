@@ -1,5 +1,5 @@
 /* Rewrite a program in Normal form into SSA.
-   Copyright (C) 2001-2015 Free Software Foundation, Inc.
+   Copyright (C) 2001-2016 Free Software Foundation, Inc.
    Contributed by Diego Novillo <dnovillo@redhat.com>
 
 This file is part of GCC.
@@ -22,38 +22,21 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
+#include "rtl.h"
 #include "tree.h"
 #include "gimple.h"
-#include "rtl.h"
+#include "tree-pass.h"
 #include "ssa.h"
-#include "alias.h"
-#include "fold-const.h"
-#include "flags.h"
-#include "tm_p.h"
+#include "gimple-pretty-print.h"
+#include "diagnostic-core.h"
 #include "langhooks.h"
 #include "cfganal.h"
-#include "gimple-pretty-print.h"
-#include "internal-fn.h"
 #include "gimple-iterator.h"
 #include "tree-cfg.h"
 #include "tree-into-ssa.h"
-#include "insn-config.h"
-#include "expmed.h"
-#include "dojump.h"
-#include "explow.h"
-#include "calls.h"
-#include "emit-rtl.h"
-#include "varasm.h"
-#include "stmt.h"
-#include "expr.h"
 #include "tree-dfa.h"
 #include "tree-ssa.h"
-#include "tree-inline.h"
-#include "tree-pass.h"
-#include "cfgloop.h"
 #include "domwalk.h"
-#include "params.h"
-#include "diagnostic-core.h"
 
 #define PERCENT(x,y) ((float)(x) * 100.0 / (float)(y))
 
@@ -65,7 +48,7 @@ along with GCC; see the file COPYING3.  If not see
 
 /* Structure to map a variable VAR to the set of blocks that contain
    definitions for VAR.  */
-struct def_blocks_d
+struct def_blocks
 {
   /* Blocks that contain definitions of VAR.  Bit I will be set if the
      Ith block contains a definition of VAR.  */
@@ -78,9 +61,6 @@ struct def_blocks_d
      DEF_BLOCKS.  */
   bitmap livein_blocks;
 };
-
-typedef struct def_blocks_d *def_blocks_p;
-
 
 /* Stack of trees used to restore the global currdefs to its original
    state after completing rewriting of a block and its dominator
@@ -114,7 +94,7 @@ static sbitmap interesting_blocks;
 /* Set of SSA names that have been marked to be released after they
    were registered in the replacement table.  They will be finally
    released after we finish updating the SSA web.  */
-static bitmap names_to_release;
+bitmap names_to_release;
 
 /* vec of vec of PHIs to rewrite in a basic block.  Element I corresponds
    the to basic block with index I.  Allocated once per compilation, *not*
@@ -169,7 +149,7 @@ enum need_phi_state {
 };
 
 /* Information stored for both SSA names and decls.  */
-struct common_info_d
+struct common_info
 {
   /* This field indicates whether or not the variable may need PHI nodes.
      See the enum's definition for more detailed information about the
@@ -180,29 +160,23 @@ struct common_info_d
   tree current_def;
 
   /* Definitions for this var.  */
-  struct def_blocks_d def_blocks;
+  struct def_blocks def_blocks;
 };
 
-/* The information associated with decls and SSA names.  */
-typedef struct common_info_d *common_info_p;
-
 /* Information stored for decls.  */
-struct var_info_d
+struct var_info
 {
   /* The variable.  */
   tree var;
 
   /* Information stored for both SSA names and decls.  */
-  struct common_info_d info;
+  common_info info;
 };
-
-/* The information associated with decls.  */
-typedef struct var_info_d *var_info_p;
 
 
 /* VAR_INFOS hashtable helpers.  */
 
-struct var_info_hasher : free_ptr_hash <var_info_d>
+struct var_info_hasher : free_ptr_hash <var_info>
 {
   static inline hashval_t hash (const value_type &);
   static inline bool equal (const value_type &, const compare_type &);
@@ -238,13 +212,10 @@ struct ssa_name_info
   bitmap repl_set;
 
   /* Information stored for both SSA names and decls.  */
-  struct common_info_d info;
+  common_info info;
 };
 
-/* The information associated with names.  */
-typedef struct ssa_name_info *ssa_name_info_p;
-
-static vec<ssa_name_info_p> info_for_ssa_name;
+static vec<ssa_name_info *> info_for_ssa_name;
 static unsigned current_info_for_ssa_name_age;
 
 static bitmap_obstack update_ssa_obstack;
@@ -339,7 +310,7 @@ set_register_defs (gimple *stmt, bool register_defs_p)
 
 /* Get the information associated with NAME.  */
 
-static inline ssa_name_info_p
+static inline ssa_name_info *
 get_ssa_name_ann (tree name)
 {
   unsigned ver = SSA_NAME_VERSION (name);
@@ -376,16 +347,16 @@ get_ssa_name_ann (tree name)
 
 /* Return and allocate the auxiliar information for DECL.  */
 
-static inline var_info_p
+static inline var_info *
 get_var_info (tree decl)
 {
-  struct var_info_d vi;
-  var_info_d **slot;
+  var_info vi;
+  var_info **slot;
   vi.var = decl;
   slot = var_infos->find_slot_with_hash (&vi, DECL_UID (decl), INSERT);
   if (*slot == NULL)
     {
-      var_info_p v = XCNEW (struct var_info_d);
+      var_info *v = XCNEW (var_info);
       v->var = decl;
       *slot = v;
       return v;
@@ -409,7 +380,7 @@ clear_ssa_name_info (void)
 
 /* Get access to the auxiliar information stored per SSA name or decl.  */
 
-static inline common_info_p
+static inline common_info *
 get_common_info (tree var)
 {
   if (TREE_CODE (var) == SSA_NAME)
@@ -480,10 +451,10 @@ mark_block_for_update (basic_block bb)
    where VAR is live on entry (livein).  If no entry is found in
    DEF_BLOCKS, a new one is created and returned.  */
 
-static inline struct def_blocks_d *
-get_def_blocks_for (common_info_p info)
+static inline def_blocks *
+get_def_blocks_for (common_info *info)
 {
-  struct def_blocks_d *db_p = &info->def_blocks;
+  def_blocks *db_p = &info->def_blocks;
   if (!db_p->def_blocks)
     {
       db_p->def_blocks = BITMAP_ALLOC (&update_ssa_obstack);
@@ -501,8 +472,8 @@ get_def_blocks_for (common_info_p info)
 static void
 set_def_block (tree var, basic_block bb, bool phi_p)
 {
-  struct def_blocks_d *db_p;
-  common_info_p info;
+  def_blocks *db_p;
+  common_info *info;
 
   info = get_common_info (var);
   db_p = get_def_blocks_for (info);
@@ -536,8 +507,8 @@ set_def_block (tree var, basic_block bb, bool phi_p)
 static void
 set_livein_block (tree var, basic_block bb)
 {
-  common_info_p info;
-  struct def_blocks_d *db_p;
+  common_info *info;
+  def_blocks *db_p;
 
   info = get_common_info (var);
   db_p = get_def_blocks_for (info);
@@ -935,10 +906,10 @@ prune_unused_phi_nodes (bitmap phis, bitmap kills, bitmap uses)
    where VAR is live on entry (livein).  Return NULL, if no entry is
    found in DEF_BLOCKS.  */
 
-static inline struct def_blocks_d *
+static inline def_blocks *
 find_def_blocks_for (tree var)
 {
-  def_blocks_p p = &get_common_info (var)->def_blocks;
+  def_blocks *p = &get_common_info (var)->def_blocks;
   if (!p->def_blocks)
     return NULL;
   return p;
@@ -992,7 +963,7 @@ insert_phi_nodes_for (tree var, bitmap phi_insertion_points, bool update_p)
   gphi *phi;
   basic_block bb;
   bitmap_iterator bi;
-  struct def_blocks_d *def_map = find_def_blocks_for (var);
+  def_blocks *def_map = find_def_blocks_for (var);
 
   /* Remove the blocks where we already have PHI nodes for VAR.  */
   bitmap_and_compl_into (phi_insertion_points, def_map->phi_blocks);
@@ -1068,8 +1039,8 @@ insert_phi_nodes_for (tree var, bitmap phi_insertion_points, bool update_p)
 static int
 insert_phi_nodes_compare_var_infos (const void *a, const void *b)
 {
-  const struct var_info_d *defa = *(struct var_info_d * const *)a;
-  const struct var_info_d *defb = *(struct var_info_d * const *)b;
+  const var_info *defa = *(var_info * const *)a;
+  const var_info *defb = *(var_info * const *)b;
   if (DECL_UID (defa->var) < DECL_UID (defb->var))
     return -1;
   else
@@ -1085,11 +1056,11 @@ insert_phi_nodes (bitmap_head *dfs)
 {
   hash_table<var_info_hasher>::iterator hi;
   unsigned i;
-  var_info_p info;
+  var_info *info;
 
   timevar_push (TV_TREE_INSERT_PHI_NODES);
 
-  auto_vec<var_info_p> vars (var_infos->elements ());
+  auto_vec<var_info *> vars (var_infos->elements ());
   FOR_EACH_HASH_TABLE_ELEMENT (*var_infos, info, var_info_p, hi)
     if (info->info.need_phi_state != NEED_PHI_STATE_NO)
       vars.quick_push (info);
@@ -1115,7 +1086,7 @@ insert_phi_nodes (bitmap_head *dfs)
 static void
 register_new_def (tree def, tree sym)
 {
-  common_info_p info = get_common_info (sym);
+  common_info *info = get_common_info (sym);
   tree currdef;
 
   /* If this variable is set in a single basic block and all uses are
@@ -1183,7 +1154,7 @@ register_new_def (tree def, tree sym)
 static tree
 get_reaching_def (tree var)
 {
-  common_info_p info = get_common_info (var);
+  common_info *info = get_common_info (var);
   tree currdef;
 
   /* Lookup the current reaching definition for VAR.  */
@@ -1215,7 +1186,7 @@ rewrite_debug_stmt_uses (gimple *stmt)
   FOR_EACH_SSA_USE_OPERAND (use_p, stmt, iter, SSA_OP_USE)
     {
       tree var = USE_FROM_PTR (use_p), def;
-      common_info_p info = get_common_info (var);
+      common_info *info = get_common_info (var);
       gcc_checking_assert (DECL_P (var));
       def = info->current_def;
       if (!def)
@@ -1282,7 +1253,7 @@ rewrite_debug_stmt_uses (gimple *stmt)
 	    ;
 	  else
 	    {
-	      struct def_blocks_d *db_p = get_def_blocks_for (info);
+	      def_blocks *db_p = get_def_blocks_for (info);
 
 	      /* If there are some non-debug uses in the current bb,
 		 it is fine.  */
@@ -1420,7 +1391,7 @@ class rewrite_dom_walker : public dom_walker
 public:
   rewrite_dom_walker (cdi_direction direction) : dom_walker (direction) {}
 
-  virtual void before_dom_children (basic_block);
+  virtual edge before_dom_children (basic_block);
   virtual void after_dom_children (basic_block);
 };
 
@@ -1429,7 +1400,7 @@ public:
    (BLOCK_DEFS).  Register new definitions for every PHI node in the
    block.  */
 
-void
+edge
 rewrite_dom_walker::before_dom_children (basic_block bb)
 {
   if (dump_file && (dump_flags & TDF_DETAILS))
@@ -1461,6 +1432,8 @@ rewrite_dom_walker::before_dom_children (basic_block bb)
      reaching definition for the variable and the edge through which that
      definition is reaching the PHI node.  */
   rewrite_add_phi_arguments (bb);
+
+  return NULL;
 }
 
 
@@ -1602,7 +1575,7 @@ dump_currdefs (FILE *file)
   fprintf (file, "\n\nCurrent reaching definitions\n\n");
   FOR_EACH_VEC_ELT (symbols_to_rename, i, var)
     {
-      common_info_p info = get_common_info (var);
+      common_info *info = get_common_info (var);
       fprintf (file, "CURRDEF (");
       print_generic_expr (file, var, 0);
       fprintf (file, ") = ");
@@ -1689,9 +1662,9 @@ debug_tree_ssa_stats (void)
 /* Callback for htab_traverse to dump the VAR_INFOS hash table.  */
 
 int
-debug_var_infos_r (var_info_d **slot, FILE *file)
+debug_var_infos_r (var_info **slot, FILE *file)
 {
-  struct var_info_d *info = *slot;
+  var_info *info = *slot;
 
   fprintf (file, "VAR: ");
   print_generic_expr (file, info->var, dump_flags);
@@ -1731,7 +1704,7 @@ debug_var_infos (void)
 static inline void
 register_new_update_single (tree new_name, tree old_name)
 {
-  common_info_p info = get_common_info (old_name);
+  common_info *info = get_common_info (old_name);
   tree currdef = info->current_def;
 
   /* Push the current reaching definition into BLOCK_DEFS_STACK.
@@ -2084,7 +2057,7 @@ class rewrite_update_dom_walker : public dom_walker
 public:
   rewrite_update_dom_walker (cdi_direction direction) : dom_walker (direction) {}
 
-  virtual void before_dom_children (basic_block);
+  virtual edge before_dom_children (basic_block);
   virtual void after_dom_children (basic_block);
 };
 
@@ -2093,7 +2066,7 @@ public:
    for new SSA names produced in this block (BLOCK_DEFS).  Register
    new definitions for every PHI node in the block.  */
 
-void
+edge
 rewrite_update_dom_walker::before_dom_children (basic_block bb)
 {
   bool is_abnormal_phi;
@@ -2106,7 +2079,7 @@ rewrite_update_dom_walker::before_dom_children (basic_block bb)
   block_defs_stack.safe_push (NULL_TREE);
 
   if (!bitmap_bit_p (blocks_to_update, bb->index))
-    return;
+    return NULL;
 
   /* Mark the LHS if any of the arguments flows through an abnormal
      edge.  */
@@ -2162,6 +2135,8 @@ rewrite_update_dom_walker::before_dom_children (basic_block bb)
 
   /* Step 3.  Update PHI nodes.  */
   rewrite_update_phi_arguments (bb);
+
+  return NULL;
 }
 
 /* Called after visiting block BB.  Unwind BLOCK_DEFS_STACK to restore
@@ -2239,7 +2214,7 @@ public:
   mark_def_dom_walker (cdi_direction direction);
   ~mark_def_dom_walker ();
 
-  virtual void before_dom_children (basic_block);
+  virtual edge before_dom_children (basic_block);
 
 private:
   /* Notice that this bitmap is indexed using variable UIDs, so it must be
@@ -2261,7 +2236,7 @@ mark_def_dom_walker::~mark_def_dom_walker ()
 /* Block processing routine for mark_def_sites.  Clear the KILLS bitmap
    at the start of each block, and call mark_def_sites for each statement.  */
 
-void
+edge
 mark_def_dom_walker::before_dom_children (basic_block bb)
 {
   gimple_stmt_iterator gsi;
@@ -2269,6 +2244,7 @@ mark_def_dom_walker::before_dom_children (basic_block bb)
   bitmap_clear (m_kills);
   for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
     mark_def_sites (bb, gsi_stmt (gsi), m_kills);
+  return NULL;
 }
 
 /* Initialize internal data needed during renaming.  */
@@ -2487,7 +2463,7 @@ mark_use_interesting (tree var, gimple *stmt, basic_block bb,
      replace it).  */
   if (insert_phi_p)
     {
-      struct def_blocks_d *db_p = get_def_blocks_for (get_common_info (var));
+      def_blocks *db_p = get_def_blocks_for (get_common_info (var));
       if (!bitmap_bit_p (db_p->def_blocks, bb->index))
 	set_livein_block (var, bb);
     }
@@ -3006,7 +2982,7 @@ insert_updated_phi_nodes_for (tree var, bitmap_head *dfs, bitmap blocks,
                               unsigned update_flags)
 {
   basic_block entry;
-  struct def_blocks_d *db;
+  def_blocks *db;
   bitmap idf, pruned_idf;
   bitmap_iterator bi;
   unsigned i;
@@ -3181,44 +3157,45 @@ update_ssa (unsigned update_flags)
   if (!need_ssa_update_p (cfun))
     return;
 
-#ifdef ENABLE_CHECKING
-  timevar_push (TV_TREE_STMT_VERIFY);
-
-  bool err = false;
-
-  FOR_EACH_BB_FN (bb, cfun)
+  if (flag_checking)
     {
-      gimple_stmt_iterator gsi;
-      for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
+      timevar_push (TV_TREE_STMT_VERIFY);
+
+      bool err = false;
+
+      FOR_EACH_BB_FN (bb, cfun)
 	{
-	  gimple *stmt = gsi_stmt (gsi);
-
-	  ssa_op_iter i;
-	  use_operand_p use_p;
-	  FOR_EACH_SSA_USE_OPERAND (use_p, stmt, i, SSA_OP_ALL_USES)
+	  gimple_stmt_iterator gsi;
+	  for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
 	    {
-	      tree use = USE_FROM_PTR (use_p);
-	      if (TREE_CODE (use) != SSA_NAME)
-		continue;
+	      gimple *stmt = gsi_stmt (gsi);
 
-	      if (SSA_NAME_IN_FREE_LIST (use))
+	      ssa_op_iter i;
+	      use_operand_p use_p;
+	      FOR_EACH_SSA_USE_OPERAND (use_p, stmt, i, SSA_OP_ALL_USES)
 		{
-		  error ("statement uses released SSA name:");
-		  debug_gimple_stmt (stmt);
-		  fprintf (stderr, "The use of ");
-		  print_generic_expr (stderr, use, 0);
-		  fprintf (stderr," should have been replaced\n");
-		  err = true;
+		  tree use = USE_FROM_PTR (use_p);
+		  if (TREE_CODE (use) != SSA_NAME)
+		    continue;
+
+		  if (SSA_NAME_IN_FREE_LIST (use))
+		    {
+		      error ("statement uses released SSA name:");
+		      debug_gimple_stmt (stmt);
+		      fprintf (stderr, "The use of ");
+		      print_generic_expr (stderr, use, 0);
+		      fprintf (stderr," should have been replaced\n");
+		      err = true;
+		    }
 		}
 	    }
 	}
+
+      if (err)
+	internal_error ("cannot update SSA form");
+
+      timevar_pop (TV_TREE_STMT_VERIFY);
     }
-
-  if (err)
-    internal_error ("cannot update SSA form");
-
-  timevar_pop (TV_TREE_STMT_VERIFY);
-#endif
 
   timevar_push (TV_TREE_SSA_INCREMENTAL);
 
@@ -3283,29 +3260,28 @@ update_ssa (unsigned update_flags)
 	 placement heuristics.  */
       prepare_block_for_update (start_bb, insert_phi_p);
 
-#ifdef ENABLE_CHECKING
-      for (i = 1; i < num_ssa_names; ++i)
-	{
-	  tree name = ssa_name (i);
-	  if (!name
-	      || virtual_operand_p (name))
-	    continue;
+      if (flag_checking)
+	for (i = 1; i < num_ssa_names; ++i)
+	  {
+	    tree name = ssa_name (i);
+	    if (!name
+		|| virtual_operand_p (name))
+	      continue;
 
-	  /* For all but virtual operands, which do not have SSA names
-	     with overlapping life ranges, ensure that symbols marked
-	     for renaming do not have existing SSA names associated with
-	     them as we do not re-write them out-of-SSA before going
-	     into SSA for the remaining symbol uses.  */
-	  if (marked_for_renaming (SSA_NAME_VAR (name)))
-	    {
-	      fprintf (stderr, "Existing SSA name for symbol marked for "
-		       "renaming: ");
-	      print_generic_expr (stderr, name, TDF_SLIM);
-	      fprintf (stderr, "\n");
-	      internal_error ("SSA corruption");
-	    }
-	}
-#endif
+	    /* For all but virtual operands, which do not have SSA names
+	       with overlapping life ranges, ensure that symbols marked
+	       for renaming do not have existing SSA names associated with
+	       them as we do not re-write them out-of-SSA before going
+	       into SSA for the remaining symbol uses.  */
+	    if (marked_for_renaming (SSA_NAME_VAR (name)))
+	      {
+		fprintf (stderr, "Existing SSA name for symbol marked for "
+			 "renaming: ");
+		print_generic_expr (stderr, name, TDF_SLIM);
+		fprintf (stderr, "\n");
+		internal_error ("SSA corruption");
+	      }
+	  }
     }
   else
     {

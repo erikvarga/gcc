@@ -1,5 +1,5 @@
 /* RTL simplification functions for GNU compiler.
-   Copyright (C) 1987-2015 Free Software Foundation, Inc.
+   Copyright (C) 1987-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -22,28 +22,16 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "predict.h"
-#include "rtl.h"
-#include "alias.h"
-#include "tree.h"
-#include "fold-const.h"
-#include "varasm.h"
-#include "tm_p.h"
-#include "regs.h"
-#include "flags.h"
-#include "insn-config.h"
-#include "recog.h"
-#include "insn-codes.h"
-#include "optabs.h"
-#include "expmed.h"
-#include "dojump.h"
-#include "explow.h"
-#include "calls.h"
-#include "emit-rtl.h"
-#include "stmt.h"
-#include "expr.h"
-#include "diagnostic-core.h"
 #include "target.h"
+#include "rtl.h"
+#include "tree.h"
+#include "predict.h"
+#include "optabs.h"
+#include "emit-rtl.h"
+#include "recog.h"
+#include "diagnostic-core.h"
+#include "varasm.h"
+#include "flags.h"
 
 /* Simplification and canonicalization of RTL.  */
 
@@ -224,12 +212,8 @@ avoid_constant_pool_reference (rtx x)
       tmp = XEXP (x, 0);
       c = avoid_constant_pool_reference (tmp);
       if (c != tmp && CONST_DOUBLE_AS_FLOAT_P (c))
-	{
-	  REAL_VALUE_TYPE d;
-
-	  REAL_VALUE_FROM_CONST_DOUBLE (d, c);
-	  return CONST_DOUBLE_FROM_REAL_VALUE (d, GET_MODE (x));
-	}
+	return const_double_from_real_value (*CONST_DOUBLE_REAL_VALUE (c),
+					     GET_MODE (x));
       return x;
 
     default:
@@ -317,10 +301,11 @@ delegitimize_mem_from_attrs (rtx x)
 	  {
 	    HOST_WIDE_INT bitsize, bitpos;
 	    tree toffset;
-	    int unsignedp, volatilep = 0;
+	    int unsignedp, reversep, volatilep = 0;
 
-	    decl = get_inner_reference (decl, &bitsize, &bitpos, &toffset,
-					&mode, &unsignedp, &volatilep, false);
+	    decl
+	      = get_inner_reference (decl, &bitsize, &bitpos, &toffset, &mode,
+				     &unsignedp, &reversep, &volatilep, false);
 	    if (bitsize != GET_MODE_BITSIZE (mode)
 		|| (bitpos % BITS_PER_UNIT)
 		|| (toffset && !tree_fits_shwi_p (toffset)))
@@ -728,6 +713,34 @@ simplify_truncation (machine_mode mode, rtx op,
       && UINTVAL (XEXP (op, 1)) < precision)
     return simplify_gen_binary (ASHIFT, mode,
 				XEXP (XEXP (op, 0), 0), XEXP (op, 1));
+
+  /* Likewise (truncate:QI (and:SI (lshiftrt:SI (x:SI) C) C2)) into
+     (and:QI (lshiftrt:QI (truncate:QI (x:SI)) C) C2) for suitable C
+     and C2.  */
+  if (GET_CODE (op) == AND
+      && (GET_CODE (XEXP (op, 0)) == LSHIFTRT
+	  || GET_CODE (XEXP (op, 0)) == ASHIFTRT)
+      && CONST_INT_P (XEXP (XEXP (op, 0), 1))
+      && CONST_INT_P (XEXP (op, 1)))
+    {
+      rtx op0 = (XEXP (XEXP (op, 0), 0));
+      rtx shift_op = XEXP (XEXP (op, 0), 1);
+      rtx mask_op = XEXP (op, 1);
+      unsigned HOST_WIDE_INT shift = UINTVAL (shift_op);
+      unsigned HOST_WIDE_INT mask = UINTVAL (mask_op);
+
+      if (shift < precision
+	  /* If doing this transform works for an X with all bits set,
+	     it works for any X.  */
+	  && ((GET_MODE_MASK (mode) >> shift) & mask)
+	     == ((GET_MODE_MASK (op_mode) >> shift) & mask)
+	  && (op0 = simplify_gen_unary (TRUNCATE, mode, op0, op_mode))
+	  && (op0 = simplify_gen_binary (LSHIFTRT, mode, op0, shift_op)))
+	{
+	  mask_op = GEN_INT (trunc_int_for_mode (mask, mode));
+	  return simplify_gen_binary (AND, mode, op0, mask_op);
+	}
+    }
 
   /* Recognize a word extraction from a multi-word subreg.  */
   if ((GET_CODE (op) == LSHIFTRT
@@ -1449,6 +1462,13 @@ simplify_unary_operation_1 (enum rtx_code code, machine_mode mode, rtx op)
 	    }
 	}
 
+      /* (sign_extend:M (lshiftrt:N <X> (const_int I))) is better as
+         (zero_extend:M (lshiftrt:N <X> (const_int I))) if I is not 0.  */
+      if (GET_CODE (op) == LSHIFTRT
+	  && CONST_INT_P (XEXP (op, 1))
+	  && XEXP (op, 1) != const0_rtx)
+	return simplify_gen_unary (ZERO_EXTEND, mode, op, GET_MODE (op));
+
 #if defined(POINTERS_EXTEND_UNSIGNED)
       /* As we do not know which address space the pointer is referring to,
 	 we can do this only if the target does not support different pointer
@@ -1683,8 +1703,14 @@ simplify_const_unary_operation (enum rtx_code code, machine_mode mode,
 	}
 
       real_from_integer (&d, mode, std::make_pair (op, op_mode), SIGNED);
+
+      /* Avoid the folding if flag_signaling_nans is on and
+         operand is a signaling NaN.  */
+      if (HONOR_SNANS (mode) && REAL_VALUE_ISSIGNALING_NAN (d))
+        return 0;
+
       d = real_value_truncate (mode, d);
-      return CONST_DOUBLE_FROM_REAL_VALUE (d, mode);
+      return const_double_from_real_value (d, mode);
     }
   else if (code == UNSIGNED_FLOAT && CONST_SCALAR_INT_P (op))
     {
@@ -1701,8 +1727,14 @@ simplify_const_unary_operation (enum rtx_code code, machine_mode mode,
 	}
 
       real_from_integer (&d, mode, std::make_pair (op, op_mode), UNSIGNED);
+
+      /* Avoid the folding if flag_signaling_nans is on and
+         operand is a signaling NaN.  */
+      if (HONOR_SNANS (mode) && REAL_VALUE_ISSIGNALING_NAN (d))
+        return 0;
+
       d = real_value_truncate (mode, d);
-      return CONST_DOUBLE_FROM_REAL_VALUE (d, mode);
+      return const_double_from_real_value (d, mode);
     }
 
   if (CONST_SCALAR_INT_P (op) && width > 0)
@@ -1793,9 +1825,7 @@ simplify_const_unary_operation (enum rtx_code code, machine_mode mode,
 	   && SCALAR_FLOAT_MODE_P (mode)
 	   && SCALAR_FLOAT_MODE_P (GET_MODE (op)))
     {
-      REAL_VALUE_TYPE d;
-      REAL_VALUE_FROM_CONST_DOUBLE (d, op);
-
+      REAL_VALUE_TYPE d = *CONST_DOUBLE_REAL_VALUE (op);
       switch (code)
 	{
 	case SQRT:
@@ -1807,16 +1837,25 @@ simplify_const_unary_operation (enum rtx_code code, machine_mode mode,
 	  d = real_value_negate (&d);
 	  break;
 	case FLOAT_TRUNCATE:
-	  d = real_value_truncate (mode, d);
+	  /* Don't perform the operation if flag_signaling_nans is on
+	     and the operand is a signaling NaN.  */
+	  if (!(HONOR_SNANS (mode) && REAL_VALUE_ISSIGNALING_NAN (d)))
+	    d = real_value_truncate (mode, d);
 	  break;
 	case FLOAT_EXTEND:
 	  /* All this does is change the mode, unless changing
 	     mode class.  */
-	  if (GET_MODE_CLASS (mode) != GET_MODE_CLASS (GET_MODE (op)))
+	  /* Don't perform the operation if flag_signaling_nans is on
+	     and the operand is a signaling NaN.  */
+	  if (GET_MODE_CLASS (mode) != GET_MODE_CLASS (GET_MODE (op))
+	      && !(HONOR_SNANS (mode) && REAL_VALUE_ISSIGNALING_NAN (d)))
 	    real_convert (&d, mode, &d);
 	  break;
 	case FIX:
-	  real_arithmetic (&d, FIX_TRUNC_EXPR, &d, NULL);
+	  /* Don't perform the operation if flag_signaling_nans is on
+	     and the operand is a signaling NaN.  */
+	  if (!(HONOR_SNANS (mode) && REAL_VALUE_ISSIGNALING_NAN (d)))
+	    real_arithmetic (&d, FIX_TRUNC_EXPR, &d, NULL);
 	  break;
 	case NOT:
 	  {
@@ -1832,7 +1871,7 @@ simplify_const_unary_operation (enum rtx_code code, machine_mode mode,
 	default:
 	  gcc_unreachable ();
 	}
-      return CONST_DOUBLE_FROM_REAL_VALUE (d, mode);
+      return const_double_from_real_value (d, mode);
     }
   else if (CONST_DOUBLE_AS_FLOAT_P (op)
 	   && SCALAR_FLOAT_MODE_P (GET_MODE (op))
@@ -1846,8 +1885,8 @@ simplify_const_unary_operation (enum rtx_code code, machine_mode mode,
 
       /* This was formerly used only for non-IEEE float.
 	 eggert@twinsun.com says it is safe for IEEE also.  */
-      REAL_VALUE_TYPE x, t;
-      REAL_VALUE_FROM_CONST_DOUBLE (x, op);
+      REAL_VALUE_TYPE t;
+      const REAL_VALUE_TYPE *x = CONST_DOUBLE_REAL_VALUE (op);
       wide_int wmax, wmin;
       /* This is part of the abi to real_to_integer, but we check
 	 things before making this call.  */
@@ -1856,37 +1895,36 @@ simplify_const_unary_operation (enum rtx_code code, machine_mode mode,
       switch (code)
 	{
 	case FIX:
-	  if (REAL_VALUE_ISNAN (x))
+	  if (REAL_VALUE_ISNAN (*x))
 	    return const0_rtx;
 
 	  /* Test against the signed upper bound.  */
 	  wmax = wi::max_value (width, SIGNED);
 	  real_from_integer (&t, VOIDmode, wmax, SIGNED);
-	  if (REAL_VALUES_LESS (t, x))
+	  if (real_less (&t, x))
 	    return immed_wide_int_const (wmax, mode);
 
 	  /* Test against the signed lower bound.  */
 	  wmin = wi::min_value (width, SIGNED);
 	  real_from_integer (&t, VOIDmode, wmin, SIGNED);
-	  if (REAL_VALUES_LESS (x, t))
+	  if (real_less (x, &t))
 	    return immed_wide_int_const (wmin, mode);
 
-	  return immed_wide_int_const (real_to_integer (&x, &fail, width), mode);
-	  break;
+	  return immed_wide_int_const (real_to_integer (x, &fail, width),
+				       mode);
 
 	case UNSIGNED_FIX:
-	  if (REAL_VALUE_ISNAN (x) || REAL_VALUE_NEGATIVE (x))
+	  if (REAL_VALUE_ISNAN (*x) || REAL_VALUE_NEGATIVE (*x))
 	    return const0_rtx;
 
 	  /* Test against the unsigned upper bound.  */
 	  wmax = wi::max_value (width, UNSIGNED);
 	  real_from_integer (&t, VOIDmode, wmax, UNSIGNED);
-	  if (REAL_VALUES_LESS (t, x))
+	  if (real_less (&t, x))
 	    return immed_wide_int_const (wmax, mode);
 
-	  return immed_wide_int_const (real_to_integer (&x, &fail, width),
+	  return immed_wide_int_const (real_to_integer (x, &fail, width),
 				       mode);
-	  break;
 
 	default:
 	  gcc_unreachable ();
@@ -2008,7 +2046,17 @@ simplify_binary_operation (enum rtx_code code, machine_mode mode,
   tem = simplify_const_binary_operation (code, mode, trueop0, trueop1);
   if (tem)
     return tem;
-  return simplify_binary_operation_1 (code, mode, op0, op1, trueop0, trueop1);
+  tem = simplify_binary_operation_1 (code, mode, op0, op1, trueop0, trueop1);
+
+  if (tem)
+    return tem;
+
+  /* If the above steps did not result in a simplification and op0 or op1
+     were constant pool references, use the referenced constants directly.  */
+  if (trueop0 != op0 || trueop1 != op1)
+    return simplify_gen_binary (code, mode, trueop0, trueop1);
+
+  return NULL_RTX;
 }
 
 /* Subroutine of simplify_binary_operation.  Simplify a binary operation
@@ -2229,8 +2277,11 @@ simplify_binary_operation_1 (enum rtx_code code, machine_mode mode,
       if (!HONOR_SIGNED_ZEROS (mode) && trueop0 == CONST0_RTX (mode))
 	return simplify_gen_unary (NEG, mode, op1, mode);
 
-      /* (-1 - a) is ~a.  */
-      if (trueop0 == constm1_rtx)
+      /* (-1 - a) is ~a, unless the expression contains symbolic
+	 constants, in which case not retaining additions and
+	 subtractions could cause invalid assembly to be produced.  */
+      if (trueop0 == constm1_rtx
+	  && !contains_symbolic_reference_p (op1))
 	return simplify_gen_unary (NOT, mode, op1, mode);
 
       /* Subtracting 0 has no effect unless the mode has signed zeros
@@ -2469,14 +2520,13 @@ simplify_binary_operation_1 (enum rtx_code code, machine_mode mode,
 	  && !DECIMAL_FLOAT_MODE_P (GET_MODE (trueop1))
 	  && GET_MODE (op0) == mode)
 	{
-	  REAL_VALUE_TYPE d;
-	  REAL_VALUE_FROM_CONST_DOUBLE (d, trueop1);
+	  const REAL_VALUE_TYPE *d1 = CONST_DOUBLE_REAL_VALUE (trueop1);
 
-	  if (REAL_VALUES_EQUAL (d, dconst2))
+	  if (real_equal (d1, &dconst2))
 	    return simplify_gen_binary (PLUS, mode, op0, copy_rtx (op0));
 
 	  if (!HONOR_SNANS (mode)
-	      && REAL_VALUES_EQUAL (d, dconstm1))
+	      && real_equal (d1, &dconstm1))
 	    return simplify_gen_unary (NEG, mode, op0, mode);
 	}
 
@@ -3098,21 +3148,21 @@ simplify_binary_operation_1 (enum rtx_code code, machine_mode mode,
 	  if (CONST_DOUBLE_AS_FLOAT_P (trueop1)
 	      && trueop1 != CONST0_RTX (mode))
 	    {
-	      REAL_VALUE_TYPE d;
-	      REAL_VALUE_FROM_CONST_DOUBLE (d, trueop1);
+	      const REAL_VALUE_TYPE *d1 = CONST_DOUBLE_REAL_VALUE (trueop1);
 
 	      /* x/-1.0 is -x.  */
-	      if (REAL_VALUES_EQUAL (d, dconstm1)
+	      if (real_equal (d1, &dconstm1)
 		  && !HONOR_SNANS (mode))
 		return simplify_gen_unary (NEG, mode, op0, mode);
 
 	      /* Change FP division by a constant into multiplication.
 		 Only do this with -freciprocal-math.  */
 	      if (flag_reciprocal_math
-		  && !REAL_VALUES_EQUAL (d, dconst0))
+		  && !real_equal (d1, &dconst0))
 		{
-		  REAL_ARITHMETIC (d, RDIV_EXPR, dconst1, d);
-		  tem = CONST_DOUBLE_FROM_REAL_VALUE (d, mode);
+		  REAL_VALUE_TYPE d;
+		  real_arithmetic (&d, RDIV_EXPR, &dconst1, d1);
+		  tem = const_double_from_real_value (d, mode);
 		  return simplify_gen_binary (MULT, mode, op0, tem);
 		}
 	    }
@@ -3855,24 +3905,27 @@ simplify_const_binary_operation (enum rtx_code code, machine_mode mode,
 	      }
 	    }
 	   real_from_target (&r, tmp0, mode);
-	   return CONST_DOUBLE_FROM_REAL_VALUE (r, mode);
+	   return const_double_from_real_value (r, mode);
 	}
       else
 	{
 	  REAL_VALUE_TYPE f0, f1, value, result;
+	  const REAL_VALUE_TYPE *opr0, *opr1;
 	  bool inexact;
 
-	  REAL_VALUE_FROM_CONST_DOUBLE (f0, op0);
-	  REAL_VALUE_FROM_CONST_DOUBLE (f1, op1);
-	  real_convert (&f0, mode, &f0);
-	  real_convert (&f1, mode, &f1);
+	  opr0 = CONST_DOUBLE_REAL_VALUE (op0);
+	  opr1 = CONST_DOUBLE_REAL_VALUE (op1);
 
 	  if (HONOR_SNANS (mode)
-	      && (REAL_VALUE_ISNAN (f0) || REAL_VALUE_ISNAN (f1)))
+	      && (REAL_VALUE_ISSIGNALING_NAN (*opr0)
+	          || REAL_VALUE_ISSIGNALING_NAN (*opr1)))
 	    return 0;
 
+	  real_convert (&f0, mode, opr0);
+	  real_convert (&f1, mode, opr1);
+
 	  if (code == DIV
-	      && REAL_VALUES_EQUAL (f1, dconst0)
+	      && real_equal (&f1, &dconst0)
 	      && (flag_trapping_math || ! MODE_HAS_INFINITIES (mode)))
 	    return 0;
 
@@ -3905,9 +3958,9 @@ simplify_const_binary_operation (enum rtx_code code, machine_mode mode,
 
 	  if (code == MULT && MODE_HAS_INFINITIES (mode) && HONOR_NANS (mode)
 	      && flag_trapping_math
-	      && ((REAL_VALUE_ISINF (f0) && REAL_VALUES_EQUAL (f1, dconst0))
+	      && ((REAL_VALUE_ISINF (f0) && real_equal (&f1, &dconst0))
 		  || (REAL_VALUE_ISINF (f1)
-		      && REAL_VALUES_EQUAL (f0, dconst0))))
+		      && real_equal (&f0, &dconst0))))
 	    /* Inf * 0 = NaN plus exception.  */
 	    return 0;
 
@@ -3936,7 +3989,7 @@ simplify_const_binary_operation (enum rtx_code code, machine_mode mode,
 	      && (inexact || !real_identical (&result, &value)))
 	    return NULL_RTX;
 
-	  return CONST_DOUBLE_FROM_REAL_VALUE (result, mode);
+	  return const_double_from_real_value (result, mode);
 	}
     }
 
@@ -4462,7 +4515,7 @@ simplify_relational_operation (enum rtx_code code, machine_mode mode,
 	  {
 	    REAL_VALUE_TYPE val;
 	    val = FLOAT_STORE_FLAG_VALUE (mode);
-	    return CONST_DOUBLE_FROM_REAL_VALUE (val, mode);
+	    return const_double_from_real_value (val, mode);
 	  }
 #else
 	  return NULL_RTX;
@@ -4912,13 +4965,11 @@ simplify_const_relational_operation (enum rtx_code code,
       && CONST_DOUBLE_AS_FLOAT_P (trueop1)
       && SCALAR_FLOAT_MODE_P (GET_MODE (trueop0)))
     {
-      REAL_VALUE_TYPE d0, d1;
-
-      REAL_VALUE_FROM_CONST_DOUBLE (d0, trueop0);
-      REAL_VALUE_FROM_CONST_DOUBLE (d1, trueop1);
+      const REAL_VALUE_TYPE *d0 = CONST_DOUBLE_REAL_VALUE (trueop0);
+      const REAL_VALUE_TYPE *d1 = CONST_DOUBLE_REAL_VALUE (trueop1);
 
       /* Comparisons are unordered iff at least one of the values is NaN.  */
-      if (REAL_VALUE_ISNAN (d0) || REAL_VALUE_ISNAN (d1))
+      if (REAL_VALUE_ISNAN (*d0) || REAL_VALUE_ISNAN (*d1))
 	switch (code)
 	  {
 	  case UNEQ:
@@ -4942,8 +4993,8 @@ simplify_const_relational_operation (enum rtx_code code,
 	  }
 
       return comparison_result (code,
-				(REAL_VALUES_EQUAL (d0, d1) ? CMP_EQ :
-				 REAL_VALUES_LESS (d0, d1) ? CMP_LT : CMP_GT));
+				(real_equal (d0, d1) ? CMP_EQ :
+				 real_less (d0, d1) ? CMP_LT : CMP_GT));
     }
 
   /* Otherwise, see if the operands are both integers.  */
@@ -5760,7 +5811,7 @@ simplify_immed_subreg (machine_mode outermode, rtx op,
 	      }
 
 	    real_from_target (&r, tmp, outer_submode);
-	    elems[elem] = CONST_DOUBLE_FROM_REAL_VALUE (r, outer_submode);
+	    elems[elem] = const_double_from_real_value (r, outer_submode);
 	  }
 	  break;
 

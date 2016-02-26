@@ -1,6 +1,6 @@
 ## Makefile for the GNU C++ Filesystem library.
 ##
-## Copyright (C) 2014-2015 Free Software Foundation, Inc.
+## Copyright (C) 2014-2016 Free Software Foundation, Inc.
 ##
 ## Process this file with automake to produce Makefile.in.
 ##
@@ -26,10 +26,20 @@ toolexeclib_LTLIBRARIES = libstdc++fs.la
 
 headers =
 
+if ENABLE_DUAL_ABI
+cxx11_abi_sources = \
+	cow-dir.cc \
+	cow-ops.cc \
+	cow-path.cc
+else
+cxx11_abi_sources =
+endif
+
 sources = \
 	dir.cc \
 	ops.cc \
-	path.cc
+	path.cc \
+	${cxx11_abi_sources}
 
 # vpath % $(top_srcdir)/src/filesystem
 

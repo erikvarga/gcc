@@ -1,6 +1,6 @@
 /* Plugin for NVPTX execution.
 
-   Copyright (C) 2013-2015 Free Software Foundation, Inc.
+   Copyright (C) 2013-2016 Free Software Foundation, Inc.
 
    Contributed by Mentor Embedded.
 
@@ -34,7 +34,6 @@
 #include "openacc.h"
 #include "config.h"
 #include "libgomp-plugin.h"
-#include "oacc-ptx.h"
 #include "oacc-plugin.h"
 #include "gomp-constants.h"
 
@@ -47,84 +46,21 @@
 #include <unistd.h>
 #include <assert.h>
 
-#define	ARRAYSIZE(X) (sizeof (X) / sizeof ((X)[0]))
-
-static const struct
-{
-  CUresult r;
-  const char *m;
-} cuda_errlist[]=
-{
-  { CUDA_ERROR_INVALID_VALUE, "invalid value" },
-  { CUDA_ERROR_OUT_OF_MEMORY, "out of memory" },
-  { CUDA_ERROR_NOT_INITIALIZED, "not initialized" },
-  { CUDA_ERROR_DEINITIALIZED, "deinitialized" },
-  { CUDA_ERROR_PROFILER_DISABLED, "profiler disabled" },
-  { CUDA_ERROR_PROFILER_NOT_INITIALIZED, "profiler not initialized" },
-  { CUDA_ERROR_PROFILER_ALREADY_STARTED, "already started" },
-  { CUDA_ERROR_PROFILER_ALREADY_STOPPED, "already stopped" },
-  { CUDA_ERROR_NO_DEVICE, "no device" },
-  { CUDA_ERROR_INVALID_DEVICE, "invalid device" },
-  { CUDA_ERROR_INVALID_IMAGE, "invalid image" },
-  { CUDA_ERROR_INVALID_CONTEXT, "invalid context" },
-  { CUDA_ERROR_CONTEXT_ALREADY_CURRENT, "context already current" },
-  { CUDA_ERROR_MAP_FAILED, "map error" },
-  { CUDA_ERROR_UNMAP_FAILED, "unmap error" },
-  { CUDA_ERROR_ARRAY_IS_MAPPED, "array is mapped" },
-  { CUDA_ERROR_ALREADY_MAPPED, "already mapped" },
-  { CUDA_ERROR_NO_BINARY_FOR_GPU, "no binary for gpu" },
-  { CUDA_ERROR_ALREADY_ACQUIRED, "already acquired" },
-  { CUDA_ERROR_NOT_MAPPED, "not mapped" },
-  { CUDA_ERROR_NOT_MAPPED_AS_ARRAY, "not mapped as array" },
-  { CUDA_ERROR_NOT_MAPPED_AS_POINTER, "not mapped as pointer" },
-  { CUDA_ERROR_ECC_UNCORRECTABLE, "ecc uncorrectable" },
-  { CUDA_ERROR_UNSUPPORTED_LIMIT, "unsupported limit" },
-  { CUDA_ERROR_CONTEXT_ALREADY_IN_USE, "context already in use" },
-  { CUDA_ERROR_PEER_ACCESS_UNSUPPORTED, "peer access unsupported" },
-  { CUDA_ERROR_INVALID_SOURCE, "invalid source" },
-  { CUDA_ERROR_FILE_NOT_FOUND, "file not found" },
-  { CUDA_ERROR_SHARED_OBJECT_SYMBOL_NOT_FOUND,
-                                           "shared object symbol not found" },
-  { CUDA_ERROR_SHARED_OBJECT_INIT_FAILED, "shared object init error" },
-  { CUDA_ERROR_OPERATING_SYSTEM, "operating system" },
-  { CUDA_ERROR_INVALID_HANDLE, "invalid handle" },
-  { CUDA_ERROR_NOT_FOUND, "not found" },
-  { CUDA_ERROR_NOT_READY, "not ready" },
-  { CUDA_ERROR_LAUNCH_FAILED, "launch error" },
-  { CUDA_ERROR_LAUNCH_OUT_OF_RESOURCES, "launch out of resources" },
-  { CUDA_ERROR_LAUNCH_TIMEOUT, "launch timeout" },
-  { CUDA_ERROR_LAUNCH_INCOMPATIBLE_TEXTURING,
-                                             "launch incompatibe texturing" },
-  { CUDA_ERROR_PEER_ACCESS_ALREADY_ENABLED, "peer access already enabled" },
-  { CUDA_ERROR_PEER_ACCESS_NOT_ENABLED, "peer access not enabled " },
-  { CUDA_ERROR_PRIMARY_CONTEXT_ACTIVE, "primary cotext active" },
-  { CUDA_ERROR_CONTEXT_IS_DESTROYED, "context is destroyed" },
-  { CUDA_ERROR_ASSERT, "assert" },
-  { CUDA_ERROR_TOO_MANY_PEERS, "too many peers" },
-  { CUDA_ERROR_HOST_MEMORY_ALREADY_REGISTERED,
-                                           "host memory already registered" },
-  { CUDA_ERROR_HOST_MEMORY_NOT_REGISTERED, "host memory not registered" },
-  { CUDA_ERROR_NOT_PERMITTED, "not permitted" },
-  { CUDA_ERROR_NOT_SUPPORTED, "not supported" },
-  { CUDA_ERROR_UNKNOWN, "unknown" }
-};
-
 static const char *
 cuda_error (CUresult r)
 {
-  int i;
+#if CUDA_VERSION < 7000
+  /* Specified in documentation and present in library from at least
+     5.5.  Not declared in header file prior to 7.0.  */
+  extern CUresult cuGetErrorString (CUresult, const char **);
+#endif
+  const char *desc;
 
-  for (i = 0; i < ARRAYSIZE (cuda_errlist); i++)
-    {
-      if (cuda_errlist[i].r == r)
-	return cuda_errlist[i].m;
-    }
+  r = cuGetErrorString (r, &desc);
+  if (r != CUDA_SUCCESS)
+    desc = "unknown cuda error";
 
-  static char errmsg[30];
-
-  snprintf (errmsg, sizeof (errmsg), "unknown error code: %d", r);
-
-  return errmsg;
+  return desc;
 }
 
 static unsigned int instantiated_devices = 0;
@@ -287,8 +223,30 @@ map_push (struct ptx_stream *s, int async, size_t size, void **h, void **d)
 struct targ_fn_launch
 {
   const char *fn;
-  unsigned short dim[3];
+  unsigned short dim[GOMP_DIM_MAX];
 };
+
+/* Target PTX object information.  */
+
+struct targ_ptx_obj
+{
+  const char *code;
+  size_t size;
+};
+
+/* Target data image information.  */
+
+typedef struct nvptx_tdata
+{
+  const struct targ_ptx_obj *ptx_objs;
+  unsigned ptx_num;
+
+  const char *const *var_names;
+  unsigned var_num;
+
+  const struct targ_fn_launch *fn_descs;
+  unsigned fn_num;
+} nvptx_tdata_t;
 
 /* Descriptor of a loaded function.  */
 
@@ -751,10 +709,11 @@ nvptx_get_num_devices (void)
 
 
 static void
-link_ptx (CUmodule *module, const char *ptx_code)
+link_ptx (CUmodule *module, const struct targ_ptx_obj *ptx_objs,
+	  unsigned num_objs)
 {
-  CUjit_option opts[7];
-  void *optvals[7];
+  CUjit_option opts[6];
+  void *optvals[6];
   float elapsed = 0.0;
 #define LOGSIZE 8192
   char elog[LOGSIZE];
@@ -764,8 +723,6 @@ link_ptx (CUmodule *module, const char *ptx_code)
   CUresult r;
   void *linkout;
   size_t linkoutsize __attribute__ ((unused));
-
-  GOMP_PLUGIN_debug (0, "attempting to load:\n---\n%s\n---\n", ptx_code);
 
   opts[0] = CU_JIT_WALL_TIME;
   optvals[0] = &elapsed;
@@ -785,61 +742,41 @@ link_ptx (CUmodule *module, const char *ptx_code)
   opts[5] = CU_JIT_LOG_VERBOSE;
   optvals[5] = (void *) 1;
 
-  opts[6] = CU_JIT_TARGET;
-  optvals[6] = (void *) CU_TARGET_COMPUTE_30;
-
-  r = cuLinkCreate (7, opts, optvals, &linkstate);
+  r = cuLinkCreate (6, opts, optvals, &linkstate);
   if (r != CUDA_SUCCESS)
     GOMP_PLUGIN_fatal ("cuLinkCreate error: %s", cuda_error (r));
 
-  char *abort_ptx = ABORT_PTX;
-  r = cuLinkAddData (linkstate, CU_JIT_INPUT_PTX, abort_ptx,
-		     strlen (abort_ptx) + 1, 0, 0, 0, 0);
-  if (r != CUDA_SUCCESS)
+  for (; num_objs--; ptx_objs++)
     {
-      GOMP_PLUGIN_error ("Link error log %s\n", &elog[0]);
-      GOMP_PLUGIN_fatal ("cuLinkAddData (abort) error: %s", cuda_error (r));
+      /* cuLinkAddData's 'data' argument erroneously omits the const
+	 qualifier.  */
+      GOMP_PLUGIN_debug (0, "Loading:\n---\n%s\n---\n", ptx_objs->code);
+      r = cuLinkAddData (linkstate, CU_JIT_INPUT_PTX, (char*)ptx_objs->code,
+			 ptx_objs->size, 0, 0, 0, 0);
+      if (r != CUDA_SUCCESS)
+	{
+	  GOMP_PLUGIN_error ("Link error log %s\n", &elog[0]);
+	  GOMP_PLUGIN_fatal ("cuLinkAddData (ptx_code) error: %s",
+			     cuda_error (r));
+	}
     }
 
-  char *acc_on_device_ptx = ACC_ON_DEVICE_PTX;
-  r = cuLinkAddData (linkstate, CU_JIT_INPUT_PTX, acc_on_device_ptx,
-		     strlen (acc_on_device_ptx) + 1, 0, 0, 0, 0);
-  if (r != CUDA_SUCCESS)
-    {
-      GOMP_PLUGIN_error ("Link error log %s\n", &elog[0]);
-      GOMP_PLUGIN_fatal ("cuLinkAddData (acc_on_device) error: %s",
-			 cuda_error (r));
-    }
-
-  char *goacc_internal_ptx = GOACC_INTERNAL_PTX;
-  r = cuLinkAddData (linkstate, CU_JIT_INPUT_PTX, goacc_internal_ptx,
-		     strlen (goacc_internal_ptx) + 1, 0, 0, 0, 0);
-  if (r != CUDA_SUCCESS)
-    {
-      GOMP_PLUGIN_error ("Link error log %s\n", &elog[0]);
-      GOMP_PLUGIN_fatal ("cuLinkAddData (goacc_internal_ptx) error: %s",
-			 cuda_error (r));
-    }
-
-  /* cuLinkAddData's 'data' argument erroneously omits the const qualifier.  */
-  r = cuLinkAddData (linkstate, CU_JIT_INPUT_PTX, (char *)ptx_code,
-              strlen (ptx_code) + 1, 0, 0, 0, 0);
-  if (r != CUDA_SUCCESS)
-    {
-      GOMP_PLUGIN_error ("Link error log %s\n", &elog[0]);
-      GOMP_PLUGIN_fatal ("cuLinkAddData (ptx_code) error: %s", cuda_error (r));
-    }
-
+  GOMP_PLUGIN_debug (0, "Linking\n");
   r = cuLinkComplete (linkstate, &linkout, &linkoutsize);
-  if (r != CUDA_SUCCESS)
-    GOMP_PLUGIN_fatal ("cuLinkComplete error: %s", cuda_error (r));
 
   GOMP_PLUGIN_debug (0, "Link complete: %fms\n", elapsed);
   GOMP_PLUGIN_debug (0, "Link log %s\n", &ilog[0]);
 
+  if (r != CUDA_SUCCESS)
+    GOMP_PLUGIN_fatal ("cuLinkComplete error: %s", cuda_error (r));
+
   r = cuModuleLoadData (module, linkout);
   if (r != CUDA_SUCCESS)
     GOMP_PLUGIN_fatal ("cuModuleLoadData error: %s", cuda_error (r));
+
+  r = cuLinkDestroy (linkstate);
+  if (r != CUDA_SUCCESS)
+    GOMP_PLUGIN_fatal ("cuLinkDestory error: %s", cuda_error (r));
 }
 
 static void
@@ -937,8 +874,7 @@ event_add (enum ptx_event_type type, CUevent *e, void *h)
 
 void
 nvptx_exec (void (*fn), size_t mapnum, void **hostaddrs, void **devaddrs,
-	    size_t *sizes, unsigned short *kinds, int async, unsigned *dims,
-	    void *targ_mem_desc)
+	    int async, unsigned *dims, void *targ_mem_desc)
 {
   struct targ_fn_descriptor *targ_fn = (struct targ_fn_descriptor *) fn;
   CUfunction function;
@@ -958,16 +894,21 @@ nvptx_exec (void (*fn), size_t mapnum, void **hostaddrs, void **devaddrs,
   /* Initialize the launch dimensions.  Typically this is constant,
      provided by the device compiler, but we must permit runtime
      values.  */
-  for (i = 0; i != 3; i++)
-    if (targ_fn->launch->dim[i])
-      dims[i] = targ_fn->launch->dim[i];
+  int seen_zero = 0;
+  for (i = 0; i != GOMP_DIM_MAX; i++)
+    {
+      if (targ_fn->launch->dim[i])
+       dims[i] = targ_fn->launch->dim[i];
+      if (!dims[i])
+       seen_zero = 1;
+    }
 
-  if (dims[GOMP_DIM_GANG] != 1)
-    GOMP_PLUGIN_fatal ("non-unity num_gangs (%d) not supported",
-		       dims[GOMP_DIM_GANG]);
-  if (dims[GOMP_DIM_WORKER] != 1)
-    GOMP_PLUGIN_fatal ("non-unity num_workers (%d) not supported",
-		       dims[GOMP_DIM_WORKER]);
+  if (seen_zero)
+    {
+      for (i = 0; i != GOMP_DIM_MAX; i++)
+       if (!dims[i])
+         dims[i] = /* TODO */ 32;
+    }
 
   /* This reserves a chunk of a pre-allocated page of memory mapped on both
      the host and the device. HP is a host pointer to the new chunk, and DP is
@@ -1565,19 +1506,6 @@ GOMP_OFFLOAD_fini_device (int n)
   pthread_mutex_unlock (&ptx_dev_lock);
 }
 
-/* Data emitted by mkoffload.  */
-
-typedef struct nvptx_tdata
-{
-  const char *ptx_src;
-
-  const char *const *var_names;
-  size_t var_num;
-
-  const struct targ_fn_launch *fn_descs;
-  size_t fn_num;
-} nvptx_tdata_t;
-
 /* Return the libgomp version number we're compatible with.  There is
    no requirement for cross-version compatibility.  */
 
@@ -1616,7 +1544,7 @@ GOMP_OFFLOAD_load_image (int ord, unsigned version, const void *target_data,
   
   nvptx_attach_host_thread_to_device (ord);
 
-  link_ptx (&module, img_header->ptx_src);
+  link_ptx (&module, img_header->ptx_objs, img_header->ptx_num);
 
   /* The mkoffload utility emits a struct of pointers/integers at the
      start of each offload image.  The array of kernel names and the
@@ -1733,11 +1661,9 @@ void (*device_run) (int n, void *fn_ptr, void *vars) = NULL;
 void
 GOMP_OFFLOAD_openacc_parallel (void (*fn) (void *), size_t mapnum,
 			       void **hostaddrs, void **devaddrs,
-			       size_t *sizes, unsigned short *kinds,
 			       int async, unsigned *dims, void *targ_mem_desc)
 {
-  nvptx_exec (fn, mapnum, hostaddrs, devaddrs, sizes, kinds,
-	      async, dims, targ_mem_desc);
+  nvptx_exec (fn, mapnum, hostaddrs, devaddrs, async, dims, targ_mem_desc);
 }
 
 void

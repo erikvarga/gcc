@@ -1,6 +1,6 @@
 /* An SH specific RTL pass that tries to combine comparisons and redundant
    condition code register stores across multiple basic blocks.
-   Copyright (C) 2013-2015 Free Software Foundation, Inc.
+   Copyright (C) 2013-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -22,30 +22,14 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
-#include "tree.h"
+#include "target.h"
 #include "rtl.h"
-#include "df.h"
-#include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "insn-config.h"
-#include "insn-codes.h"
+#include "tree.h"
+#include "optabs.h"
 #include "emit-rtl.h"
 #include "recog.h"
+#include "cfgrtl.h"
 #include "tree-pass.h"
-#include "target.h"
-#include "optabs.h"
-#include "flags.h"
-#include "alias.h"
-#include "expmed.h"
-#include "dojump.h"
-#include "explow.h"
-#include "calls.h"
-#include "varasm.h"
-#include "stmt.h"
 #include "expr.h"
 
 #include <algorithm>

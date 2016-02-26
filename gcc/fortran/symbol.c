@@ -1,5 +1,5 @@
 /* Maintain binary trees of symbols.
-   Copyright (C) 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 2000-2016 Free Software Foundation, Inc.
    Contributed by Andy Vaught
 
 This file is part of GCC.
@@ -165,7 +165,7 @@ gfc_add_new_implicit_range (int c1, int c2)
     {
       if (new_flag[i])
 	{
-	  gfc_error ("Letter %<%c%> already set in IMPLICIT statement at %C",
+	  gfc_error ("Letter %qc already set in IMPLICIT statement at %C",
 		     i + 'A');
 	  return false;
 	}
@@ -197,7 +197,7 @@ gfc_merge_new_implicit (gfc_typespec *ts)
 	{
 	  if (gfc_current_ns->set_flag[i])
 	    {
-	      gfc_error ("Letter %c already has an IMPLICIT type at %C",
+	      gfc_error ("Letter %qc already has an IMPLICIT type at %C",
 			 i + 'A');
 	      return false;
 	    }
@@ -375,6 +375,11 @@ check_conflict (symbol_attribute *attr, const char *name, locus *where)
     *contiguous = "CONTIGUOUS", *generic = "GENERIC";
   static const char *threadprivate = "THREADPRIVATE";
   static const char *omp_declare_target = "OMP DECLARE TARGET";
+  static const char *oacc_declare_copyin = "OACC DECLARE COPYIN";
+  static const char *oacc_declare_create = "OACC DECLARE CREATE";
+  static const char *oacc_declare_deviceptr = "OACC DECLARE DEVICEPTR";
+  static const char *oacc_declare_device_resident =
+						"OACC DECLARE DEVICE_RESIDENT";
 
   const char *a1, *a2;
   int standard;
@@ -460,7 +465,7 @@ check_conflict (symbol_attribute *attr, const char *name, locus *where)
 
   if (attr->dummy && ((attr->function || attr->subroutine) && 
 			gfc_current_state () == COMP_CONTAINS))
-    gfc_error_now ("internal procedure '%s' at %L conflicts with "
+    gfc_error_now ("internal procedure %qs at %L conflicts with "
 		   "DUMMY argument", name, where);
 
   conf (dummy, entry);
@@ -511,6 +516,10 @@ check_conflict (symbol_attribute *attr, const char *name, locus *where)
   conf (in_equivalence, allocatable);
   conf (in_equivalence, threadprivate);
   conf (in_equivalence, omp_declare_target);
+  conf (in_equivalence, oacc_declare_create);
+  conf (in_equivalence, oacc_declare_copyin);
+  conf (in_equivalence, oacc_declare_deviceptr);
+  conf (in_equivalence, oacc_declare_device_resident);
 
   conf (dummy, result);
   conf (entry, result);
@@ -560,6 +569,10 @@ check_conflict (symbol_attribute *attr, const char *name, locus *where)
   conf (cray_pointee, in_equivalence);
   conf (cray_pointee, threadprivate);
   conf (cray_pointee, omp_declare_target);
+  conf (cray_pointee, oacc_declare_create);
+  conf (cray_pointee, oacc_declare_copyin);
+  conf (cray_pointee, oacc_declare_deviceptr);
+  conf (cray_pointee, oacc_declare_device_resident);
 
   conf (data, dummy);
   conf (data, function);
@@ -614,6 +627,10 @@ check_conflict (symbol_attribute *attr, const char *name, locus *where)
   conf (proc_pointer, abstract)
 
   conf (entry, omp_declare_target)
+  conf (entry, oacc_declare_create)
+  conf (entry, oacc_declare_copyin)
+  conf (entry, oacc_declare_deviceptr)
+  conf (entry, oacc_declare_device_resident)
 
   a1 = gfc_code2string (flavors, attr->flavor);
 
@@ -651,6 +668,10 @@ check_conflict (symbol_attribute *attr, const char *name, locus *where)
       conf2 (subroutine);
       conf2 (threadprivate);
       conf2 (omp_declare_target);
+      conf2 (oacc_declare_create);
+      conf2 (oacc_declare_copyin);
+      conf2 (oacc_declare_deviceptr);
+      conf2 (oacc_declare_device_resident);
 
       if (attr->access == ACCESS_PUBLIC || attr->access == ACCESS_PRIVATE)
 	{
@@ -733,6 +754,10 @@ check_conflict (symbol_attribute *attr, const char *name, locus *where)
       conf2 (threadprivate);
       conf2 (result);
       conf2 (omp_declare_target);
+      conf2 (oacc_declare_create);
+      conf2 (oacc_declare_copyin);
+      conf2 (oacc_declare_deviceptr);
+      conf2 (oacc_declare_device_resident);
 
       if (attr->intent != INTENT_UNKNOWN)
 	{
@@ -1239,6 +1264,66 @@ gfc_add_omp_declare_target (symbol_attribute *attr, const char *name,
     return true;
 
   attr->omp_declare_target = 1;
+  return check_conflict (attr, name, where);
+}
+
+
+bool
+gfc_add_oacc_declare_create (symbol_attribute *attr, const char *name,
+			     locus *where)
+{
+  if (check_used (attr, name, where))
+    return false;
+
+  if (attr->oacc_declare_create)
+    return true;
+
+  attr->oacc_declare_create = 1;
+  return check_conflict (attr, name, where);
+}
+
+
+bool
+gfc_add_oacc_declare_copyin (symbol_attribute *attr, const char *name,
+			     locus *where)
+{
+  if (check_used (attr, name, where))
+    return false;
+
+  if (attr->oacc_declare_copyin)
+    return true;
+
+  attr->oacc_declare_copyin = 1;
+  return check_conflict (attr, name, where);
+}
+
+
+bool
+gfc_add_oacc_declare_deviceptr (symbol_attribute *attr, const char *name,
+				locus *where)
+{
+  if (check_used (attr, name, where))
+    return false;
+
+  if (attr->oacc_declare_deviceptr)
+    return true;
+
+  attr->oacc_declare_deviceptr = 1;
+  return check_conflict (attr, name, where);
+}
+
+
+bool
+gfc_add_oacc_declare_device_resident (symbol_attribute *attr, const char *name,
+				      locus *where)
+{
+  if (check_used (attr, name, where))
+    return false;
+
+  if (attr->oacc_declare_device_resident)
+    return true;
+
+  attr->oacc_declare_device_resident = 1;
   return check_conflict (attr, name, where);
 }
 
@@ -1820,6 +1905,18 @@ gfc_copy_attr (symbol_attribute *dest, symbol_attribute *src, locus *where)
   if (src->omp_declare_target
       && !gfc_add_omp_declare_target (dest, NULL, where))
     goto fail;
+  if (src->oacc_declare_create
+      && !gfc_add_oacc_declare_create (dest, NULL, where))
+    goto fail;
+  if (src->oacc_declare_copyin
+      && !gfc_add_oacc_declare_copyin (dest, NULL, where))
+    goto fail;
+  if (src->oacc_declare_deviceptr
+      && !gfc_add_oacc_declare_deviceptr (dest, NULL, where))
+    goto fail;
+  if (src->oacc_declare_device_resident
+      && !gfc_add_oacc_declare_device_resident (dest, NULL, where))
+    goto fail;
   if (src->target && !gfc_add_target (dest, where))
     goto fail;
   if (src->dummy && !gfc_add_dummy (dest, NULL, where))
@@ -2195,7 +2292,7 @@ gfc_free_st_label (gfc_st_label *label)
   if (label == NULL)
     return;
 
-  gfc_delete_bbt (&gfc_current_ns->st_labels, label, compare_st_labels);
+  gfc_delete_bbt (&label->ns->st_labels, label, compare_st_labels);
 
   if (label->format != NULL)
     gfc_free_expr (label->format);
@@ -2260,6 +2357,7 @@ gfc_get_st_label (int labelno)
   lp->value = labelno;
   lp->defined = ST_LABEL_UNKNOWN;
   lp->referenced = ST_LABEL_UNKNOWN;
+  lp->ns = ns;
 
   gfc_insert_bbt (&ns->st_labels, lp, compare_st_labels);
 
@@ -2585,6 +2683,25 @@ gfc_find_uop (const char *name, gfc_namespace *ns)
 }
 
 
+/* Update a symbol's common_block field, and take care of the associated
+   memory management.  */
+
+static void
+set_symbol_common_block (gfc_symbol *sym, gfc_common_head *common_block)
+{
+  if (sym->common_block == common_block)
+    return;
+
+  if (sym->common_block && sym->common_block->name[0] != '\0')
+    {
+      sym->common_block->refs--;
+      if (sym->common_block->refs == 0)
+	free (sym->common_block);
+    }
+  sym->common_block = common_block;
+}
+
+
 /* Remove a gfc_symbol structure and everything it points to.  */
 
 void
@@ -2612,12 +2729,7 @@ gfc_free_symbol (gfc_symbol *sym)
 
   gfc_free_namespace (sym->f2k_derived);
 
-  if (sym->common_block && sym->common_block->name[0] != '\0')
-    { 
-      sym->common_block->refs--; 
-      if (sym->common_block->refs == 0)
-	free (sym->common_block);
-    }
+  set_symbol_common_block (sym, NULL);
 
   free (sym);
 }
@@ -3090,6 +3202,9 @@ restore_old_symbol (gfc_symbol *p)
       p->formal = old->formal;
     }
 
+  set_symbol_common_block (p, old->common_block);
+  p->common_head = old->common_head;
+
   p->old_symbol = old->old_symbol;
   free (old);
 }
@@ -3178,15 +3293,13 @@ gfc_restore_last_undo_checkpoint (void)
 
   FOR_EACH_VEC_ELT (latest_undo_chgset->syms, i, p)
     {
-      /* Symbol was new. Or was old and just put in common */
-      if ((p->gfc_new
-	   || (p->attr.in_common && !p->old_symbol->attr.in_common ))
-	  && p->attr.in_common && p->common_block && p->common_block->head)
+      /* Symbol in a common block was new. Or was old and just put in common */
+      if (p->common_block
+	  && (p->gfc_new || !p->old_symbol->common_block))
 	{
 	  /* If the symbol was added to any common block, it
 	     needs to be removed to stop the resolver looking
 	     for a (possibly) dead symbol.  */
-
 	  if (p->common_block->head == p && !p->common_next)
 	    {
 	      gfc_symtree st, *st0;
@@ -3218,6 +3331,7 @@ gfc_restore_last_undo_checkpoint (void)
 	      gcc_assert(cparent->common_next == p);
 	      cparent->common_next = csym->common_next;
 	    }
+	  p->common_next = NULL;
 	}
       if (p->gfc_new)
 	{

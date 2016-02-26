@@ -1,5 +1,5 @@
 /* Subroutines for insn-output.c for SPARC.
-   Copyright (C) 1987-2015 Free Software Foundation, Inc.
+   Copyright (C) 1987-2016 Free Software Foundation, Inc.
    Contributed by Michael Tiemann (tiemann@cygnus.com)
    64-bit SPARC-V9 support by Michael Tiemann, Jim Wilson, and Doug Evans,
    at Cygnus Support.
@@ -24,55 +24,37 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
+#include "target.h"
+#include "rtl.h"
 #include "tree.h"
 #include "gimple.h"
-#include "rtl.h"
 #include "df.h"
+#include "tm_p.h"
+#include "stringpool.h"
+#include "expmed.h"
+#include "optabs.h"
+#include "regs.h"
+#include "emit-rtl.h"
+#include "recog.h"
+#include "diagnostic-core.h"
 #include "alias.h"
 #include "fold-const.h"
-#include "stringpool.h"
 #include "stor-layout.h"
 #include "calls.h"
 #include "varasm.h"
-#include "regs.h"
-#include "insn-config.h"
-#include "insn-codes.h"
-#include "conditions.h"
 #include "output.h"
 #include "insn-attr.h"
-#include "flags.h"
-#include "except.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "optabs.h"
-#include "recog.h"
-#include "diagnostic-core.h"
-#include "tm_p.h"
 #include "debug.h"
-#include "target.h"
 #include "common/common-target.h"
-#include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "internal-fn.h"
-#include "gimple-fold.h"
-#include "tree-eh.h"
 #include "gimplify.h"
 #include "langhooks.h"
 #include "reload.h"
 #include "params.h"
-#include "opts.h"
 #include "tree-pass.h"
 #include "context.h"
 #include "builtins.h"
-#include "rtl-iter.h"
 
 /* This file should be included last.  */
 #include "target-def.h"
@@ -635,7 +617,7 @@ static machine_mode sparc_preferred_simd_mode (machine_mode);
 static reg_class_t sparc_preferred_reload_class (rtx x, reg_class_t rclass);
 static bool sparc_print_operand_punct_valid_p (unsigned char);
 static void sparc_print_operand (FILE *, rtx, int);
-static void sparc_print_operand_address (FILE *, rtx);
+static void sparc_print_operand_address (FILE *, machine_mode, rtx);
 static reg_class_t sparc_secondary_reload (bool, rtx, reg_class_t,
 					   machine_mode,
 					   secondary_reload_info *);
@@ -1650,11 +1632,9 @@ fp_sethi_p (rtx op)
 {
   if (GET_CODE (op) == CONST_DOUBLE)
     {
-      REAL_VALUE_TYPE r;
       long i;
 
-      REAL_VALUE_FROM_CONST_DOUBLE (r, op);
-      REAL_VALUE_TO_TARGET_SINGLE (r, i);
+      REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (op), i);
       return !SPARC_SIMM13_P (i) && SPARC_SETHI_P (i);
     }
 
@@ -1670,11 +1650,9 @@ fp_mov_p (rtx op)
 {
   if (GET_CODE (op) == CONST_DOUBLE)
     {
-      REAL_VALUE_TYPE r;
       long i;
 
-      REAL_VALUE_FROM_CONST_DOUBLE (r, op);
-      REAL_VALUE_TO_TARGET_SINGLE (r, i);
+      REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (op), i);
       return SPARC_SIMM13_P (i);
     }
 
@@ -1693,11 +1671,9 @@ fp_high_losum_p (rtx op)
      be moved using a single insn will do.  */
   if (GET_CODE (op) == CONST_DOUBLE)
     {
-      REAL_VALUE_TYPE r;
       long i;
 
-      REAL_VALUE_FROM_CONST_DOUBLE (r, op);
-      REAL_VALUE_TO_TARGET_SINGLE (r, i);
+      REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (op), i);
       return !SPARC_SIMM13_P (i) && !SPARC_SETHI_P (i);
     }
 
@@ -2110,13 +2086,6 @@ sparc_emit_set_symbolic_const64 (rtx op0, rtx op1, rtx temp)
     }
 }
 
-#if HOST_BITS_PER_WIDE_INT == 32
-static void
-sparc_emit_set_const64 (rtx op0 ATTRIBUTE_UNUSED, rtx op1 ATTRIBUTE_UNUSED)
-{
-  gcc_unreachable ();
-}
-#else
 /* These avoid problems when cross compiling.  If we do not
    go through all this hair then the optimizer will see
    invalid REG_EQUAL notes or in some cases none at all.  */
@@ -2660,8 +2629,7 @@ sparc_emit_set_const64 (rtx op0, rtx op1)
    *    sllx	%reg, 32, %reg
    *	or	%reg, low_bits, %reg
    */
-  if (SPARC_SIMM13_P(low_bits)
-      && ((int)low_bits > 0))
+  if (SPARC_SIMM13_P (low_bits) && ((int)low_bits > 0))
     {
       sparc_emit_set_const64_quick2 (op0, temp, high_bits, low_bits, 32);
       return;
@@ -2670,7 +2638,6 @@ sparc_emit_set_const64 (rtx op0, rtx op1)
   /* The easiest way when all else fails, is full decomposition.  */
   sparc_emit_set_const64_longway (op0, temp, high_bits, low_bits);
 }
-#endif /* HOST_BITS_PER_WIDE_INT == 32 */
 
 /* Given a comparison code (EQ, NE, etc.) and the first operand of a COMPARE,
    return the mode to be used for the comparison.  For floating-point,
@@ -3699,6 +3666,7 @@ sparc_cannot_force_const_mem (machine_mode mode, rtx x)
   switch (GET_CODE (x))
     {
     case CONST_INT:
+    case CONST_WIDE_INT:
     case CONST_DOUBLE:
     case CONST_VECTOR:
       /* Accept all non-symbolic constants.  */
@@ -3799,9 +3767,6 @@ sparc_legitimate_constant_p (machine_mode mode, rtx x)
       break;
 
     case CONST_DOUBLE:
-      if (GET_MODE (x) == VOIDmode)
-        return true;
-
       /* Floating point constants are generally not ok.
 	 The only exception is 0.0 and all-ones in VIS.  */
       if (TARGET_VIS
@@ -3856,7 +3821,7 @@ constant_address_p (rtx x)
 
 /* Nonzero if the constant value X is a legitimate general operand
    when generating PIC code.  It is given that flag_pic is on and
-   that X satisfies CONSTANT_P or is a CONST_DOUBLE.  */
+   that X satisfies CONSTANT_P.  */
 
 bool
 legitimate_pic_operand_p (rtx x)
@@ -4987,11 +4952,11 @@ sparc_compute_frame_size (HOST_WIDE_INT size, int leaf_function)
   else
     {
       /* We subtract STARTING_FRAME_OFFSET, remember it's negative.  */
-      apparent_frame_size = (size - STARTING_FRAME_OFFSET + 7) & -8;
+      apparent_frame_size = ROUND_UP (size - STARTING_FRAME_OFFSET, 8);
       apparent_frame_size += n_global_fp_regs * 4;
 
       /* We need to add the size of the outgoing argument area.  */
-      frame_size = apparent_frame_size + ((args_size + 7) & -8);
+      frame_size = apparent_frame_size + ROUND_UP (args_size, 8);
 
       /* And that of the register window save area.  */
       frame_size += FIRST_PARM_OFFSET (cfun->decl);
@@ -5082,9 +5047,9 @@ sparc_emit_probe_stack_range (HOST_WIDE_INT first, HOST_WIDE_INT size)
       emit_stack_probe (plus_constant (Pmode, g1, -size));
     }
 
-  /* The run-time loop is made up of 10 insns in the generic case while the
+  /* The run-time loop is made up of 9 insns in the generic case while the
      compile-time loop is made up of 4+2*(n-2) insns for n # of intervals.  */
-  else if (size <= 5 * PROBE_INTERVAL)
+  else if (size <= 4 * PROBE_INTERVAL)
     {
       HOST_WIDE_INT i;
 
@@ -5122,7 +5087,7 @@ sparc_emit_probe_stack_range (HOST_WIDE_INT first, HOST_WIDE_INT size)
 
       /* Step 1: round SIZE to the previous multiple of the interval.  */
 
-      rounded_size = size & -PROBE_INTERVAL;
+      rounded_size = ROUND_DOWN (size, PROBE_INTERVAL);
       emit_move_insn (g4, GEN_INT (rounded_size));
 
 
@@ -5171,40 +5136,32 @@ const char *
 output_probe_stack_range (rtx reg1, rtx reg2)
 {
   static int labelno = 0;
-  char loop_lab[32], end_lab[32];
+  char loop_lab[32];
   rtx xops[2];
 
-  ASM_GENERATE_INTERNAL_LABEL (loop_lab, "LPSRL", labelno);
-  ASM_GENERATE_INTERNAL_LABEL (end_lab, "LPSRE", labelno++);
+  ASM_GENERATE_INTERNAL_LABEL (loop_lab, "LPSRL", labelno++);
 
+  /* Loop.  */
   ASM_OUTPUT_INTERNAL_LABEL (asm_out_file, loop_lab);
 
-   /* Jump to END_LAB if TEST_ADDR == LAST_ADDR.  */
+  /* TEST_ADDR = TEST_ADDR + PROBE_INTERVAL.  */
   xops[0] = reg1;
+  xops[1] = GEN_INT (-PROBE_INTERVAL);
+  output_asm_insn ("add\t%0, %1, %0", xops);
+
+  /* Test if TEST_ADDR == LAST_ADDR.  */
   xops[1] = reg2;
   output_asm_insn ("cmp\t%0, %1", xops);
-  if (TARGET_ARCH64)
-    fputs ("\tbe,pn\t%xcc,", asm_out_file);
-  else
-    fputs ("\tbe\t", asm_out_file);
-  assemble_name_raw (asm_out_file, end_lab);
-  fputc ('\n', asm_out_file);
-
-  /* TEST_ADDR = TEST_ADDR + PROBE_INTERVAL.  */
-  xops[1] = GEN_INT (-PROBE_INTERVAL);
-  output_asm_insn (" add\t%0, %1, %0", xops);
 
   /* Probe at TEST_ADDR and branch.  */
   if (TARGET_ARCH64)
-    fputs ("\tba,pt\t%xcc,", asm_out_file);
+    fputs ("\tbne,pt\t%xcc,", asm_out_file);
   else
-    fputs ("\tba\t", asm_out_file);
+    fputs ("\tbne\t", asm_out_file);
   assemble_name_raw (asm_out_file, loop_lab);
   fputc ('\n', asm_out_file);
   xops[1] = GEN_INT (SPARC_STACK_BIAS);
   output_asm_insn (" st\t%%g0, [%0+%1]", xops);
-
-  ASM_OUTPUT_INTERNAL_LABEL (asm_out_file, end_lab);
 
   return "";
 }
@@ -5322,8 +5279,9 @@ emit_save_or_restore_regs (unsigned int low, unsigned int high, rtx base,
 	  else  /* action_true == SORR_RESTORE */
 	    emit_move_insn (gen_rtx_REG (mode, regno), mem);
 
-	  /* Always preserve double-word alignment.  */
-	  offset = (offset + 8) & -8;
+	  /* Bump and round down to double word
+	     in case we already bumped by 4.  */
+	  offset = ROUND_DOWN (offset + 8, 8);
 	}
     }
 
@@ -6182,30 +6140,28 @@ sparc_strict_argument_naming (cumulative_args_t ca ATTRIBUTE_UNUSED)
       that is eligible for promotion in integer registers.
     - FP_REGS_P: the record contains at least one field or sub-field
       that is eligible for promotion in floating-point registers.
-    - PACKED_P: the record contains at least one field that is packed.
-
-   Sub-fields are not taken into account for the PACKED_P predicate.  */
+    - PACKED_P: the record contains at least one field that is packed.  */
 
 static void
 scan_record_type (const_tree type, int *intregs_p, int *fpregs_p,
 		  int *packed_p)
 {
-  tree field;
-
-  for (field = TYPE_FIELDS (type); field; field = DECL_CHAIN (field))
+  for (tree field = TYPE_FIELDS (type); field; field = DECL_CHAIN (field))
     {
       if (TREE_CODE (field) == FIELD_DECL)
 	{
-	  if (TREE_CODE (TREE_TYPE (field)) == RECORD_TYPE)
-	    scan_record_type (TREE_TYPE (field), intregs_p, fpregs_p, 0);
-	  else if ((FLOAT_TYPE_P (TREE_TYPE (field))
-		   || TREE_CODE (TREE_TYPE (field)) == VECTOR_TYPE)
+	  tree field_type = TREE_TYPE (field);
+
+	  if (TREE_CODE (field_type) == RECORD_TYPE)
+	    scan_record_type (field_type, intregs_p, fpregs_p, packed_p);
+	  else if ((FLOAT_TYPE_P (field_type)
+		   || TREE_CODE (field_type) == VECTOR_TYPE)
 		  && TARGET_FPU)
 	    *fpregs_p = 1;
 	  else
 	    *intregs_p = 1;
 
-	  if (packed_p && DECL_PACKED (field))
+	  if (DECL_PACKED (field))
 	    *packed_p = 1;
 	}
     }
@@ -6445,8 +6401,8 @@ function_arg_record_value_1 (const_tree type, HOST_WIDE_INT startbitpos,
 		  unsigned int startbit, endbit;
 		  int intslots, this_slotno;
 
-		  startbit = parms->intoffset & -BITS_PER_WORD;
-		  endbit   = (bitpos + BITS_PER_WORD - 1) & -BITS_PER_WORD;
+		  startbit = ROUND_DOWN (parms->intoffset, BITS_PER_WORD);
+		  endbit   = ROUND_UP (bitpos, BITS_PER_WORD);
 
 		  intslots = (endbit - startbit) / BITS_PER_WORD;
 		  this_slotno = parms->slotno + parms->intoffset
@@ -6501,8 +6457,8 @@ function_arg_record_value_3 (HOST_WIDE_INT bitpos,
   intoffset = parms->intoffset;
   parms->intoffset = -1;
 
-  startbit = intoffset & -BITS_PER_WORD;
-  endbit = (bitpos + BITS_PER_WORD - 1) & -BITS_PER_WORD;
+  startbit = ROUND_DOWN (intoffset, BITS_PER_WORD);
+  endbit = ROUND_UP (bitpos, BITS_PER_WORD);
   intslots = (endbit - startbit) / BITS_PER_WORD;
   this_slotno = parms->slotno + intoffset / BITS_PER_WORD;
 
@@ -6675,8 +6631,8 @@ function_arg_record_value (const_tree type, machine_mode mode,
       unsigned int startbit, endbit;
       int intslots, this_slotno;
 
-      startbit = parms.intoffset & -BITS_PER_WORD;
-      endbit = (typesize*BITS_PER_UNIT + BITS_PER_WORD - 1) & -BITS_PER_WORD;
+      startbit = ROUND_DOWN (parms.intoffset, BITS_PER_WORD);
+      endbit = ROUND_UP (typesize*BITS_PER_UNIT, BITS_PER_WORD);
       intslots = (endbit - startbit) / BITS_PER_WORD;
       this_slotno = slotno + parms.intoffset / BITS_PER_WORD;
 
@@ -6689,9 +6645,10 @@ function_arg_record_value (const_tree type, machine_mode mode,
 
       parms.nregs += intslots;
     }
-  nregs = parms.nregs;
 
   /* Allocate the vector and handle some annoying special cases.  */
+  nregs = parms.nregs;
+
   if (nregs == 0)
     {
       /* ??? Empty structure has no value?  Duh?  */
@@ -6703,16 +6660,15 @@ function_arg_record_value (const_tree type, machine_mode mode,
 	     load.  */
 	  return gen_rtx_REG (mode, regbase);
 	}
-      else
-	{
-	  /* ??? C++ has structures with no fields, and yet a size.  Give up
-	     for now and pass everything back in integer registers.  */
-	  nregs = (typesize + UNITS_PER_WORD - 1) / UNITS_PER_WORD;
-	}
+
+      /* ??? C++ has structures with no fields, and yet a size.  Give up
+	 for now and pass everything back in integer registers.  */
+      nregs = (typesize + UNITS_PER_WORD - 1) / UNITS_PER_WORD;
       if (nregs + slotno > SPARC_INT_ARG_MAX)
 	nregs = SPARC_INT_ARG_MAX - slotno;
     }
-  gcc_assert (nregs != 0);
+
+  gcc_assert (nregs > 0);
 
   parms.ret = gen_rtx_PARALLEL (mode, rtvec_alloc (parms.stack + nregs));
 
@@ -7230,17 +7186,16 @@ sparc_struct_value_rtx (tree fndecl, int incoming)
 	  && TYPE_SIZE_UNIT (TREE_TYPE (fndecl))
 	  && TREE_CODE (TYPE_SIZE_UNIT (TREE_TYPE (fndecl))) == INTEGER_CST)
 	{
-	  /* We must check and adjust the return address, as it is
-	     optional as to whether the return object is really
-	     provided.  */
-	  rtx ret_reg = gen_rtx_REG (Pmode, 31);
+	  /* We must check and adjust the return address, as it is optional
+	     as to whether the return object is really provided.  */
+	  rtx ret_reg = gen_rtx_REG (Pmode, RETURN_ADDR_REGNUM);
 	  rtx scratch = gen_reg_rtx (SImode);
 	  rtx_code_label *endlab = gen_label_rtx ();
 
-	  /* Calculate the return object size */
+	  /* Calculate the return object size.  */
 	  tree size = TYPE_SIZE_UNIT (TREE_TYPE (fndecl));
 	  rtx size_rtx = GEN_INT (TREE_INT_CST_LOW (size) & 0xfff);
-	  /* Construct a temporary return value */
+	  /* Construct a temporary return value.  */
 	  rtx temp_val
 	    = assign_stack_local (Pmode, TREE_INT_CST_LOW (size), 0);
 
@@ -7252,13 +7207,13 @@ sparc_struct_value_rtx (tree fndecl, int incoming)
 	  emit_move_insn (scratch, gen_rtx_MEM (SImode,
 						plus_constant (Pmode,
 							       ret_reg, 8)));
-	  /* Assume the size is valid and pre-adjust */
+	  /* Assume the size is valid and pre-adjust.  */
 	  emit_insn (gen_add3_insn (ret_reg, ret_reg, GEN_INT (4)));
 	  emit_cmp_and_jump_insns (scratch, size_rtx, EQ, const0_rtx, SImode,
 				   0, endlab);
 	  emit_insn (gen_sub3_insn (ret_reg, ret_reg, GEN_INT (4)));
 	  /* Write the address of the memory pointed to by temp_val into
-	     the memory pointed to by mem */
+	     the memory pointed to by mem.  */
 	  emit_move_insn (mem, XEXP (temp_val, 0));
 	  emit_label (endlab);
 	}
@@ -7352,9 +7307,10 @@ sparc_function_value_1 (const_tree type, machine_mode mode,
 	mode = word_mode;
     }
 
-  /* We should only have pointer and integer types at this point.  This must
-     match sparc_promote_function_mode.  */
+  /* We should only have pointer and integer types at this point, except with
+     -freg-struct-return.  This must match sparc_promote_function_mode.  */
   else if (TARGET_ARCH32
+	   && !(type && AGGREGATE_TYPE_P (type))
 	   && mclass == MODE_INT
 	   && GET_MODE_SIZE (mode) < UNITS_PER_WORD)
     mode = word_mode;
@@ -7457,7 +7413,7 @@ sparc_gimplify_va_arg (tree valist, tree type, gimple_seq *pre_p,
     {
       indirect = false;
       size = int_size_in_bytes (type);
-      rsize = (size + UNITS_PER_WORD - 1) & -UNITS_PER_WORD;
+      rsize = ROUND_UP (size, UNITS_PER_WORD);
       align = 0;
 
       if (TARGET_ARCH64)
@@ -8067,7 +8023,7 @@ sparc_emit_fixunsdi (rtx *operands, machine_mode mode)
   f0 = gen_reg_rtx (mode);
 
   emit_move_insn (limit,
-		  CONST_DOUBLE_FROM_REAL_VALUE (
+		  const_double_from_real_value (
 		    REAL_VALUE_ATOF ("9223372036854775808.0", mode), mode));
   emit_cmp_and_jump_insns (in, limit, GE, NULL_RTX, mode, 0, neglab);
 
@@ -8382,6 +8338,7 @@ epilogue_renumber (register rtx *where, int test)
     case CC0:
     case PC:
     case CONST_INT:
+    case CONST_WIDE_INT:
     case CONST_DOUBLE:
       return 0;
 
@@ -8825,7 +8782,7 @@ sparc_print_operand (FILE *file, rtx x, int code)
       return;
     case 'm':
       /* Print the operand's address only.  */
-      output_address (XEXP (x, 0));
+      output_address (GET_MODE (x), XEXP (x, 0));
       return;
     case 'r':
       /* In this case we need a register.  Use %g0 if the
@@ -8918,7 +8875,7 @@ sparc_print_operand (FILE *file, rtx x, int code)
       /* Operand must be a MEM; write its address.  */
       if (GET_CODE (x) != MEM)
 	output_operand_lossage ("invalid %%f operand");
-      output_address (XEXP (x, 0));
+      output_address (GET_MODE (x), XEXP (x, 0));
       return;
 
     case 's':
@@ -8927,8 +8884,6 @@ sparc_print_operand (FILE *file, rtx x, int code)
 	HOST_WIDE_INT i;
 	if (GET_CODE(x) == CONST_INT)
 	  i = INTVAL (x);
-	else if (GET_CODE(x) == CONST_DOUBLE)
-	  i = CONST_DOUBLE_LOW (x);
 	else
 	  {
 	    output_operand_lossage ("invalid %%s operand");
@@ -8956,7 +8911,7 @@ sparc_print_operand (FILE *file, rtx x, int code)
 	/* Poor Sun assembler doesn't understand absolute addressing.  */
       if (CONSTANT_P (XEXP (x, 0)))
 	fputs ("%g0+", file);
-      output_address (XEXP (x, 0));
+      output_address (GET_MODE (x), XEXP (x, 0));
       fputc (']', file);
     }
   else if (GET_CODE (x) == HIGH)
@@ -8975,27 +8930,16 @@ sparc_print_operand (FILE *file, rtx x, int code)
       output_addr_const (file, XEXP (x, 1));
       fputc (')', file);
     }
-  else if (GET_CODE (x) == CONST_DOUBLE
-	   && (GET_MODE (x) == VOIDmode
-	       || GET_MODE_CLASS (GET_MODE (x)) == MODE_INT))
-    {
-      if (CONST_DOUBLE_HIGH (x) == 0)
-	fprintf (file, "%u", (unsigned int) CONST_DOUBLE_LOW (x));
-      else if (CONST_DOUBLE_HIGH (x) == -1
-	       && CONST_DOUBLE_LOW (x) < 0)
-	fprintf (file, "%d", (int) CONST_DOUBLE_LOW (x));
-      else
-	output_operand_lossage ("long long constant not a valid immediate operand");
-    }
   else if (GET_CODE (x) == CONST_DOUBLE)
-    output_operand_lossage ("floating point constant not a valid immediate operand");
-  else { output_addr_const (file, x); }
+    output_operand_lossage ("floating-point constant not a valid immediate operand");
+  else
+    output_addr_const (file, x);
 }
 
 /* Implement TARGET_PRINT_OPERAND_ADDRESS.  */
 
 static void
-sparc_print_operand_address (FILE *file, rtx x)
+sparc_print_operand_address (FILE *file, machine_mode /*mode*/, rtx x)
 {
   register rtx base, index = 0;
   int offset = 0;
@@ -9018,7 +8962,7 @@ sparc_print_operand_address (FILE *file, rtx x)
 		      && ! TARGET_CM_MEDMID);
 	  output_operand (XEXP (base, 0), 0);
 	  fputs ("+%lo(", file);
-	  output_address (XEXP (base, 1));
+	  output_address (VOIDmode, XEXP (base, 1));
 	  fprintf (file, ")+%d", offset);
 	}
       else
@@ -9050,7 +8994,7 @@ sparc_print_operand_address (FILE *file, rtx x)
         fputs ("+%l44(", file);
       else
         fputs ("+%lo(", file);
-      output_address (XEXP (addr, 1));
+      output_address (VOIDmode, XEXP (addr, 1));
       fputc (')', file);
     }
   else if (flag_pic
@@ -9083,8 +9027,7 @@ sparc_assemble_integer (rtx x, unsigned int size, int aligned_p)
 {
   /* ??? We only output .xword's for symbols and only then in environments
      where the assembler can handle them.  */
-  if (aligned_p && size == 8
-      && (GET_CODE (x) != CONST_INT && GET_CODE (x) != CONST_DOUBLE))
+  if (aligned_p && size == 8 && GET_CODE (x) != CONST_INT)
     {
       if (TARGET_V9)
 	{
@@ -9383,8 +9326,8 @@ supersparc_adjust_cost (rtx_insn *insn, rtx link, rtx_insn *dep_insn, int cost)
 {
   enum attr_type insn_type;
 
-  if (! recog_memoized (insn))
-    return 0;
+  if (recog_memoized (insn) < 0)
+    return cost;
 
   insn_type = get_attr_type (insn);
 
@@ -9517,7 +9460,7 @@ hypersparc_adjust_cost (rtx_insn *insn, rtx link, rtx_insn *dep_insn, int cost)
 }
 
 static int
-sparc_adjust_cost(rtx_insn *insn, rtx link, rtx_insn *dep, int cost)
+sparc_adjust_cost (rtx_insn *insn, rtx link, rtx_insn *dep, int cost)
 {
   switch (sparc_cpu)
     {
@@ -9633,10 +9576,8 @@ set_extends (rtx_insn *insn)
     case LSHIFTRT:
       return GET_MODE (SET_SRC (pat)) == SImode;
       /* Positive integers leave the high bits zero.  */
-    case CONST_DOUBLE:
-      return ! (CONST_DOUBLE_LOW (SET_SRC (pat)) & 0x80000000);
     case CONST_INT:
-      return ! (INTVAL (SET_SRC (pat)) & 0x80000000);
+      return !(INTVAL (SET_SRC (pat)) & 0x80000000);
     case ASHIFTRT:
     case SIGN_EXTEND:
       return - (GET_MODE (SET_SRC (pat)) == SImode);
@@ -9891,14 +9832,12 @@ sparc_solaris_elf_asm_named_section (const char *name, unsigned int flags,
   if (flags & SECTION_CODE)
     fputs (",#execinstr", asm_out_file);
 
-  /* Sun as only supports #nobits/#progbits since Solaris 10.  */
-  if (HAVE_AS_SPARC_NOBITS)
-    {
-      if (flags & SECTION_BSS)
-	fputs (",#nobits", asm_out_file);
-      else
-	fputs (",#progbits", asm_out_file);
-    }
+  if (flags & SECTION_NOTYPE)
+    ;
+  else if (flags & SECTION_BSS)
+    fputs (",#nobits", asm_out_file);
+  else
+    fputs (",#progbits", asm_out_file);
 
   fputc ('\n', asm_out_file);
 }
@@ -10936,12 +10875,19 @@ sparc_rtx_costs (rtx x, machine_mode mode, int outer_code,
   switch (code)
     {
     case CONST_INT:
-      if (INTVAL (x) < 0x1000 && INTVAL (x) >= -0x1000)
-	{
-	  *total = 0;
-	  return true;
-	}
-      /* FALLTHRU */
+      if (SMALL_INT (x))
+	*total = 0;
+      else
+	*total = 2;
+      return true;
+
+    case CONST_WIDE_INT:
+      *total = 0;
+      if (!SPARC_SIMM13_P (CONST_WIDE_INT_ELT (x, 0)))
+	*total += 2;
+      if (!SPARC_SIMM13_P (CONST_WIDE_INT_ELT (x, 1)))
+	*total += 2;
+      return true;
 
     case HIGH:
       *total = 2;
@@ -10954,15 +10900,7 @@ sparc_rtx_costs (rtx x, machine_mode mode, int outer_code,
       return true;
 
     case CONST_DOUBLE:
-      if (mode == VOIDmode
-	  && ((CONST_DOUBLE_HIGH (x) == 0
-	       && CONST_DOUBLE_LOW (x) < 0x1000)
-	      || (CONST_DOUBLE_HIGH (x) == -1
-		  && CONST_DOUBLE_LOW (x) < 0
-		  && CONST_DOUBLE_LOW (x) >= -0x1000)))
-	*total = 0;
-      else
-	*total = 8;
+      *total = 8;
       return true;
 
     case MEM:
@@ -11033,18 +10971,6 @@ sparc_rtx_costs (rtx x, machine_mode mode, int outer_code,
 		{
 		  unsigned HOST_WIDE_INT value = INTVAL (XEXP (x, 1));
 		  for (nbits = 0; value != 0; value &= value - 1)
-		    nbits++;
-		}
-	      else if (GET_CODE (XEXP (x, 1)) == CONST_DOUBLE
-		       && GET_MODE (XEXP (x, 1)) == VOIDmode)
-		{
-		  rtx x1 = XEXP (x, 1);
-		  unsigned HOST_WIDE_INT value1 = CONST_DOUBLE_LOW (x1);
-		  unsigned HOST_WIDE_INT value2 = CONST_DOUBLE_HIGH (x1);
-
-		  for (nbits = 0; value1 != 0; value1 &= value1 - 1)
-		    nbits++;
-		  for (; value2 != 0; value2 &= value2 - 1)
 		    nbits++;
 		}
 	      else
@@ -12546,20 +12472,23 @@ sparc_atomic_assign_expand_fenv (tree *hold, tree *clear, tree *update)
 
        __builtin_load_fsr (&tmp1_var);  */
 
-  tree fenv_var = create_tmp_var (unsigned_type_node);
-  mark_addressable (fenv_var);
+  tree fenv_var = create_tmp_var_raw (unsigned_type_node);
+  TREE_ADDRESSABLE (fenv_var) = 1;
   tree fenv_addr = build_fold_addr_expr (fenv_var);
   tree stfsr = sparc_builtins[SPARC_BUILTIN_STFSR];
-  tree hold_stfsr = build_call_expr (stfsr, 1, fenv_addr);
+  tree hold_stfsr
+    = build4 (TARGET_EXPR, unsigned_type_node, fenv_var,
+	      build_call_expr (stfsr, 1, fenv_addr), NULL_TREE, NULL_TREE);
 
-  tree tmp1_var = create_tmp_var (unsigned_type_node);
-  mark_addressable (tmp1_var);
+  tree tmp1_var = create_tmp_var_raw (unsigned_type_node);
+  TREE_ADDRESSABLE (tmp1_var) = 1;
   tree masked_fenv_var
     = build2 (BIT_AND_EXPR, unsigned_type_node, fenv_var,
 	      build_int_cst (unsigned_type_node,
 			     ~(accrued_exception_mask | trap_enable_mask)));
   tree hold_mask
-    = build2 (MODIFY_EXPR, void_type_node, tmp1_var, masked_fenv_var);
+    = build4 (TARGET_EXPR, unsigned_type_node, tmp1_var, masked_fenv_var,
+	      NULL_TREE, NULL_TREE);
 
   tree tmp1_addr = build_fold_addr_expr (tmp1_var);
   tree ldfsr = sparc_builtins[SPARC_BUILTIN_LDFSR];
@@ -12584,10 +12513,12 @@ sparc_atomic_assign_expand_fenv (tree *hold, tree *clear, tree *update)
          tmp2_var >>= 5;
        __atomic_feraiseexcept ((int) tmp2_var);  */
 
-  tree tmp2_var = create_tmp_var (unsigned_type_node);
-  mark_addressable (tmp2_var);
-  tree tmp3_addr = build_fold_addr_expr (tmp2_var);
-  tree update_stfsr = build_call_expr (stfsr, 1, tmp3_addr);
+  tree tmp2_var = create_tmp_var_raw (unsigned_type_node);
+  TREE_ADDRESSABLE (tmp2_var) = 1;
+  tree tmp2_addr = build_fold_addr_expr (tmp2_var);
+  tree update_stfsr
+    = build4 (TARGET_EXPR, unsigned_type_node, tmp2_var,
+	      build_call_expr (stfsr, 1, tmp2_addr), NULL_TREE, NULL_TREE);
 
   tree update_ldfsr = build_call_expr (ldfsr, 1, fenv_addr);
 

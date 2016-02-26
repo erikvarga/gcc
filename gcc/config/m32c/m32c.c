@@ -1,5 +1,5 @@
 /* Target Code for R8C/M16C/M32C
-   Copyright (C) 2005-2015 Free Software Foundation, Inc.
+   Copyright (C) 2005-2016 Free Software Foundation, Inc.
    Contributed by Red Hat.
 
    This file is part of GCC.
@@ -22,46 +22,25 @@
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
-#include "tree.h"
-#include "gimple.h"
+#include "target.h"
 #include "rtl.h"
+#include "tree.h"
 #include "df.h"
+#include "tm_p.h"
+#include "optabs.h"
 #include "regs.h"
-#include "insn-config.h"
-#include "conditions.h"
-#include "insn-flags.h"
+#include "emit-rtl.h"
+#include "recog.h"
+#include "diagnostic-core.h"
 #include "output.h"
 #include "insn-attr.h"
 #include "flags.h"
-#include "recog.h"
 #include "reload.h"
-#include "diagnostic-core.h"
-#include "alias.h"
-#include "fold-const.h"
 #include "stor-layout.h"
 #include "varasm.h"
 #include "calls.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "insn-codes.h"
-#include "optabs.h"
-#include "except.h"
-#include "target.h"
-#include "tm_p.h"
-#include "langhooks.h"
-#include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "internal-fn.h"
-#include "gimple-fold.h"
-#include "tree-eh.h"
 #include "tm-constrs.h"
 #include "builtins.h"
 
@@ -2816,7 +2795,7 @@ m32c_print_operand_punct_valid_p (unsigned char c)
 #define TARGET_PRINT_OPERAND_ADDRESS m32c_print_operand_address
 
 static void
-m32c_print_operand_address (FILE * stream, rtx address)
+m32c_print_operand_address (FILE * stream, machine_mode /*mode*/, rtx address)
 {
   if (GET_CODE (address) == MEM)
     address = XEXP (address, 0);

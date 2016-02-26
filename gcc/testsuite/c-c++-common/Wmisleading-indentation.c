@@ -708,7 +708,7 @@ fn_37 (void)
 
   if (flagA)
     ;
-  else if (flagA); /* { dg-message "8: ...this 'if' clause" } */
+  else if (flagB); /* { dg-message "8: ...this 'if' clause" } */
     foo (0); /* { dg-warning "statement is indented as if" } */
   while (flagA) /* { dg-message "3: ...this 'while' clause" } */
     /* blah */;
@@ -716,13 +716,13 @@ fn_37 (void)
 
   if (flagA)
     ;
-  else if (flagA) /* { dg-message "8: ...this 'if' clause" } */
+  else if (flagB) /* { dg-message "8: ...this 'if' clause" } */
     foo (1);
     foo (2); /* { dg-warning "statement is indented as if" } */
 
   if (flagA)
     foo (1);
-  else if (flagA) /* { dg-message "8: ...this 'if' clause" } */
+  else if (flagB) /* { dg-message "8: ...this 'if' clause" } */
     foo (2);
     foo (3); /* { dg-warning "statement is indented as if" } */
 
@@ -890,4 +890,16 @@ fn_39 (void)
        i < 10;
        i++);
   foo (i);
+
+  do foo (0); while (flagA);
 }
+
+/* We shouldn't complain about the following function.  */
+#define emit
+void pr69122 (void)
+{
+  if (flagA)
+       foo (0);
+  emit foo (1);
+}
+#undef emit

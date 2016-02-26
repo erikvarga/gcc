@@ -1,5 +1,5 @@
 ;; Machine description of the Adaptiva epiphany cpu for GNU C compiler
-;; Copyright (C) 1994-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2016 Free Software Foundation, Inc.
 ;; Contributed by Embecosm on behalf of Adapteva, Inc.
 
 ;; This file is part of GCC.
@@ -982,7 +982,7 @@
       rtx cmp = gen_rtx_LT (VOIDmode, cc1, CONST0_RTX (SFmode));
 
       real_2expN (&offset, 31, SFmode);
-      limit = CONST_DOUBLE_FROM_REAL_VALUE (offset, SFmode);
+      limit = const_double_from_real_value (offset, SFmode);
       limit = force_reg (SFmode, limit);
       emit_insn (gen_fix_truncsfsi2 (operands[0], operands[1]));
       emit_insn (gen_subsf3_f (tmp, operands[1], limit));

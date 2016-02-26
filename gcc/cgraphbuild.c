@@ -1,5 +1,5 @@
 /* Callgraph construction.
-   Copyright (C) 2003-2015 Free Software Foundation, Inc.
+   Copyright (C) 2003-2016 Free Software Foundation, Inc.
    Contributed by Jan Hubicka
 
 This file is part of GCC.
@@ -24,23 +24,13 @@ along with GCC; see the file COPYING3.  If not see
 #include "backend.h"
 #include "tree.h"
 #include "gimple.h"
-#include "hard-reg-set.h"
-#include "alias.h"
-#include "fold-const.h"
-#include "internal-fn.h"
+#include "tree-pass.h"
+#include "cgraph.h"
 #include "gimple-fold.h"
 #include "gimple-iterator.h"
 #include "gimple-walk.h"
-#include "langhooks.h"
-#include "intl.h"
-#include "tree-pass.h"
-#include "cgraph.h"
 #include "ipa-utils.h"
 #include "except.h"
-#include "alloc-pool.h"
-#include "symbol-summary.h"
-#include "ipa-prop.h"
-#include "ipa-inline.h"
 
 /* Context of record_reference.  */
 struct record_reference_ctx
@@ -381,7 +371,8 @@ pass_build_cgraph_edges::execute (function *fun)
   FOR_EACH_LOCAL_DECL (fun, ix, decl)
     if (TREE_CODE (decl) == VAR_DECL
 	&& (TREE_STATIC (decl) && !DECL_EXTERNAL (decl))
-	&& !DECL_HAS_VALUE_EXPR_P (decl))
+	&& !DECL_HAS_VALUE_EXPR_P (decl)
+	&& TREE_TYPE (decl) != error_mark_node)
       varpool_node::finalize_decl (decl);
   record_eh_tables (node, fun);
 

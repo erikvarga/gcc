@@ -1,5 +1,5 @@
 /* Output routines for CR16 processor.
-   Copyright (C) 2012-2015 Free Software Foundation, Inc.
+   Copyright (C) 2012-2016 Free Software Foundation, Inc.
    Contributed by KPIT Cummins Infosystems Limited.
   
    This file is part of GCC.
@@ -22,39 +22,19 @@
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
-#include "tree.h"
+#include "target.h"
 #include "rtl.h"
+#include "tree.h"
 #include "df.h"
-#include "alias.h"
-#include "fold-const.h"
-#include "stor-layout.h"
-#include "calls.h"
 #include "tm_p.h"
 #include "regs.h"
-#include "insn-config.h"
+#include "emit-rtl.h"
+#include "diagnostic-core.h"
+#include "stor-layout.h"
+#include "calls.h"
 #include "conditions.h"
 #include "output.h"
-#include "insn-codes.h"
-#include "insn-attr.h"
-#include "flags.h"
-#include "except.h"
-#include "recog.h"
-#include "expmed.h"
-#include "dojump.h"
-#include "explow.h"
-#include "emit-rtl.h"
-#include "varasm.h"
-#include "stmt.h"
 #include "expr.h"
-#include "optabs.h"
-#include "diagnostic-core.h"
-#include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "target.h"
 #include "builtins.h"
 
 /* This file should be included last.  */
@@ -142,7 +122,7 @@ static enum data_model_type data_model = DM_DEFAULT;
 
 /* TARGETM Function Prototypes and forward declarations  */
 static void cr16_print_operand (FILE *, rtx, int);
-static void cr16_print_operand_address (FILE *, rtx);
+static void cr16_print_operand_address (FILE *, machine_mode, rtx);
 
 /* Stack layout and calling conventions.  */
 #undef  TARGET_STRUCT_VALUE_RTX
@@ -1386,10 +1366,8 @@ cr16_const_double_ok (rtx op)
 {
   if (GET_MODE (op) == SFmode)
     {
-      REAL_VALUE_TYPE r;
       long l;
-      REAL_VALUE_FROM_CONST_DOUBLE (r, op);
-      REAL_VALUE_TO_TARGET_SINGLE (r, l);
+      REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (op), l);
       return UNSIGNED_INT_FITS_N_BITS (l, 4) ? 1 : 0;
     }
 
@@ -1516,16 +1494,14 @@ cr16_print_operand (FILE * file, rtx x, int code)
 	  return;
 
 	case MEM:
-	  output_address (XEXP (x, 0));
+	  output_address (GET_MODE (x), XEXP (x, 0));
 	  return;
 
 	case CONST_DOUBLE:
 	  {
-	    REAL_VALUE_TYPE r;
 	    long l;
 
-	    REAL_VALUE_FROM_CONST_DOUBLE (r, x);
-	    REAL_VALUE_TO_TARGET_SINGLE (r, l);
+	    REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (x), l);
 
 	    fprintf (file, "$0x%lx", l);
 	    return;
@@ -1548,7 +1524,7 @@ cr16_print_operand (FILE * file, rtx x, int code)
 	    {
 	      putc ('$', file);
 	    }
-	  cr16_print_operand_address (file, x);
+	  cr16_print_operand_address (file, VOIDmode, x);
 	  return;
 	}
     default:
@@ -1561,7 +1537,7 @@ cr16_print_operand (FILE * file, rtx x, int code)
 /* Implements the macro PRINT_OPERAND_ADDRESS defined in cr16.h.  */
 
 static void
-cr16_print_operand_address (FILE * file, rtx addr)
+cr16_print_operand_address (FILE * file, machine_mode /*mode*/, rtx addr)
 {
   enum cr16_addrtype addrtype;
   struct cr16_address address;

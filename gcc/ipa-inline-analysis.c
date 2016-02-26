@@ -1,5 +1,5 @@
 /* Inlining decision heuristics.
-   Copyright (C) 2003-2015 Free Software Foundation, Inc.
+   Copyright (C) 2003-2016 Free Software Foundation, Inc.
    Contributed by Jan Hubicka
 
 This file is part of GCC.
@@ -70,37 +70,31 @@ along with GCC; see the file COPYING3.  If not see
 #include "backend.h"
 #include "tree.h"
 #include "gimple.h"
-#include "hard-reg-set.h"
+#include "alloc-pool.h"
+#include "tree-pass.h"
 #include "ssa.h"
-#include "alias.h"
+#include "tree-streamer.h"
+#include "cgraph.h"
+#include "diagnostic.h"
 #include "fold-const.h"
-#include "stor-layout.h"
 #include "print-tree.h"
 #include "tree-inline.h"
-#include "langhooks.h"
-#include "flags.h"
-#include "diagnostic.h"
 #include "gimple-pretty-print.h"
 #include "params.h"
-#include "tree-pass.h"
-#include "coverage.h"
 #include "cfganal.h"
-#include "internal-fn.h"
 #include "gimple-iterator.h"
 #include "tree-cfg.h"
 #include "tree-ssa-loop-niter.h"
 #include "tree-ssa-loop.h"
-#include "cgraph.h"
-#include "alloc-pool.h"
 #include "symbol-summary.h"
 #include "ipa-prop.h"
-#include "tree-streamer.h"
 #include "ipa-inline.h"
 #include "cfgloop.h"
 #include "tree-scalar-evolution.h"
 #include "ipa-utils.h"
 #include "cilk.h"
 #include "cfgexpand.h"
+#include "gimplify.h"
 
 /* Estimate runtime of function can easilly run into huge numbers with many
    nested loops.  Be sure we can compute time * INLINE_SIZE_SCALE * 2 in an
@@ -1780,9 +1774,9 @@ set_cond_stmt_execution_predicate (struct ipa_func_body_info *fbi,
 	     unordered one.  Be sure it is not confused with NON_CONSTANT.  */
 	  if (this_code != ERROR_MARK)
 	    {
-	      struct predicate p = add_condition (summary, index, &aggpos,
-						  this_code,
-						  gimple_cond_rhs (last));
+	      struct predicate p = add_condition
+		 (summary, index, &aggpos, this_code,
+		  unshare_expr_without_location (gimple_cond_rhs (last)));
 	      e->aux = edge_predicate_pool.allocate ();
 	      *(struct predicate *) e->aux = p;
 	    }
@@ -1868,12 +1862,15 @@ set_switch_stmt_execution_predicate (struct ipa_func_body_info *fbi,
       if (!min && !max)
 	p = true_predicate ();
       else if (!max)
-	p = add_condition (summary, index, &aggpos, EQ_EXPR, min);
+	p = add_condition (summary, index, &aggpos, EQ_EXPR,
+			   unshare_expr_without_location (min));
       else
 	{
 	  struct predicate p1, p2;
-	  p1 = add_condition (summary, index, &aggpos, GE_EXPR, min);
-	  p2 = add_condition (summary, index, &aggpos, LE_EXPR, max);
+	  p1 = add_condition (summary, index, &aggpos, GE_EXPR,
+			      unshare_expr_without_location (min));
+	  p2 = add_condition (summary, index, &aggpos, LE_EXPR,
+			      unshare_expr_without_location (max));
 	  p = and_predicates (summary->conds, &p1, &p2);
 	}
       *(struct predicate *) e->aux
@@ -2760,9 +2757,8 @@ estimate_function_body_sizes (struct cgraph_node *node, bool early)
 	{
 	  vec<edge> exits;
 	  edge ex;
-	  unsigned int j, i;
+	  unsigned int j;
 	  struct tree_niter_desc niter_desc;
-	  basic_block *body = get_loop_body (loop);
 	  bb_predicate = *(struct predicate *) loop->header->aux;
 
 	  exits = get_loop_exit_edges (loop);
@@ -2787,8 +2783,16 @@ estimate_function_body_sizes (struct cgraph_node *node, bool early)
 				  &will_be_nonconstant);
 	    }
 	  exits.release ();
+	}
 
-	  for (i = 0; i < loop->num_nodes; i++)
+      /* To avoid quadratic behavior we analyze stride predicates only
+         with respect to the containing loop.  Thus we simply iterate
+	 over all defs in the outermost loop body.  */
+      for (loop = loops_for_fn (cfun)->tree_root->inner;
+	   loop != NULL; loop = loop->next)
+	{
+	  basic_block *body = get_loop_body (loop);
+	  for (unsigned i = 0; i < loop->num_nodes; i++)
 	    {
 	      gimple_stmt_iterator gsi;
 	      bb_predicate = *(struct predicate *) body[i]->aux;
@@ -2796,42 +2800,43 @@ estimate_function_body_sizes (struct cgraph_node *node, bool early)
 		   gsi_next (&gsi))
 		{
 		  gimple *stmt = gsi_stmt (gsi);
+
+		  if (!is_gimple_assign (stmt))
+		    continue;
+
+		  tree def = gimple_assign_lhs (stmt);
+		  if (TREE_CODE (def) != SSA_NAME)
+		    continue;
+
 		  affine_iv iv;
-		  ssa_op_iter iter;
-		  tree use;
+		  if (!simple_iv (loop_containing_stmt (stmt),
+				  loop_containing_stmt (stmt),
+				  def, &iv, true)
+		      || is_gimple_min_invariant (iv.step))
+		    continue;
 
-		  FOR_EACH_SSA_TREE_OPERAND (use, stmt, iter, SSA_OP_USE)
-		  {
-		    predicate will_be_nonconstant;
-
-		    if (!simple_iv
-			(loop, loop_containing_stmt (stmt), use, &iv, true)
-			|| is_gimple_min_invariant (iv.step))
-		      continue;
+		  predicate will_be_nonconstant
+		    = will_be_nonconstant_expr_predicate (fbi.info, info,
+							  iv.step,
+							  nonconstant_names);
+		  if (!true_predicate_p (&will_be_nonconstant))
 		    will_be_nonconstant
-		      = will_be_nonconstant_expr_predicate (fbi.info, info,
-							    iv.step,
-							    nonconstant_names);
-		    if (!true_predicate_p (&will_be_nonconstant))
-		      will_be_nonconstant
-			 = and_predicates (info->conds,
-					   &bb_predicate,
-					   &will_be_nonconstant);
-		    if (!true_predicate_p (&will_be_nonconstant)
-			&& !false_predicate_p (&will_be_nonconstant))
-		      /* This is slightly inprecise.  We may want to represent
-			 each loop with independent predicate.  */
-		      loop_stride =
-			and_predicates (info->conds, &loop_stride,
+		      = and_predicates (info->conds, &bb_predicate,
 					&will_be_nonconstant);
-		  }
+		  if (!true_predicate_p (&will_be_nonconstant)
+		      && !false_predicate_p (&will_be_nonconstant))
+		    /* This is slightly inprecise.  We may want to represent
+		       each loop with independent predicate.  */
+		    loop_stride = and_predicates (info->conds, &loop_stride,
+						  &will_be_nonconstant);
 		}
 	    }
 	  free (body);
 	}
       set_hint_predicate (&inline_summaries->get (node)->loop_iterations,
 			  loop_iterations);
-      set_hint_predicate (&inline_summaries->get (node)->loop_stride, loop_stride);
+      set_hint_predicate (&inline_summaries->get (node)->loop_stride,
+			  loop_stride);
       scev_finalize ();
     }
   FOR_ALL_BB_FN (bb, my_function)
@@ -2852,6 +2857,7 @@ estimate_function_body_sizes (struct cgraph_node *node, bool early)
   inline_summaries->get (node)->self_time = time;
   inline_summaries->get (node)->self_size = size;
   nonconstant_names.release ();
+  ipa_release_body_info (&fbi);
   if (opt_for_fn (node->decl, optimize))
     {
       if (!early)
@@ -2956,10 +2962,12 @@ compute_inline_parameters (struct cgraph_node *node, bool early)
   info->size = info->self_size;
   info->stack_frame_offset = 0;
   info->estimated_stack_size = info->estimated_self_stack_size;
-#ifdef ENABLE_CHECKING
-  inline_update_overall_summary (node);
-  gcc_assert (info->time == info->self_time && info->size == info->self_size);
-#endif
+  if (flag_checking)
+    {
+      inline_update_overall_summary (node);
+      gcc_assert (info->time == info->self_time
+		  && info->size == info->self_size);
+    }
 
   pop_cfun ();
 }
@@ -3700,7 +3708,7 @@ simple_edge_hints (struct cgraph_edge *edge)
 
   if (callee->lto_file_data && edge->caller->lto_file_data
       && edge->caller->lto_file_data != callee->lto_file_data
-      && !callee->merged)
+      && !callee->merged_comdat && !callee->icf_merged)
     hints |= INLINE_HINT_cross_module;
 
   return hints;
@@ -4103,6 +4111,10 @@ void
 inline_generate_summary (void)
 {
   struct cgraph_node *node;
+
+  FOR_EACH_DEFINED_FUNCTION (node)
+    if (DECL_STRUCT_FUNCTION (node->decl))
+      node->local.versionable = tree_versionable_function_p (node->decl);
 
   /* When not optimizing, do not bother to analyze.  Inlining is still done
      because edge redirection needs to happen there.  */

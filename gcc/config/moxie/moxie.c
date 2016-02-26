@@ -1,5 +1,5 @@
 /* Target Code for moxie
-   Copyright (C) 2008-2015 Free Software Foundation, Inc.
+   Copyright (C) 2008-2016 Free Software Foundation, Inc.
    Contributed by Anthony Green.
 
    This file is part of GCC.
@@ -22,41 +22,18 @@
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
-#include "tree.h"
+#include "target.h"
 #include "rtl.h"
+#include "tree.h"
 #include "df.h"
 #include "regs.h"
-#include "insn-config.h"
-#include "conditions.h"
-#include "insn-flags.h"
-#include "output.h"
-#include "insn-attr.h"
-#include "flags.h"
-#include "recog.h"
-#include "reload.h"
+#include "emit-rtl.h"
 #include "diagnostic-core.h"
-#include "alias.h"
+#include "output.h"
 #include "stor-layout.h"
 #include "varasm.h"
 #include "calls.h"
-#include "expmed.h"
-#include "dojump.h"
-#include "explow.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "insn-codes.h"
-#include "optabs.h"
-#include "except.h"
-#include "target.h"
-#include "tm_p.h"
-#include "langhooks.h"
-#include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
 #include "builtins.h"
 
 /* This file should be included last.  */
@@ -129,7 +106,7 @@ moxie_operand_lossage (const char *msgid, rtx op)
 /* The PRINT_OPERAND_ADDRESS worker.  */
 
 static void
-moxie_print_operand_address (FILE *file, rtx x)
+moxie_print_operand_address (FILE *file, machine_mode, rtx x)
 {
   switch (GET_CODE (x))
     {
@@ -206,7 +183,7 @@ moxie_print_operand (FILE *file, rtx x, int code)
       return;
 
     case MEM:
-      output_address (XEXP (operand, 0));
+      output_address (GET_MODE (XEXP (operand, 0)), XEXP (operand, 0));
       return;
 
     default:

@@ -1,5 +1,5 @@
 /* Integrated Register Allocator (IRA) entry point.
-   Copyright (C) 2006-2015 Free Software Foundation, Inc.
+   Copyright (C) 2006-2016 Free Software Foundation, Inc.
    Contributed by Vladimir Makarov <vmakarov@redhat.com>.
 
 This file is part of GCC.
@@ -367,41 +367,30 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "tree.h"
-#include "rtl.h"
-#include "df.h"
-#include "regs.h"
-#include "alias.h"
-#include "tm_p.h"
 #include "target.h"
-#include "flags.h"
+#include "rtl.h"
+#include "tree.h"
+#include "df.h"
+#include "tm_p.h"
+#include "insn-config.h"
+#include "regs.h"
+#include "ira.h"
+#include "ira-int.h"
+#include "diagnostic-core.h"
 #include "cfgrtl.h"
 #include "cfgbuild.h"
 #include "cfgcleanup.h"
-#include "insn-config.h"
-#include "expmed.h"
-#include "dojump.h"
-#include "explow.h"
-#include "calls.h"
-#include "emit-rtl.h"
-#include "varasm.h"
-#include "stmt.h"
 #include "expr.h"
-#include "params.h"
 #include "tree-pass.h"
 #include "output.h"
-#include "except.h"
 #include "reload.h"
-#include "diagnostic-core.h"
 #include "cfgloop.h"
-#include "ira.h"
-#include "alloc-pool.h"
-#include "ira-int.h"
 #include "lra.h"
 #include "dce.h"
 #include "dbgcnt.h"
 #include "rtl-iter.h"
 #include "shrink-wrap.h"
+#include "print-rtl.h"
 
 struct target_ira default_target_ira;
 struct target_ira_int default_target_ira_int;
@@ -1811,7 +1800,13 @@ ira_setup_alts (rtx_insn *insn, HARD_REG_SET &alts)
 	    {
 	      insn_constraints[nop * recog_data.n_alternatives + nalt] = p;
 	      while (*p && *p != ',')
-		p++;
+		{
+		  /* We only support one commutative marker, the first
+		     one.  We already set commutative above.  */
+		  if (*p == '%' && commutative < 0)
+		    commutative = nop;
+		  p++;
+		}
 	      if (*p)
 		p++;
 	    }
@@ -1842,11 +1837,7 @@ ira_setup_alts (rtx_insn *insn, HARD_REG_SET &alts)
 		    break;
 		  
 		  case '%':
-		    /* We only support one commutative marker, the
-		       first one.  We already set commutative
-		       above.  */
-		    if (commutative < 0)
-		      commutative = nop;
+		    /* The commutative modifier is handled above.  */
 		    break;
 
 		  case '0':  case '1':  case '2':  case '3':  case '4':
@@ -1877,6 +1868,7 @@ ira_setup_alts (rtx_insn *insn, HARD_REG_SET &alts)
 
 			case CT_ADDRESS:
 			case CT_MEMORY:
+			case CT_SPECIAL_MEMORY:
 			  goto op_success;
 
 			case CT_FIXED_FORM:
@@ -1897,10 +1889,11 @@ ira_setup_alts (rtx_insn *insn, HARD_REG_SET &alts)
 	}
       if (commutative < 0)
 	break;
-      if (curr_swapped)
-	break;
+      /* Swap forth and back to avoid changing recog_data.  */
       std::swap (recog_data.operand[commutative],
 		 recog_data.operand[commutative + 1]);
+      if (curr_swapped)
+	break;
     }
 }
 
@@ -2270,9 +2263,12 @@ ira_setup_eliminable_regset (void)
   frame_pointer_needed
     = (! flag_omit_frame_pointer
        || (cfun->calls_alloca && EXIT_IGNORE_STACK)
-       /* We need the frame pointer to catch stack overflow exceptions
-	  if the stack pointer is moving.  */
-       || (flag_stack_check && STACK_CHECK_MOVING_SP)
+       /* We need the frame pointer to catch stack overflow exceptions if
+	  the stack pointer is moving (as for the alloca case just above).  */
+       || (STACK_CHECK_MOVING_SP
+	   && flag_stack_check
+	   && flag_exceptions
+	   && cfun->can_throw_non_call_exceptions)
        || crtl->accesses_prior_frames
        || (SUPPORTS_STACK_ALIGNMENT && crtl->stack_realign_needed)
        /* We need a frame pointer for all Cilk Plus functions that use
@@ -3396,7 +3392,8 @@ update_equiv_regs (void)
 
 	  /* If this insn contains more (or less) than a single SET,
 	     only mark all destinations as having no known equivalence.  */
-	  if (set == NULL_RTX)
+	  if (set == NULL_RTX
+	      || side_effects_p (SET_SRC (set)))
 	    {
 	      note_stores (PATTERN (insn), no_equiv, NULL);
 	      continue;
@@ -5152,9 +5149,9 @@ ira (FILE *f)
     df_remove_problem (df_live);
   gcc_checking_assert (df_live == NULL);
 
-#ifdef ENABLE_CHECKING
-  df->changeable_flags |= DF_VERIFY_SCHEDULED;
-#endif
+  if (flag_checking)
+    df->changeable_flags |= DF_VERIFY_SCHEDULED;
+
   df_analyze ();
 
   init_reg_equiv ();
@@ -5191,19 +5188,27 @@ ira (FILE *f)
   setup_reg_equiv ();
   setup_reg_equiv_init ();
 
+  bool update_regstat = false;
+
   if (optimize && rebuild_p)
     {
       timevar_push (TV_JUMP);
       rebuild_jump_labels (get_insns ());
       if (purge_all_dead_edges ())
-	delete_unreachable_blocks ();
+	{
+	  delete_unreachable_blocks ();
+	  update_regstat = true;
+	}
       timevar_pop (TV_JUMP);
     }
 
   allocated_reg_info_size = max_reg_num ();
 
   if (delete_trivially_dead_insns (get_insns (), max_reg_num ()))
-    df_analyze ();
+    {
+      df_analyze ();
+      update_regstat = true;
+    }
 
   /* It is not worth to do such improvement when we use a simple
      allocation because of -O0 usage or because the function is too
@@ -5314,7 +5319,7 @@ ira (FILE *f)
     check_allocation ();
 #endif
 
-  if (max_regno != max_regno_before_ira)
+  if (update_regstat || max_regno != max_regno_before_ira)
     {
       regstat_free_n_sets_and_refs ();
       regstat_free_ri ();

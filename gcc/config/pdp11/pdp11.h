@@ -1,5 +1,5 @@
 /* Definitions of target machine for GNU compiler, for the pdp-11
-   Copyright (C) 1994-2015 Free Software Foundation, Inc.
+   Copyright (C) 1994-2016 Free Software Foundation, Inc.
    Contributed by Michael K. Gschwind (mike@vlsivie.tuwien.ac.at).
 
 This file is part of GCC.
@@ -660,8 +660,7 @@ extern rtx cc0_reg_rtx;
 /* there is no point in avoiding branches on a pdp, 
    since branches are really cheap - I just want to find out
    how much difference the BRANCH_COST macro makes in code */
-#define BRANCH_COST(speed_p, predictable_p) (TARGET_BRANCH_CHEAP ? 0 : 1)
-
+#define BRANCH_COST(speed_p, predictable_p) pdp11_branch_cost ()
 
 #define COMPARE_FLAG_MODE HImode
 

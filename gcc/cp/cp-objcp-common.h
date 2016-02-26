@@ -1,5 +1,5 @@
 /* Language hooks common to C++ and ObjC++ front ends.
-   Copyright (C) 2004-2015 Free Software Foundation, Inc.
+   Copyright (C) 2004-2016 Free Software Foundation, Inc.
    Contributed by Ziemowit Laski  <zlaski@apple.com>
 
 This file is part of GCC.
@@ -150,6 +150,8 @@ extern void cp_common_init_ts (void);
 #define LANG_HOOKS_OMP_PRIVATIZE_BY_REFERENCE cxx_omp_privatize_by_reference
 #undef LANG_HOOKS_OMP_MAPPABLE_TYPE
 #define LANG_HOOKS_OMP_MAPPABLE_TYPE cp_omp_mappable_type
+#undef LANG_HOOKS_OMP_DISREGARD_VALUE_EXPR
+#define LANG_HOOKS_OMP_DISREGARD_VALUE_EXPR cxx_omp_disregard_value_expr
 
 #undef LANG_HOOKS_EH_USE_CXA_END_CLEANUP
 #define LANG_HOOKS_EH_USE_CXA_END_CLEANUP true

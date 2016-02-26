@@ -1,5 +1,5 @@
 /* Definitions of target machine for GNU compiler, for MMIX.
-   Copyright (C) 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 2000-2016 Free Software Foundation, Inc.
    Contributed by Hans-Peter Nilsson (hp@bitrange.com)
 
 This file is part of GCC.
@@ -22,35 +22,23 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
-#include "tree.h"
+#include "target.h"
 #include "rtl.h"
+#include "tree.h"
 #include "df.h"
-#include "regs.h"
+#include "tm_p.h"
 #include "insn-config.h"
+#include "regs.h"
+#include "emit-rtl.h"
+#include "recog.h"
+#include "diagnostic-core.h"
 #include "output.h"
-#include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "flags.h"
 #include "varasm.h"
 #include "stor-layout.h"
 #include "calls.h"
-#include "alias.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "diagnostic-core.h"
-#include "recog.h"
 #include "dwarf2.h"
-#include "debug.h"
-#include "tm_p.h"
-#include "target.h"
 #include "tm-constrs.h"
 #include "builtins.h"
 
@@ -174,7 +162,7 @@ static bool mmix_frame_pointer_required (void);
 static void mmix_asm_trampoline_template (FILE *);
 static void mmix_trampoline_init (rtx, tree, rtx);
 static void mmix_print_operand (FILE *, rtx, int);
-static void mmix_print_operand_address (FILE *, rtx);
+static void mmix_print_operand_address (FILE *, machine_mode, rtx);
 static bool mmix_print_operand_punct_valid_p (unsigned char);
 static void mmix_conditional_register_usage (void);
 
@@ -1709,7 +1697,7 @@ mmix_print_operand (FILE *stream, rtx x, int code)
       return;
 
     case MEM:
-      output_address (XEXP (modified_x, 0));
+      output_address (GET_MODE (modified_x), XEXP (modified_x, 0));
       return;
 
     case CONST_INT:
@@ -1766,7 +1754,7 @@ mmix_print_operand_punct_valid_p (unsigned char code)
 /* TARGET_PRINT_OPERAND_ADDRESS.  */
 
 static void
-mmix_print_operand_address (FILE *stream, rtx x)
+mmix_print_operand_address (FILE *stream, machine_mode /*mode*/, rtx x)
 {
   if (REG_P (x))
     {
@@ -2710,16 +2698,11 @@ mmix_intval (const_rtx x)
 
   if (GET_CODE (x) == CONST_DOUBLE)
     {
-      REAL_VALUE_TYPE value;
-
-      /* FIXME:  This macro is not in the manual but should be.  */
-      REAL_VALUE_FROM_CONST_DOUBLE (value, x);
-
       if (GET_MODE (x) == DFmode)
 	{
 	  long bits[2];
 
-	  REAL_VALUE_TO_TARGET_DOUBLE (value, bits);
+	  REAL_VALUE_TO_TARGET_DOUBLE (*CONST_DOUBLE_REAL_VALUE (x), bits);
 
 	  /* The double cast is necessary to avoid getting the long
 	     sign-extended to unsigned long long(!) when they're of
@@ -2732,7 +2715,7 @@ mmix_intval (const_rtx x)
       else if (GET_MODE (x) == SFmode)
 	{
 	  long bits;
-	  REAL_VALUE_TO_TARGET_SINGLE (value, bits);
+	  REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (x), bits);
 
 	  return (unsigned long) bits;
 	}

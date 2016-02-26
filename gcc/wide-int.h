@@ -1,5 +1,5 @@
 /* Operations with very long integers.  -*- C++ -*-
-   Copyright (C) 2012-2015 Free Software Foundation, Inc.
+   Copyright (C) 2012-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -507,6 +507,7 @@ namespace wi
   BINARY_FUNCTION div_round (const T1 &, const T2 &, signop, bool * = 0);
   BINARY_FUNCTION divmod_trunc (const T1 &, const T2 &, signop,
 				WI_BINARY_RESULT (T1, T2) *);
+  BINARY_FUNCTION gcd (const T1 &, const T2 &, signop = UNSIGNED);
   BINARY_FUNCTION mod_trunc (const T1 &, const T2 &, signop, bool * = 0);
   BINARY_FUNCTION smod_trunc (const T1 &, const T2 &);
   BINARY_FUNCTION umod_trunc (const T1 &, const T2 &);
@@ -2643,6 +2644,27 @@ wi::divmod_trunc (const T1 &x, const T2 &y, signop sgn,
   return quotient;
 }
 
+/* Compute the greatest common divisor of two numbers A and B using
+   Euclid's algorithm.  */
+template <typename T1, typename T2>
+inline WI_BINARY_RESULT (T1, T2)
+wi::gcd (const T1 &a, const T2 &b, signop sgn)
+{
+  T1 x, y, z;
+
+  x = wi::abs (a);
+  y = wi::abs (b);
+
+  while (gt_p (x, 0, sgn))
+    {
+      z = mod_trunc (y, x, sgn);
+      y = x;
+      x = z;
+    }
+
+  return y;
+}
+
 /* Compute X / Y, rouding towards 0, and return the remainder.
    Treat X and Y as having the signedness given by SGN.  Indicate
    in *OVERFLOW if the division overflows.  */
@@ -2887,7 +2909,9 @@ wi::lrshift (const T1 &x, const T2 &y)
 	 For variable-precision integers like wide_int, handle HWI
 	 and sub-HWI integers inline.  */
       if (STATIC_CONSTANT_P (xi.precision > HOST_BITS_PER_WIDE_INT)
-	  ? xi.len == 1 && xi.val[0] >= 0
+	  ? (shift < HOST_BITS_PER_WIDE_INT
+	     && xi.len == 1
+	     && xi.val[0] >= 0)
 	  : xi.precision <= HOST_BITS_PER_WIDE_INT)
 	{
 	  val[0] = xi.to_uhwi () >> shift;

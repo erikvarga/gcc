@@ -1,5 +1,5 @@
 ;; Predicate definitions for Xtensa.
-;; Copyright (C) 2005-2015 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2016 Free Software Foundation, Inc.
 ;;
 ;; This file is part of GCC.
 ;;
@@ -150,9 +150,7 @@
 (define_predicate "const_float_1_operand"
   (match_code "const_double")
 {
-  REAL_VALUE_TYPE d;
-  REAL_VALUE_FROM_CONST_DOUBLE (d, op);
-  return REAL_VALUES_EQUAL (d, dconst1);
+  return real_equal (CONST_DOUBLE_REAL_VALUE (op), &dconst1);
 })
 
 (define_predicate "fpmem_offset_operand"

@@ -1,6 +1,6 @@
 /* Subroutines for insn-output.c for Windows NT.
    Contributed by Douglas Rupp (drupp@cs.washington.edu)
-   Copyright (C) 1995-2015 Free Software Foundation, Inc.
+   Copyright (C) 1995-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -21,40 +21,20 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
-#include "tm.h"
+#include "target.h"
 #include "function.h"
-#include "cfghooks.h"
 #include "basic-block.h"
-#include "cfg.h"
+#include "rtl.h"
 #include "tree.h"
 #include "gimple.h"
-#include "rtl.h"
-#include "regs.h"
-#include "output.h"
-#include "alias.h"
-#include "fold-const.h"
-#include "stringpool.h"
-#include "varasm.h"
-#include "flags.h"
 #include "tm_p.h"
-#include "diagnostic-core.h"
-#include "langhooks.h"
-#include "target.h"
-#include "except.h"
+#include "stringpool.h"
 #include "emit-rtl.h"
-#include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "internal-fn.h"
-#include "gimple-fold.h"
-#include "tree-eh.h"
 #include "cgraph.h"
-#include "alloc-pool.h"
 #include "lto-streamer.h"
+#include "output.h"
+#include "varasm.h"
 #include "lto-section-names.h"
-#include "builtins.h"
 
 /* i386/PE specific attribute support.
 
@@ -89,17 +69,23 @@ tree
 ix86_handle_selectany_attribute (tree *node, tree name, tree, int,
 				 bool *no_add_attrs)
 {
+  tree decl = *node;
   /* The attribute applies only to objects that are initialized and have
      external linkage.  However, we may not know about initialization
-     until the language frontend has processed the decl. We'll check for
-     initialization later in encode_section_info.  */
-  if (TREE_CODE (*node) != VAR_DECL || !TREE_PUBLIC (*node))
-    {	
-      error ("%qE attribute applies only to initialized variables"
-       	     " with external linkage", name);
-      *no_add_attrs = true;
+     until the language frontend has processed the decl.   Therefore
+     we make sure that variable isn't initialized as common.  */
+  if (TREE_CODE (decl) != VAR_DECL || !TREE_PUBLIC (decl))
+    error ("%qE attribute applies only to initialized variables"
+       	   " with external linkage", name);
+  else
+    {
+      make_decl_one_only (decl, DECL_ASSEMBLER_NAME (decl));
+      /* A variable with attribute selectany never can be common.  */
+      DECL_COMMON (decl) = 0;
     }
 
+  /* We don't need to keep attribute itself.  */
+  *no_add_attrs = true;
   return NULL_TREE;
 }
 
@@ -320,23 +306,7 @@ i386_pe_encode_section_info (tree decl, rtx rtl, int first)
   switch (TREE_CODE (decl))
     {
     case FUNCTION_DECL:
-      break;
-
     case VAR_DECL:
-      if (lookup_attribute ("selectany", DECL_ATTRIBUTES (decl)))
-	{
-	  if (DECL_INITIAL (decl)
-	      /* If an object is initialized with a ctor, the static
-		 initialization and destruction code for it is present in
-		 each unit defining the object.  The code that calls the
-		 ctor is protected by a link-once guard variable, so that
-		 the object still has link-once semantics,  */
-	      || TYPE_NEEDS_CONSTRUCTING (TREE_TYPE (decl)))
-	    make_decl_one_only (decl, DECL_ASSEMBLER_NAME (decl));
-	  else
-	    error ("%q+D:'selectany' attribute applies only to "
-		   "initialized objects", decl);
-	}
       break;
 
     default:
@@ -371,6 +341,20 @@ i386_pe_binds_local_p (const_tree exp)
       && TREE_PUBLIC (exp)
       && DECL_EXTERNAL (exp))
     return true;
+
+#ifndef MAKE_DECL_ONE_ONLY
+  /* PR target/66655: If a function has been marked as DECL_ONE_ONLY
+     but we do not the means to make it so, then do not allow it to
+     bind locally.  */
+  if (DECL_P (exp)
+      && TREE_CODE (exp) == FUNCTION_DECL
+      && TREE_PUBLIC (exp)
+      && DECL_ONE_ONLY (exp)
+      && ! DECL_EXTERNAL (exp)
+      && DECL_DECLARED_INLINE_P (exp))
+    return false;
+#endif
+  
   return default_binds_local_p_1 (exp, 0);
 }
 

@@ -1,5 +1,5 @@
 /* Subroutines for insn-output.c for HPPA.
-   Copyright (C) 1992-2015 Free Software Foundation, Inc.
+   Copyright (C) 1992-2016 Free Software Foundation, Inc.
    Contributed by Tim Moore (moore@cs.utah.edu), based on sparc.c
 
 This file is part of GCC.
@@ -22,44 +22,31 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
-#include "tree.h"
+#include "target.h"
 #include "rtl.h"
+#include "tree.h"
 #include "df.h"
+#include "tm_p.h"
+#include "stringpool.h"
+#include "optabs.h"
 #include "regs.h"
-#include "insn-config.h"
-#include "conditions.h"
+#include "emit-rtl.h"
+#include "recog.h"
+#include "diagnostic-core.h"
 #include "insn-attr.h"
-#include "flags.h"
 #include "alias.h"
 #include "fold-const.h"
 #include "stor-layout.h"
-#include "stringpool.h"
 #include "varasm.h"
 #include "calls.h"
 #include "output.h"
-#include "dbxout.h"
 #include "except.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "insn-codes.h"
-#include "optabs.h"
 #include "reload.h"
-#include "diagnostic-core.h"
-#include "recog.h"
-#include "tm_p.h"
-#include "target.h"
 #include "common/common-target.h"
 #include "langhooks.h"
 #include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
 #include "opts.h"
 #include "builtins.h"
 
@@ -652,7 +639,7 @@ pa_expand_builtin (tree exp, rtx target, rtx subtarget ATTRIBUTE_UNUSED,
 	rtx tmp;
 
 	real_inf (&inf);
-	tmp = CONST_DOUBLE_FROM_REAL_VALUE (inf, target_mode);
+	tmp = const_double_from_real_value (inf, target_mode);
 
 	tmp = validize_mem (force_const_mem (target_mode, tmp));
 
@@ -1694,77 +1681,113 @@ pa_emit_move_sequence (rtx *operands, machine_mode mode, rtx scratch_reg)
 
   /* Handle secondary reloads for loads/stores of FP registers from
      REG+D addresses where D does not fit in 5 or 14 bits, including
-     (subreg (mem (addr))) cases.  */
+     (subreg (mem (addr))) cases, and reloads for other unsupported
+     memory operands.  */
   if (scratch_reg
-      && fp_reg_operand (operand0, mode)
+      && FP_REG_P (operand0)
       && (MEM_P (operand1)
 	  || (GET_CODE (operand1) == SUBREG
-	      && MEM_P (XEXP (operand1, 0))))
-      && !floating_point_store_memory_operand (operand1, mode))
+	      && MEM_P (XEXP (operand1, 0)))))
     {
-      if (GET_CODE (operand1) == SUBREG)
-	operand1 = XEXP (operand1, 0);
+      rtx op1 = operand1;
 
-      /* SCRATCH_REG will hold an address and maybe the actual data.  We want
-	 it in WORD_MODE regardless of what mode it was originally given
-	 to us.  */
-      scratch_reg = force_mode (word_mode, scratch_reg);
+      if (GET_CODE (op1) == SUBREG)
+	op1 = XEXP (op1, 0);
 
-      /* D might not fit in 14 bits either; for such cases load D into
-	 scratch reg.  */
-      if (reg_plus_base_memory_operand (operand1, mode)
-	  && !(TARGET_PA_20
-	       && !TARGET_ELF32
-	       && INT_14_BITS (XEXP (XEXP (operand1, 0), 1))))
+      if (reg_plus_base_memory_operand (op1, GET_MODE (op1)))
 	{
-	  emit_move_insn (scratch_reg, XEXP (XEXP (operand1, 0), 1));
-	  emit_move_insn (scratch_reg,
-			  gen_rtx_fmt_ee (GET_CODE (XEXP (operand1, 0)),
-					  Pmode,
-					  XEXP (XEXP (operand1, 0), 0),
-					  scratch_reg));
+	  if (!(TARGET_PA_20
+		&& !TARGET_ELF32
+		&& INT_14_BITS (XEXP (XEXP (op1, 0), 1)))
+	      && !INT_5_BITS (XEXP (XEXP (op1, 0), 1)))
+	    {
+	      /* SCRATCH_REG will hold an address and maybe the actual data.
+		 We want it in WORD_MODE regardless of what mode it was
+		 originally given to us.  */
+	      scratch_reg = force_mode (word_mode, scratch_reg);
+
+	      /* D might not fit in 14 bits either; for such cases load D
+		 into scratch reg.  */
+	      if (!INT_14_BITS (XEXP (XEXP (op1, 0), 1)))
+		{
+		  emit_move_insn (scratch_reg, XEXP (XEXP (op1, 0), 1));
+		  emit_move_insn (scratch_reg,
+				  gen_rtx_fmt_ee (GET_CODE (XEXP (op1, 0)),
+						  Pmode,
+						  XEXP (XEXP (op1, 0), 0),
+						  scratch_reg));
+		}
+	      else
+		emit_move_insn (scratch_reg, XEXP (op1, 0));
+	      emit_insn (gen_rtx_SET (operand0,
+				  replace_equiv_address (op1, scratch_reg)));
+	      return 1;
+	    }
 	}
-      else
-	emit_move_insn (scratch_reg, XEXP (operand1, 0));
-      emit_insn (gen_rtx_SET (operand0,
-			      replace_equiv_address (operand1, scratch_reg)));
-      return 1;
+      else if ((!INT14_OK_STRICT && symbolic_memory_operand (op1, VOIDmode))
+	       || IS_LO_SUM_DLT_ADDR_P (XEXP (op1, 0))
+	       || IS_INDEX_ADDR_P (XEXP (op1, 0)))
+	{
+	  /* Load memory address into SCRATCH_REG.  */
+	  scratch_reg = force_mode (word_mode, scratch_reg);
+	  emit_move_insn (scratch_reg, XEXP (op1, 0));
+	  emit_insn (gen_rtx_SET (operand0,
+				  replace_equiv_address (op1, scratch_reg)));
+	  return 1;
+	}
     }
   else if (scratch_reg
-	   && fp_reg_operand (operand1, mode)
+	   && FP_REG_P (operand1)
 	   && (MEM_P (operand0)
 	       || (GET_CODE (operand0) == SUBREG
-		   && MEM_P (XEXP (operand0, 0))))
-	   && !floating_point_store_memory_operand (operand0, mode))
+		   && MEM_P (XEXP (operand0, 0)))))
     {
-      if (GET_CODE (operand0) == SUBREG)
-	operand0 = XEXP (operand0, 0);
+      rtx op0 = operand0;
 
-      /* SCRATCH_REG will hold an address and maybe the actual data.  We want
-	 it in WORD_MODE regardless of what mode it was originally given
-	 to us.  */
-      scratch_reg = force_mode (word_mode, scratch_reg);
+      if (GET_CODE (op0) == SUBREG)
+	op0 = XEXP (op0, 0);
 
-      /* D might not fit in 14 bits either; for such cases load D into
-	 scratch reg.  */
-      if (reg_plus_base_memory_operand (operand0, mode)
-	  && !(TARGET_PA_20
-	       && !TARGET_ELF32
-	       && INT_14_BITS (XEXP (XEXP (operand0, 0), 1))))
+      if (reg_plus_base_memory_operand (op0, GET_MODE (op0)))
 	{
-	  emit_move_insn (scratch_reg, XEXP (XEXP (operand0, 0), 1));
-	  emit_move_insn (scratch_reg, gen_rtx_fmt_ee (GET_CODE (XEXP (operand0,
-								        0)),
-						       Pmode,
-						       XEXP (XEXP (operand0, 0),
-								   0),
-						       scratch_reg));
+	  if (!(TARGET_PA_20
+		&& !TARGET_ELF32
+		&& INT_14_BITS (XEXP (XEXP (op0, 0), 1)))
+	      && !INT_5_BITS (XEXP (XEXP (op0, 0), 1)))
+	    {
+	      /* SCRATCH_REG will hold an address and maybe the actual data.
+		 We want it in WORD_MODE regardless of what mode it was
+		 originally given to us.  */
+	      scratch_reg = force_mode (word_mode, scratch_reg);
+
+	      /* D might not fit in 14 bits either; for such cases load D
+		 into scratch reg.  */
+	      if (!INT_14_BITS (XEXP (XEXP (op0, 0), 1)))
+		{
+		  emit_move_insn (scratch_reg, XEXP (XEXP (op0, 0), 1));
+		  emit_move_insn (scratch_reg,
+				  gen_rtx_fmt_ee (GET_CODE (XEXP (op0, 0)),
+						  Pmode,
+						  XEXP (XEXP (op0, 0), 0),
+						  scratch_reg));
+		}
+	      else
+		emit_move_insn (scratch_reg, XEXP (op0, 0));
+	      emit_insn (gen_rtx_SET (replace_equiv_address (op0, scratch_reg),
+				      operand1));
+	      return 1;
+	    }
 	}
-      else
-	emit_move_insn (scratch_reg, XEXP (operand0, 0));
-      emit_insn (gen_rtx_SET (replace_equiv_address (operand0, scratch_reg),
-			      operand1));
-      return 1;
+      else if ((!INT14_OK_STRICT && symbolic_memory_operand (op0, VOIDmode))
+	       || IS_LO_SUM_DLT_ADDR_P (XEXP (op0, 0))
+	       || IS_INDEX_ADDR_P (XEXP (op0, 0)))
+	{
+	  /* Load memory address into SCRATCH_REG.  */
+	  scratch_reg = force_mode (word_mode, scratch_reg);
+	  emit_move_insn (scratch_reg, XEXP (op0, 0));
+	  emit_insn (gen_rtx_SET (replace_equiv_address (op0, scratch_reg),
+				  operand1));
+	  return 1;
+	}
     }
   /* Handle secondary reloads for loads of FP registers from constant
      expressions by forcing the constant into memory.  For the most part,
@@ -1773,7 +1796,7 @@ pa_emit_move_sequence (rtx *operands, machine_mode mode, rtx scratch_reg)
      Use scratch_reg to hold the address of the memory location.  */
   else if (scratch_reg
 	   && CONSTANT_P (operand1)
-	   && fp_reg_operand (operand0, mode))
+	   && FP_REG_P (operand0))
     {
       rtx const_mem, xoperands[2];
 
@@ -1849,8 +1872,9 @@ pa_emit_move_sequence (rtx *operands, machine_mode mode, rtx scratch_reg)
       emit_move_insn (operand0, scratch_reg);
       return 1;
     }
+
   /* Handle the most common case: storing into a register.  */
-  else if (register_operand (operand0, mode))
+  if (register_operand (operand0, mode))
     {
       /* Legitimize TLS symbol references.  This happens for references
 	 that aren't a legitimate constant.  */
@@ -2346,14 +2370,12 @@ pa_singlemove_string (rtx *operands)
   if (GET_CODE (operands[1]) == CONST_DOUBLE)
     {
       long i;
-      REAL_VALUE_TYPE d;
 
       gcc_assert (GET_MODE (operands[1]) == SFmode);
 
       /* Translate the CONST_DOUBLE to a CONST_INT with the same target
 	 bit pattern.  */
-      REAL_VALUE_FROM_CONST_DOUBLE (d, operands[1]);
-      REAL_VALUE_TO_TARGET_SINGLE (d, i);
+      REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (operands[1]), i);
 
       operands[1] = GEN_INT (i);
       /* Fall through to CONST_INT case.  */
@@ -5428,10 +5450,10 @@ pa_print_operand (FILE *file, rtx x, int code)
 		       reg_names [REGNO (index)], reg_names [REGNO (base)]);
 	    }
 	  else
-	    output_address (XEXP (x, 0));
+	    output_address (GET_MODE (x), XEXP (x, 0));
 	  break;
 	default:
-	  output_address (XEXP (x, 0));
+	  output_address (GET_MODE (x), XEXP (x, 0));
 	  break;
 	}
     }

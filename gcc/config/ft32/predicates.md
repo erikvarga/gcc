@@ -1,5 +1,5 @@
 ;; Predicate definitions for FT32
-;; Copyright (C) 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2016 Free Software Foundation, Inc.
 ;; Contributed by FTDI <support@ftdi.com>
 
 ;; This file is part of GCC.
@@ -79,6 +79,10 @@
   (ior (match_code "reg")
        (and (match_code "const_int")
             (match_test "IN_RANGE (INTVAL (op), -512, 511)"))))
+
+(define_predicate "ft32_imm_operand"
+  (and (match_code "const_int")
+       (match_test "IN_RANGE (INTVAL (op), -512, 511)")))
 
 (define_predicate "ft32_bwidth_operand"
   (and (match_code "const_int")

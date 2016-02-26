@@ -1,5 +1,5 @@
 /* UndefinedBehaviorSanitizer, undefined behavior detector.
-   Copyright (C) 2014 Free Software Foundation, Inc.
+   Copyright (C) 2014-2016 Free Software Foundation, Inc.
    Contributed by Jakub Jelinek <jakub@redhat.com>
 
 This file is part of GCC.
@@ -21,25 +21,8 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
-#include "alias.h"
-#include "predict.h"
-#include "basic-block.h"
-#include "tree.h"
 #include "cp-tree.h"
-#include "gimple.h"
-#include "options.h"
-#include "output.h"
-#include "toplev.h"
 #include "ubsan.h"
-#include "c-family/c-common.h"
-#include "c-family/c-ubsan.h"
-#include "asan.h"
-#include "internal-fn.h"
-#include "stor-layout.h"
-#include "builtins.h"
-#include "fold-const.h"
-#include "stringpool.h"
-#include "cgraph.h"
 
 /* Test if we should instrument vptr access.  */
 
@@ -49,9 +32,7 @@ cp_ubsan_instrument_vptr_p (tree type)
   if (!flag_rtti || flag_sanitize_undefined_trap_on_error)
     return false;
 
-  if (current_function_decl
-      && lookup_attribute ("no_sanitize_undefined",
-			   DECL_ATTRIBUTES (current_function_decl)))
+  if (!do_ubsan_in_current_function ())
     return false;
 
   if (type)
@@ -89,10 +70,15 @@ cp_ubsan_instrument_vptr (location_t loc, tree op, tree type, bool is_addr,
   vptr = fold_convert_loc (loc, pointer_sized_int_node, vptr);
   vptr = fold_convert_loc (loc, uint64_type_node, vptr);
   if (ckind == UBSAN_DOWNCAST_POINTER)
-    vptr = fold_build3 (COND_EXPR, uint64_type_node,
-			fold_build2 (NE_EXPR, boolean_type_node, op,
-				     build_zero_cst (TREE_TYPE (op))),
-			vptr, build_int_cst (uint64_type_node, 0));
+    {
+      tree cond = build2_loc (loc, NE_EXPR, boolean_type_node, op,
+			      build_zero_cst (TREE_TYPE (op)));
+      /* This is a compiler generated comparison, don't emit
+	 e.g. -Wnonnull-compare warning for it.  */
+      TREE_NO_WARNING (cond) = 1;
+      vptr = build3_loc (loc, COND_EXPR, uint64_type_node, cond,
+			 vptr, build_int_cst (uint64_type_node, 0));
+    }
   tree ti_decl = get_tinfo_decl (type);
   mark_used (ti_decl);
   tree ptype = build_pointer_type (type);
@@ -262,13 +248,14 @@ cp_ubsan_instrument_member_accesses (tree *t_p)
 /* Instrument downcast.  */
 
 tree
-cp_ubsan_maybe_instrument_downcast (location_t loc, tree type, tree op)
+cp_ubsan_maybe_instrument_downcast (location_t loc, tree type,
+				    tree intype, tree op)
 {
   if (!POINTER_TYPE_P (type)
+      || !POINTER_TYPE_P (intype)
       || !POINTER_TYPE_P (TREE_TYPE (op))
-      || !CLASS_TYPE_P (TREE_TYPE (type))
       || !CLASS_TYPE_P (TREE_TYPE (TREE_TYPE (op)))
-      || !DERIVED_FROM_P (TREE_TYPE (TREE_TYPE (op)), TREE_TYPE (type)))
+      || !is_properly_derived_from (TREE_TYPE (type), TREE_TYPE (intype)))
     return NULL_TREE;
 
   return cp_ubsan_maybe_instrument_vptr (loc, op, TREE_TYPE (type), true,

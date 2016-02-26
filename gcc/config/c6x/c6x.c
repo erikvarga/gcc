@@ -1,5 +1,5 @@
 /* Target Code for TI C6X
-   Copyright (C) 2010-2015 Free Software Foundation, Inc.
+   Copyright (C) 2010-2016 Free Software Foundation, Inc.
    Contributed by Andrew Jenner <andrew@codesourcery.com>
    Contributed by Bernd Schmidt <bernds@codesourcery.com>
 
@@ -23,52 +23,36 @@
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
-#include "tree.h"
+#include "target.h"
 #include "rtl.h"
+#include "tree.h"
+#include "gimple-expr.h"
+#include "cfghooks.h"
 #include "df.h"
-#include "alias.h"
-#include "fold-const.h"
+#include "tm_p.h"
+#include "stringpool.h"
+#include "optabs.h"
+#include "regs.h"
+#include "emit-rtl.h"
+#include "recog.h"
+#include "cgraph.h"
+#include "diagnostic-core.h"
 #include "stor-layout.h"
 #include "varasm.h"
 #include "calls.h"
-#include "stringpool.h"
-#include "insn-flags.h"
 #include "output.h"
 #include "insn-attr.h"
-#include "insn-codes.h"
-#include "flags.h"
-#include "insn-config.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "regs.h"
-#include "optabs.h"
-#include "recog.h"
 #include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
 #include "sched-int.h"
-#include "timevar.h"
-#include "tm_p.h"
-#include "tm-preds.h"
 #include "tm-constrs.h"
-#include "diagnostic-core.h"
-#include "cgraph.h"
 #include "langhooks.h"
-#include "target.h"
 #include "sel-sched.h"
 #include "debug.h"
-#include "opts.h"
 #include "hw-doloop.h"
 #include "regrename.h"
 #include "dumpfile.h"
-#include "gimple-expr.h"
 #include "builtins.h"
 
 /* This file should be included last.  */
@@ -1870,7 +1854,7 @@ print_address_offset (FILE *file, rtx off, machine_mode mem_mode)
 	}
     }
   fputs ("(", file);
-  output_address (off);
+  output_address (mem_mode, off);
   fputs (")", file);
 }
 
@@ -1893,7 +1877,7 @@ c6x_print_address_operand (FILE *file, rtx x, machine_mode mem_mode)
     case PRE_MODIFY:
     case POST_MODIFY:
       if (GET_CODE (x) == POST_MODIFY)
-	output_address (XEXP (x, 0));
+	output_address (mem_mode, XEXP (x, 0));
       off = XEXP (XEXP (x, 1), 1);
       if (XEXP (x, 0) == stack_pointer_rtx)
 	{
@@ -1910,7 +1894,7 @@ c6x_print_address_operand (FILE *file, rtx x, machine_mode mem_mode)
       else
 	fprintf (file, "++");
       if (GET_CODE (x) == PRE_MODIFY)
-	output_address (XEXP (x, 0));
+	output_address (mem_mode, XEXP (x, 0));
       print_address_offset (file, off, mem_mode);
       break;
 
@@ -1923,28 +1907,28 @@ c6x_print_address_operand (FILE *file, rtx x, machine_mode mem_mode)
 	}
       else
 	fprintf (file, "+");
-      output_address (XEXP (x, 0));
+      output_address (mem_mode, XEXP (x, 0));
       print_address_offset (file, off, mem_mode);
       break;
 
     case PRE_DEC:
       gcc_assert (XEXP (x, 0) != stack_pointer_rtx);
       fprintf (file, "--");
-      output_address (XEXP (x, 0));
+      output_address (mem_mode, XEXP (x, 0));
       fprintf (file, "[1]");
       break;
     case PRE_INC:
       fprintf (file, "++");
-      output_address (XEXP (x, 0));
+      output_address (mem_mode, XEXP (x, 0));
       fprintf (file, "[1]");
       break;
     case POST_INC:
       gcc_assert (XEXP (x, 0) != stack_pointer_rtx);
-      output_address (XEXP (x, 0));
+      output_address (mem_mode, XEXP (x, 0));
       fprintf (file, "++[1]");
       break;
     case POST_DEC:
-      output_address (XEXP (x, 0));
+      output_address (mem_mode, XEXP (x, 0));
       fprintf (file, "--[1]");
       break;
 
@@ -2058,9 +2042,9 @@ c6x_print_unit_specifier_field (FILE *file, rtx_insn *insn)
 
 /* Output assembly language output for the address ADDR to FILE.  */
 static void
-c6x_print_operand_address (FILE *file, rtx addr)
+c6x_print_operand_address (FILE *file, machine_mode mode, rtx addr)
 {
-  c6x_print_address_operand (file, addr, VOIDmode);
+  c6x_print_address_operand (file, addr, mode);
 }
 
 /* Print an operand, X, to FILE, with an optional modifier in CODE.

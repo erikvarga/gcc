@@ -1,5 +1,5 @@
 /* Header file for gimple decl, type and expressions.
-   Copyright (C) 2013-2015 Free Software Foundation, Inc.
+   Copyright (C) 2013-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -52,6 +52,7 @@ extern bool is_gimple_asm_val (tree);
 extern bool is_gimple_min_lval (tree);
 extern bool is_gimple_call_addr (tree);
 extern bool is_gimple_mem_ref_addr (tree);
+extern void flush_mark_addressable_queue (void);
 extern void mark_addressable (tree);
 extern bool is_gimple_reg_rhs (tree);
 

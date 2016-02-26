@@ -1,5 +1,5 @@
 /* Target machine subroutines for Altera Nios II.
-   Copyright (C) 2012-2015 Free Software Foundation, Inc.
+   Copyright (C) 2012-2016 Free Software Foundation, Inc.
    Contributed by Jonah Graham (jgraham@altera.com), 
    Will Reece (wreece@altera.com), and Jeff DaSilva (jdasilva@altera.com).
    Contributed by Mentor Graphics, Inc.
@@ -24,41 +24,25 @@
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
-#include "tree.h"
+#include "target.h"
 #include "rtl.h"
+#include "tree.h"
 #include "df.h"
-#include "alias.h"
-#include "fold-const.h"
+#include "tm_p.h"
+#include "optabs.h"
 #include "regs.h"
-#include "insn-config.h"
-#include "conditions.h"
+#include "emit-rtl.h"
+#include "recog.h"
+#include "diagnostic-core.h"
 #include "output.h"
 #include "insn-attr.h"
 #include "flags.h"
-#include "recog.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
 #include "calls.h"
-#include "emit-rtl.h"
 #include "varasm.h"
-#include "stmt.h"
 #include "expr.h"
-#include "insn-codes.h"
-#include "optabs.h"
-#include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "diagnostic-core.h"
 #include "toplev.h"
-#include "target.h"
-#include "tm_p.h"
 #include "langhooks.h"
-#include "debug.h"
-#include "reload.h"
 #include "stor-layout.h"
 #include "builtins.h"
 
@@ -2099,13 +2083,17 @@ nios2_symbol_ref_in_small_data_p (rtx sym)
 
     case gpopt_local:
       /* Use GP-relative addressing for small data symbols that are
-	 not external or weak, plus any symbols that have explicitly
-	 been placed in a small data section.  */
+	 not external or weak or uninitialized common, plus any symbols
+	 that have explicitly been placed in a small data section.  */
       if (decl && DECL_SECTION_NAME (decl))
 	return nios2_small_section_name_p (DECL_SECTION_NAME (decl));
       return (SYMBOL_REF_SMALL_P (sym)
 	      && !SYMBOL_REF_EXTERNAL_P (sym)
-	      && !(decl && DECL_WEAK (decl)));
+	      && !(decl && DECL_WEAK (decl))
+	      && !(decl && DECL_COMMON (decl)
+		   && (DECL_INITIAL (decl) == NULL
+		       || (!in_lto_p
+			   && DECL_INITIAL (decl) == error_mark_node))));
 
     case gpopt_global:
       /* Use GP-relative addressing for small data symbols, even if
@@ -2634,7 +2622,7 @@ nios2_print_operand (FILE *file, rtx op, int letter)
 	}
       if (letter == 0)
         {
-          output_address (op);
+          output_address (VOIDmode, op);
           return;
         }
       break;
@@ -2717,7 +2705,7 @@ nios2_output_addr_const_extra (FILE *file, rtx op)
 
 /* Implement TARGET_PRINT_OPERAND_ADDRESS.  */
 static void
-nios2_print_operand_address (FILE *file, rtx op)
+nios2_print_operand_address (FILE *file, machine_mode mode, rtx op)
 {
   switch (GET_CODE (op))
     {
@@ -2763,7 +2751,7 @@ nios2_print_operand_address (FILE *file, rtx op)
     case MEM:
       {
         rtx base = XEXP (op, 0);
-        nios2_print_operand_address (file, base);
+        nios2_print_operand_address (file, mode, base);
         return;
       }
     default:
@@ -4132,8 +4120,8 @@ cdx_and_immed (rtx op)
       HOST_WIDE_INT ival = INTVAL (op);
       return (ival == 1 || ival == 2 || ival == 3 || ival == 4
 	      || ival == 8 || ival == 0xf || ival == 0x10
-	      || ival == 0x10 || ival == 0x1f || ival == 0x20
-	      || ival == 0x3f || ival == 0x3f || ival == 0x7f
+	      || ival == 0x1f || ival == 0x20
+	      || ival == 0x3f || ival == 0x7f
 	      || ival == 0x80 || ival == 0xff || ival == 0x7ff
 	      || ival == 0xff00 || ival == 0xffff);
     }

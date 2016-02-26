@@ -1,6 +1,6 @@
 /* GIMPLE lowering pass.  Converts High GIMPLE into Low GIMPLE.
 
-   Copyright (C) 2003-2015 Free Software Foundation, Inc.
+   Copyright (C) 2003-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -24,21 +24,12 @@ along with GCC; see the file COPYING3.  If not see
 #include "backend.h"
 #include "tree.h"
 #include "gimple.h"
-#include "hard-reg-set.h"
-#include "alias.h"
+#include "tree-pass.h"
 #include "fold-const.h"
 #include "tree-nested.h"
 #include "calls.h"
-#include "internal-fn.h"
 #include "gimple-iterator.h"
-#include "tree-iterator.h"
-#include "tree-inline.h"
-#include "flags.h"
-#include "diagnostic-core.h"
-#include "tree-pass.h"
-#include "langhooks.h"
 #include "gimple-low.h"
-#include "tree-nested.h"
 
 /* The differences between High GIMPLE and Low GIMPLE are the
    following:
@@ -367,6 +358,7 @@ lower_stmt (gimple_stmt_iterator *gsi, struct lower_data *data)
     case GIMPLE_OMP_TASK:
     case GIMPLE_OMP_TARGET:
     case GIMPLE_OMP_TEAMS:
+    case GIMPLE_OMP_GRID_BODY:
       data->cannot_fallthru = false;
       lower_omp_directive (gsi, data);
       data->cannot_fallthru = false;
@@ -751,7 +743,7 @@ lower_builtin_setjmp (gimple_stmt_iterator *gsi)
   dest = gimple_call_lhs (stmt);
 
   /* Build '__builtin_setjmp_setup (BUF, NEXT_LABEL)' and insert.  */
-  arg = build_addr (next_label, current_function_decl);
+  arg = build_addr (next_label);
   t = builtin_decl_implicit (BUILT_IN_SETJMP_SETUP);
   g = gimple_build_call (t, 2, gimple_call_arg (stmt, 0), arg);
   gimple_set_location (g, loc);
@@ -776,7 +768,7 @@ lower_builtin_setjmp (gimple_stmt_iterator *gsi)
   gsi_insert_before (gsi, g, GSI_SAME_STMT);
 
   /* Build '__builtin_setjmp_receiver (NEXT_LABEL)' and insert.  */
-  arg = build_addr (next_label, current_function_decl);
+  arg = build_addr (next_label);
   t = builtin_decl_implicit (BUILT_IN_SETJMP_RECEIVER);
   g = gimple_build_call (t, 1, arg);
   gimple_set_location (g, loc);

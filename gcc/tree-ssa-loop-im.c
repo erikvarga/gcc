@@ -1,5 +1,5 @@
 /* Loop invariant motion.
-   Copyright (C) 2003-2015 Free Software Foundation, Inc.
+   Copyright (C) 2003-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -21,17 +21,14 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
 #include "tree.h"
 #include "gimple.h"
-#include "hard-reg-set.h"
+#include "cfghooks.h"
+#include "tree-pass.h"
 #include "ssa.h"
-#include "alias.h"
-#include "fold-const.h"
-#include "tm_p.h"
-#include "cfganal.h"
 #include "gimple-pretty-print.h"
-#include "internal-fn.h"
+#include "fold-const.h"
+#include "cfganal.h"
 #include "tree-eh.h"
 #include "gimplify.h"
 #include "gimple-iterator.h"
@@ -42,12 +39,11 @@ along with GCC; see the file COPYING3.  If not see
 #include "cfgloop.h"
 #include "domwalk.h"
 #include "params.h"
-#include "tree-pass.h"
-#include "flags.h"
 #include "tree-affine.h"
 #include "tree-ssa-propagate.h"
 #include "trans-mem.h"
 #include "gimple-fold.h"
+#include "tree-scalar-evolution.h"
 
 /* TODO:  Support for predicated code motion.  I.e.
 
@@ -619,56 +615,15 @@ static bool
 extract_true_false_args_from_phi (basic_block dom, gphi *phi,
 				  tree *true_arg_p, tree *false_arg_p)
 {
-  basic_block bb = gimple_bb (phi);
-  edge true_edge, false_edge, tem;
-  tree arg0 = NULL_TREE, arg1 = NULL_TREE;
-
-  /* We have to verify that one edge into the PHI node is dominated
-     by the true edge of the predicate block and the other edge
-     dominated by the false edge.  This ensures that the PHI argument
-     we are going to take is completely determined by the path we
-     take from the predicate block.
-     We can only use BB dominance checks below if the destination of
-     the true/false edges are dominated by their edge, thus only
-     have a single predecessor.  */
-  extract_true_false_edges_from_block (dom, &true_edge, &false_edge);
-  tem = EDGE_PRED (bb, 0);
-  if (tem == true_edge
-      || (single_pred_p (true_edge->dest)
-	  && (tem->src == true_edge->dest
-	      || dominated_by_p (CDI_DOMINATORS,
-				 tem->src, true_edge->dest))))
-    arg0 = PHI_ARG_DEF (phi, tem->dest_idx);
-  else if (tem == false_edge
-	   || (single_pred_p (false_edge->dest)
-	       && (tem->src == false_edge->dest
-		   || dominated_by_p (CDI_DOMINATORS,
-				      tem->src, false_edge->dest))))
-    arg1 = PHI_ARG_DEF (phi, tem->dest_idx);
-  else
-    return false;
-  tem = EDGE_PRED (bb, 1);
-  if (tem == true_edge
-      || (single_pred_p (true_edge->dest)
-	  && (tem->src == true_edge->dest
-	      || dominated_by_p (CDI_DOMINATORS,
-				 tem->src, true_edge->dest))))
-    arg0 = PHI_ARG_DEF (phi, tem->dest_idx);
-  else if (tem == false_edge
-	   || (single_pred_p (false_edge->dest)
-	       && (tem->src == false_edge->dest
-		   || dominated_by_p (CDI_DOMINATORS,
-				      tem->src, false_edge->dest))))
-    arg1 = PHI_ARG_DEF (phi, tem->dest_idx);
-  else
-    return false;
-  if (!arg0 || !arg1)
+  edge te, fe;
+  if (! extract_true_false_controlled_edges (dom, gimple_bb (phi),
+					     &te, &fe))
     return false;
 
   if (true_arg_p)
-    *true_arg_p = arg0;
+    *true_arg_p = PHI_ARG_DEF (phi, te->dest_idx);
   if (false_arg_p)
-    *false_arg_p = arg1;
+    *false_arg_p = PHI_ARG_DEF (phi, fe->dest_idx);
 
   return true;
 }
@@ -983,7 +938,9 @@ rewrite_bittest (gimple_stmt_iterator *bsi)
       rsi = *bsi;
       gsi_insert_before (bsi, stmt1, GSI_NEW_STMT);
       gsi_insert_before (&rsi, stmt2, GSI_SAME_STMT);
+      gimple *to_release = gsi_stmt (rsi);
       gsi_remove (&rsi, true);
+      release_defs (to_release);
 
       return stmt1;
     }
@@ -1001,14 +958,14 @@ public:
   invariantness_dom_walker (cdi_direction direction)
     : dom_walker (direction) {}
 
-  virtual void before_dom_children (basic_block);
+  virtual edge before_dom_children (basic_block);
 };
 
 /* Determine the outermost loops in that statements in basic block BB are
    invariant, and record them to the LIM_DATA associated with the statements.
    Callback for dom_walker.  */
 
-void
+edge
 invariantness_dom_walker::before_dom_children (basic_block bb)
 {
   enum move_pos pos;
@@ -1019,7 +976,7 @@ invariantness_dom_walker::before_dom_children (basic_block bb)
   struct lim_aux_data *lim_data;
 
   if (!loop_outer (bb->loop_father))
-    return;
+    return NULL;
 
   if (dump_file && (dump_flags & TDF_DETAILS))
     fprintf (dump_file, "Basic block %d (loop %d -- depth %d):\n\n",
@@ -1137,6 +1094,7 @@ invariantness_dom_walker::before_dom_children (basic_block bb)
       if (lim_data->cost >= LIM_EXPENSIVE)
 	set_profitable_level (stmt);
     }
+  return NULL;
 }
 
 class move_computations_dom_walker : public dom_walker
@@ -1145,7 +1103,7 @@ public:
   move_computations_dom_walker (cdi_direction direction)
     : dom_walker (direction), todo_ (0) {}
 
-  virtual void before_dom_children (basic_block);
+  virtual edge before_dom_children (basic_block);
 
   unsigned int todo_;
 };
@@ -1154,15 +1112,16 @@ public:
    data stored in LIM_DATA structures associated with each statement.  Callback
    for walk_dominator_tree.  */
 
-void
-move_computations_dom_walker::before_dom_children (basic_block bb)
+unsigned int
+move_computations_worker (basic_block bb)
 {
   struct loop *level;
   unsigned cost = 0;
   struct lim_aux_data *lim_data;
+  unsigned int todo = 0;
 
   if (!loop_outer (bb->loop_father))
-    return;
+    return todo;
 
   for (gphi_iterator bsi = gsi_start_phis (bb); !gsi_end_p (bsi); )
     {
@@ -1213,7 +1172,7 @@ move_computations_dom_walker::before_dom_children (basic_block bb)
 		      gimple_cond_lhs (cond), gimple_cond_rhs (cond));
 	  new_stmt = gimple_build_assign (gimple_phi_result (stmt),
 					  COND_EXPR, t, arg0, arg1);
-	  todo_ |= TODO_cleanup_cfg;
+	  todo |= TODO_cleanup_cfg;
 	}
       if (INTEGRAL_TYPE_P (TREE_TYPE (gimple_assign_lhs (new_stmt)))
 	  && (!ALWAYS_EXECUTED_IN (bb)
@@ -1222,7 +1181,6 @@ move_computations_dom_walker::before_dom_children (basic_block bb)
 	{
 	  tree lhs = gimple_assign_lhs (new_stmt);
 	  SSA_NAME_RANGE_INFO (lhs) = NULL;
-	  SSA_NAME_ANTI_RANGE_P (lhs) = 0;
 	}
       gsi_insert_on_edge (loop_preheader_edge (level), new_stmt);
       remove_phi_node (&bsi, false);
@@ -1292,7 +1250,6 @@ move_computations_dom_walker::before_dom_children (basic_block bb)
 	{
 	  tree lhs = gimple_get_lhs (stmt);
 	  SSA_NAME_RANGE_INFO (lhs) = NULL;
-	  SSA_NAME_ANTI_RANGE_P (lhs) = 0;
 	}
       /* In case this is a stmt that is not unconditionally executed
          when the target loop header is executed and the stmt may
@@ -1310,6 +1267,8 @@ move_computations_dom_walker::before_dom_children (basic_block bb)
       else
 	gsi_insert_on_edge (e, stmt);
     }
+
+  return todo;
 }
 
 /* Hoist the statements out of the loops prescribed by data stored in
@@ -1318,14 +1277,20 @@ move_computations_dom_walker::before_dom_children (basic_block bb)
 static unsigned int
 move_computations (void)
 {
-  move_computations_dom_walker walker (CDI_DOMINATORS);
-  walker.walk (cfun->cfg->x_entry_block_ptr);
+  int *rpo = XNEWVEC (int, last_basic_block_for_fn (cfun));
+  int n = pre_and_rev_post_order_compute_fn (cfun, NULL, rpo, false);
+  unsigned todo = 0;
+
+  for (int i = 0; i < n; ++i)
+    todo |= move_computations_worker (BASIC_BLOCK_FOR_FN (cfun, rpo[i]));
+
+  free (rpo);
 
   gsi_commit_edge_inserts ();
   if (need_ssa_update_p (cfun))
     rewrite_into_loop_closed_ssa (NULL, TODO_update_ssa);
 
-  return walker.todo_;
+  return todo;
 }
 
 /* Checks whether the statement defining variable *INDEX can be hoisted
@@ -2542,7 +2507,7 @@ tree_ssa_lim_finalize (void)
 /* Moves invariants from loops.  Only "expensive" invariants are moved out --
    i.e. those that are likely to be win regardless of the register pressure.  */
 
-unsigned int
+static unsigned int
 tree_ssa_lim (void)
 {
   unsigned int todo;
@@ -2606,10 +2571,17 @@ public:
 unsigned int
 pass_lim::execute (function *fun)
 {
+  bool in_loop_pipeline = scev_initialized_p ();
+  if (!in_loop_pipeline)
+    loop_optimizer_init (LOOPS_NORMAL | LOOPS_HAVE_RECORDED_EXITS);
+
   if (number_of_loops (fun) <= 1)
     return 0;
+  unsigned int todo = tree_ssa_lim ();
 
-  return tree_ssa_lim ();
+  if (!in_loop_pipeline)
+    loop_optimizer_finalize ();
+  return todo;
 }
 
 } // anon namespace

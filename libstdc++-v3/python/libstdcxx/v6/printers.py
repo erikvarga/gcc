@@ -1,6 +1,6 @@
 # Pretty-printers for libstdc++.
 
-# Copyright (C) 2008-2015 Free Software Foundation, Inc.
+# Copyright (C) 2008-2016 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -85,7 +85,9 @@ except ImportError:
 def find_type(orig, name):
     typ = orig.strip_typedefs()
     while True:
-        search = str(typ) + '::' + name
+        # Use typ.name here instead of str(typ) to discard any const,etc.
+        # qualifiers.  PR 67440.
+        search = typ.name + '::' + name
         try:
             return gdb.lookup_type(search)
         except RuntimeError:
@@ -945,10 +947,6 @@ class StdExpAnyPrinter(SingleObjContainerPrinter):
                 valptr = self.val['_M_storage']['_M_buffer'].address
             elif '::_Manager_external' in mgrname:
                 valptr = self.val['_M_storage']['_M_ptr']
-            elif '::_Manager_alloc' in mgrname:
-                datatype = gdb.lookup_type(mgrname + '::_Data')
-                valptr = self.val['_M_storage']['_M_ptr'].cast(datatype.pointer())
-                valptr = valptr.dereference()['_M_data'].address
             else:
                 raise ValueError("Unknown manager function in std::experimental::any")
             contained_value = valptr.cast(self.contained_type.pointer()).dereference()

@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
    Contributed by Red Hat, Inc.
 
 This file is part of GCC.
@@ -21,43 +21,25 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
-#include "tree.h"
+#include "target.h"
 #include "rtl.h"
+#include "tree.h"
 #include "df.h"
-#include "alias.h"
+#include "tm_p.h"
+#include "stringpool.h"
+#include "optabs.h"
+#include "regs.h"
+#include "emit-rtl.h"
+#include "recog.h"
+#include "diagnostic-core.h"
 #include "fold-const.h"
 #include "varasm.h"
 #include "stor-layout.h"
-#include "stringpool.h"
-#include "regs.h"
-#include "insn-config.h"
-#include "conditions.h"
-#include "insn-flags.h"
 #include "output.h"
 #include "insn-attr.h"
-#include "flags.h"
-#include "recog.h"
-#include "reload.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
-#include "calls.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "except.h"
-#include "insn-codes.h"
-#include "optabs.h"
-#include "diagnostic-core.h"
 #include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "tm_p.h"
-#include "target.h"
-#include "targhooks.h"
 #include "langhooks.h"
 #include "dumpfile.h"
 #include "builtins.h"
@@ -280,7 +262,7 @@ static int frv_default_flags_for_cpu		(void);
 static int frv_string_begins_with		(const char *, const char *);
 static FRV_INLINE bool frv_small_data_reloc_p	(rtx, int);
 static void frv_print_operand			(FILE *, rtx, int);
-static void frv_print_operand_address		(FILE *, rtx);
+static void frv_print_operand_address		(FILE *, machine_mode, rtx);
 static bool frv_print_operand_punct_valid_p	(unsigned char code);
 static void frv_print_operand_memory_reference_reg
 						(FILE *, rtx);
@@ -2488,7 +2470,7 @@ frv_index_memory (rtx memref, machine_mode mode, int index)
 
 /* Print a memory address as an operand to reference that memory location.  */
 static void
-frv_print_operand_address (FILE * stream, rtx x)
+frv_print_operand_address (FILE * stream, machine_mode /* mode */, rtx x)
 {
   if (GET_CODE (x) == MEM)
     x = XEXP (x, 0);
@@ -2767,11 +2749,9 @@ frv_print_operand (FILE * file, rtx x, int code)
     {
       if (GET_MODE (x) == SFmode)
 	{
-	  REAL_VALUE_TYPE rv;
 	  long l;
 
-	  REAL_VALUE_FROM_CONST_DOUBLE (rv, x);
-	  REAL_VALUE_TO_TARGET_SINGLE (rv, l);
+	  REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (x), l);
 	  value = l;
 	}
 
@@ -3023,10 +3003,10 @@ frv_print_operand (FILE * file, rtx x, int code)
 	frv_output_const_unspec (file, &unspec);
 
       else if (GET_CODE (x) == MEM)
-        frv_print_operand_address (file, XEXP (x, 0));
+        frv_print_operand_address (file, GET_MODE (x), XEXP (x, 0));
 
       else if (CONSTANT_ADDRESS_P (x))
-        frv_print_operand_address (file, x);
+        frv_print_operand_address (file, VOIDmode, x);
 
       else
         fatal_insn ("bad insn in frv_print_operand, 0 case", x);
@@ -4290,11 +4270,10 @@ output_move_single (rtx operands[], rtx insn)
 
 	      else if (mode == SFmode)
 		{
-		  REAL_VALUE_TYPE rv;
 		  long l;
 
-		  REAL_VALUE_FROM_CONST_DOUBLE (rv, src);
-		  REAL_VALUE_TO_TARGET_SINGLE (rv, l);
+		  REAL_VALUE_TO_TARGET_SINGLE
+		    (*CONST_DOUBLE_REAL_VALUE (src), l);
 		  value = l;
 		}
 

@@ -1,7 +1,7 @@
 // { dg-options "-std=gnu++11 -lstdc++fs" }
 // { dg-require-filesystem-ts "" }
 
-// Copyright (C) 2014-2015 Free Software Foundation, Inc.
+// Copyright (C) 2014-2016 Free Software Foundation, Inc.
 //
 // This file is part of the GNU ISO C++ Library.  This library is free
 // software; you can redistribute it and/or modify it under the
@@ -35,7 +35,11 @@ test01()
   VERIFY( p.filename() == "foobar" );
   p += '/';
   VERIFY( p.parent_path() == "/foobar" && p.filename() == "." );
+#if _GLIBCXX_USE_WCHAR_T
   p += L"baz.txt";
+#else
+  p += "baz.txt";
+#endif
   VERIFY( p.filename() == "baz.txt" );
   p.concat("/dir/");
   VERIFY( p.parent_path() == "/foobar/baz.txt/dir" && p.filename() == "." );

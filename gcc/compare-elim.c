@@ -1,5 +1,5 @@
 /* Post-reload compare elimination.
-   Copyright (C) 2010-2015 Free Software Foundation, Inc.
+   Copyright (C) 2010-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -58,15 +58,14 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
+#include "target.h"
 #include "rtl.h"
 #include "df.h"
 #include "tm_p.h"
 #include "insn-config.h"
 #include "recog.h"
-#include "flags.h"
 #include "cfgrtl.h"
 #include "tree-pass.h"
-#include "target.h"
 #include "domwalk.h"
 
 
@@ -121,9 +120,7 @@ struct comparison
   bool inputs_valid;
 };
   
-typedef struct comparison *comparison_struct_p;
-
-static vec<comparison_struct_p> all_compares;
+static vec<comparison *> all_compares;
 
 /* Look for a "conforming" comparison, as defined above.  If valid, return
    the rtx for the COMPARE itself.  */
@@ -251,7 +248,7 @@ public:
   find_comparison_dom_walker (cdi_direction direction)
     : dom_walker (direction) {}
 
-  virtual void before_dom_children (basic_block);
+  virtual edge before_dom_children (basic_block);
 };
 
 /* Return true if conforming COMPARE with EH_NOTE is redundant with comparison
@@ -297,7 +294,7 @@ can_eliminate_compare (rtx compare, rtx eh_note, struct comparison *cmp)
    compare in the BB is live at the end of the block, install the compare
    in BB->AUX.  Called via dom_walker.walk ().  */
 
-void
+edge
 find_comparison_dom_walker::before_dom_children (basic_block bb)
 {
   struct comparison *last_cmp;
@@ -429,6 +426,8 @@ find_comparison_dom_walker::before_dom_children (basic_block bb)
      remove EH edges.  */
   if (need_purge)
     purge_dead_edges (bb);
+
+  return NULL;
 }
 
 /* Find all comparisons in the function.  */

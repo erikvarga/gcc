@@ -1,5 +1,5 @@
 /* Subroutines used for code generation on the Tilera TILE-Gx.
-   Copyright (C) 2011-2015 Free Software Foundation, Inc.
+   Copyright (C) 2011-2016 Free Software Foundation, Inc.
    Contributed by Walter Lee (walt@tilera.com)
 
    This file is part of GCC.
@@ -22,51 +22,35 @@
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
+#include "target.h"
+#include "rtl.h"
 #include "tree.h"
 #include "gimple.h"
-#include "rtl.h"
 #include "df.h"
+#include "tm_p.h"
+#include "stringpool.h"
+#include "expmed.h"
+#include "optabs.h"
 #include "regs.h"
-#include "insn-config.h"
+#include "emit-rtl.h"
+#include "recog.h"
+#include "diagnostic.h"
 #include "output.h"
 #include "insn-attr.h"
-#include "recog.h"
-#include "flags.h"
 #include "alias.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
 #include "calls.h"
-#include "emit-rtl.h"
 #include "varasm.h"
-#include "stmt.h"
 #include "expr.h"
 #include "langhooks.h"
-#include "insn-codes.h"
-#include "optabs.h"
 #include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "sched-int.h"
-#include "tm_p.h"
 #include "tm-constrs.h"
-#include "target.h"
 #include "dwarf2.h"
-#include "timevar.h"
 #include "fold-const.h"
-#include "internal-fn.h"
-#include "gimple-fold.h"
-#include "tree-eh.h"
-#include "stringpool.h"
 #include "stor-layout.h"
 #include "gimplify.h"
-#include "cfgloop.h"
 #include "tilegx-builtins.h"
 #include "tilegx-multiply.h"
-#include "diagnostic.h"
 #include "builtins.h"
 
 /* This file should be included last.  */
@@ -74,11 +58,6 @@
 
 /* SYMBOL_REF for GOT */
 static GTY(()) rtx g_got_symbol = NULL;
-
-/* In case of a POST_INC or POST_DEC memory reference, we must report
-   the mode of the memory reference from TARGET_PRINT_OPERAND to
-   TARGET_PRINT_OPERAND_ADDRESS.  */
-static machine_mode output_memory_reference_mode;
 
 /* Report whether we're printing out the first address fragment of a
    POST_INC or POST_DEC memory reference, from TARGET_PRINT_OPERAND to
@@ -1978,7 +1957,7 @@ tilegx_expand_unaligned_load (rtx dest_reg, rtx mem, HOST_WIDE_INT bitsize,
 	extract_bit_field (gen_lowpart (DImode, wide_result),
 			   bitsize, bit_offset % BITS_PER_UNIT,
 			   !sign, gen_lowpart (DImode, dest_reg),
-			   DImode, DImode);
+			   DImode, DImode, false);
 
       if (extracted != dest_reg)
 	emit_move_insn (dest_reg, gen_lowpart (DImode, extracted));
@@ -5284,10 +5263,8 @@ tilegx_print_operand (FILE *file, rtx x, int code)
 	  return;
 	}
 
-      output_memory_reference_mode = GET_MODE (x);
       output_memory_autoinc_first = true;
-      output_address (XEXP (x, 0));
-      output_memory_reference_mode = VOIDmode;
+      output_address (GET_MODE (x), XEXP (x, 0));
       return;
 
     case 'i':
@@ -5298,10 +5275,8 @@ tilegx_print_operand (FILE *file, rtx x, int code)
 	  return;
 	}
 
-      output_memory_reference_mode = GET_MODE (x);
       output_memory_autoinc_first = false;
-      output_address (XEXP (x, 0));
-      output_memory_reference_mode = VOIDmode;
+      output_address (GET_MODE (x), XEXP (x, 0));
       return;
 
     case 'j':
@@ -5420,8 +5395,7 @@ tilegx_print_operand (FILE *file, rtx x, int code)
 	}
       else if (MEM_P (x))
 	{
-	  output_memory_reference_mode = VOIDmode;
-	  output_address (XEXP (x, 0));
+	  output_address (VOIDmode, XEXP (x, 0));
 	  return;
 	}
       else
@@ -5439,14 +5413,14 @@ tilegx_print_operand (FILE *file, rtx x, int code)
 
 /* Implement TARGET_PRINT_OPERAND_ADDRESS.  */
 static void
-tilegx_print_operand_address (FILE *file, rtx addr)
+tilegx_print_operand_address (FILE *file, machine_mode mode, rtx addr)
 {
   if (GET_CODE (addr) == POST_DEC
       || GET_CODE (addr) == POST_INC)
     {
-      int offset = GET_MODE_SIZE (output_memory_reference_mode);
+      int offset = GET_MODE_SIZE (mode);
 
-      gcc_assert (output_memory_reference_mode != VOIDmode);
+      gcc_assert (mode != VOIDmode);
 
       if (output_memory_autoinc_first)
 	fprintf (file, "%s", reg_names[REGNO (XEXP (addr, 0))]);
@@ -5456,7 +5430,7 @@ tilegx_print_operand_address (FILE *file, rtx addr)
     }
   else if (GET_CODE (addr) == POST_MODIFY)
     {
-      gcc_assert (output_memory_reference_mode != VOIDmode);
+      gcc_assert (mode != VOIDmode);
 
       gcc_assert (GET_CODE (XEXP (addr, 1)) == PLUS);
 

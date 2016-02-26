@@ -1,7 +1,7 @@
 /* Generate attribute information shared between driver and core
    compilers (insn-attr-common.h) from machine description.  Split out
    of genattr.c.
-   Copyright (C) 1991-2015 Free Software Foundation, Inc.
+   Copyright (C) 1991-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -87,11 +87,7 @@ main (int argc, char **argv)
 	break;
 
       case DEFINE_DELAY:
-	if (!have_delay)
-	  {
-	    printf ("#define DELAY_SLOTS\n");
-	    have_delay = true;
-	  }
+	have_delay = true;
 	break;
 
       case DEFINE_INSN_RESERVATION:
@@ -105,6 +101,8 @@ main (int argc, char **argv)
       default:
 	break;
       }
+
+	    printf ("#define DELAY_SLOTS %d\n", have_delay);
   puts ("\n#endif /* GCC_INSN_ATTR_COMMON_H */");
 
   if (ferror (stdout) || fflush (stdout) || fclose (stdout))

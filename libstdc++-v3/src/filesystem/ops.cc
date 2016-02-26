@@ -1,6 +1,6 @@
 // Filesystem operations -*- C++ -*-
 
-// Copyright (C) 2014-2015 Free Software Foundation, Inc.
+// Copyright (C) 2014-2016 Free Software Foundation, Inc.
 //
 // This file is part of the GNU ISO C++ Library.  This library is free
 // software; you can redistribute it and/or modify it under the
@@ -21,6 +21,10 @@
 // a copy of the GCC Runtime Library Exception along with this program;
 // see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 // <http://www.gnu.org/licenses/>.
+
+#ifndef _GLIBCXX_USE_CXX11_ABI
+# define _GLIBCXX_USE_CXX11_ABI 1
+#endif
 
 #include <experimental/filesystem>
 #include <functional>

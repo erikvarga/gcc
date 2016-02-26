@@ -1,7 +1,7 @@
 // { dg-options "-std=gnu++11 -lstdc++fs" }
 // { dg-require-filesystem-ts "" }
 
-// Copyright (C) 2014-2015 Free Software Foundation, Inc.
+// Copyright (C) 2014-2016 Free Software Foundation, Inc.
 //
 // This file is part of the GNU ISO C++ Library.  This library is free
 // software; you can redistribute it and/or modify it under the
@@ -37,19 +37,22 @@ test01()
     path p3( s.c_str() );
     path p4( s.c_str(), s.c_str() + s.size() );
 
+    compare_paths(p1, p2);
+    compare_paths(p1, p3);
+    compare_paths(p1, p4);
+
+#if _GLIBCXX_USE_WCHAR_T
     std::wstring ws(s.begin(), s.end());
     path p5 = ws;
     path p6( ws.begin(), ws.end() );
     path p7( ws.c_str() );
     path p8( ws.c_str(), ws.c_str() + ws.size() );
 
-    compare_paths(p1, p2);
-    compare_paths(p1, p3);
-    compare_paths(p1, p4);
     compare_paths(p1, p5);
     compare_paths(p1, p6);
     compare_paths(p1, p7);
     compare_paths(p1, p8);
+#endif
   }
 }
 

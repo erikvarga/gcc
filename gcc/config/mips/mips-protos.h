@@ -1,5 +1,5 @@
 /* Prototypes of target machine for GNU compiler.  MIPS version.
-   Copyright (C) 1989-2015 Free Software Foundation, Inc.
+   Copyright (C) 1989-2016 Free Software Foundation, Inc.
    Contributed by A. Lichnewsky (lich@inria.inria.fr).
    Changed by Michael Meissner	(meissner@osf.org).
    64-bit r4000 support by Ian Lance Taylor (ian@cygnus.com) and
@@ -370,5 +370,7 @@ typedef rtx (*mulsidi3_gen_fn) (rtx, rtx, rtx);
 #ifdef RTX_CODE
 extern mulsidi3_gen_fn mips_mulsidi3_gen_fn (enum rtx_code);
 #endif
+
+extern void mips_register_frame_header_opt (void);
 
 #endif /* ! GCC_MIPS_PROTOS_H */

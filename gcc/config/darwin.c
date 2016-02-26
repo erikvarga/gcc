@@ -1,5 +1,5 @@
 /* Functions for generic Darwin as target machine for GNU C compiler.
-   Copyright (C) 1989-2015 Free Software Foundation, Inc.
+   Copyright (C) 1989-2016 Free Software Foundation, Inc.
    Contributed by Apple Computer Inc.
 
 This file is part of GCC.
@@ -22,49 +22,25 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
+#include "target.h"
+#include "rtl.h"
 #include "tree.h"
 #include "gimple.h"
-#include "rtl.h"
+#include "cfghooks.h"
 #include "df.h"
-#include "regs.h"
-#include "insn-config.h"
-#include "conditions.h"
-#include "insn-flags.h"
-#include "output.h"
-#include "insn-attr.h"
-#include "flags.h"
-#include "alias.h"
-#include "fold-const.h"
+#include "tm_p.h"
 #include "stringpool.h"
+#include "insn-config.h"
+#include "emit-rtl.h"
+#include "cgraph.h"
+#include "lto-streamer.h"
+#include "output.h"
 #include "varasm.h"
 #include "stor-layout.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
-#include "calls.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "reload.h"
 #include "langhooks.h"
-#include "target.h"
-#include "tm_p.h"
-#include "diagnostic-core.h"
 #include "toplev.h"
-#include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "debug.h"
-#include "internal-fn.h"
-#include "gimple-fold.h"
-#include "tree-eh.h"
-#include "gimplify.h"
-#include "cgraph.h"
-#include "alloc-pool.h"
-#include "lto-streamer.h"
 #include "lto-section-names.h"
 
 /* Darwin supports a feature called fix-and-continue, which is used
@@ -3021,23 +2997,23 @@ darwin_asm_output_anchor (rtx symbol)
 	   SYMBOL_REF_BLOCK_OFFSET (symbol));
 }
 
-/* Disable section anchoring on any section containing a zero-sized 
+/* Disable section anchoring on any section containing a zero-sized
    object.  */
 bool
 darwin_use_anchors_for_symbol_p (const_rtx symbol)
 {
-  if (DARWIN_SECTION_ANCHORS && flag_section_anchors) 
+  if (DARWIN_SECTION_ANCHORS && flag_section_anchors)
     {
       section *sect;
       /* If the section contains a zero-sized object it's ineligible.  */
       sect = SYMBOL_REF_BLOCK (symbol)->sect;
       /* This should have the effect of disabling anchors for vars that follow
-         any zero-sized one, in a given section.  */     
+         any zero-sized one, in a given section.  */
       if (sect->common.flags & SECTION_NO_ANCHOR)
 	return false;
 
-        /* Also check the normal reasons for suppressing.  */
-        return default_use_anchors_for_symbol_p (symbol);
+      /* Also check the normal reasons for suppressing.  */
+      return default_use_anchors_for_symbol_p (symbol);
     }
   else
     return false;

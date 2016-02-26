@@ -1,6 +1,6 @@
 /* Get common system includes and various definitions and declarations based
    on autoconf macros.
-   Copyright (C) 1998-2015 Free Software Foundation, Inc.
+   Copyright (C) 1998-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -198,7 +198,9 @@ extern int fprintf_unlocked (FILE *, const char *, ...);
    the ctype macros through safe-ctype.h */
 
 #ifdef __cplusplus
+#ifdef INCLUDE_STRING
 # include <string>
+#endif
 #endif
 
 /* There are an extraordinary number of issues with <ctype.h>.
@@ -215,8 +217,11 @@ extern int errno;
 #endif
 
 #ifdef __cplusplus
+#if defined (INCLUDE_ALGORITHM) || !defined (HAVE_SWAP_IN_UTILITY)
 # include <algorithm>
+#endif
 # include <cstring>
+# include <new>
 # include <utility>
 #endif
 
@@ -369,6 +374,12 @@ extern int errno;
 /* Returns the least number N such that N * Y >= X.  */
 #define CEIL(x,y) (((x) + (y) - 1) / (y))
 
+/* This macro rounds x up to the y boundary.  */
+#define ROUND_UP(x,y) (((x) + (y) - 1) & ~((y) - 1))
+
+/* This macro rounds x down to the y boundary.  */
+#define ROUND_DOWN(x,y) ((x) & ~((y) - 1))
+ 	
 #ifdef HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
@@ -479,18 +490,6 @@ extern char *stpcpy (char *, const char *);
 
 #if defined (HAVE_DECL_UNSETENV) && !HAVE_DECL_UNSETENV
 int unsetenv(const char *);
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 #if defined (HAVE_DECL_MALLOC) && !HAVE_DECL_MALLOC
@@ -720,9 +719,10 @@ extern void fancy_abort (const char *, int, const char *) ATTRIBUTE_NORETURN;
 #define gcc_assert(EXPR) ((void)(0 && (EXPR)))
 #endif
 
-#ifdef ENABLE_CHECKING
+#if CHECKING_P
 #define gcc_checking_assert(EXPR) gcc_assert (EXPR)
 #else
+/* N.B.: in release build EXPR is not evaluated.  */
 #define gcc_checking_assert(EXPR) ((void)(0 && (EXPR)))
 #endif
 
@@ -803,9 +803,12 @@ extern void fancy_abort (const char *, int, const char *) ATTRIBUTE_NORETURN;
    compiling gcc, so that the autoconf declaration tests for malloc
    etc don't spuriously fail.  */
 #ifdef IN_GCC
+
+#ifndef USES_ISL
 #undef calloc
 #undef strdup
  #pragma GCC poison calloc strdup
+#endif
 
 #if !defined(FLEX_SCANNER) && !defined(YYBISON)
 #undef malloc
@@ -972,7 +975,7 @@ extern void fancy_abort (const char *, int, const char *) ATTRIBUTE_NORETURN;
 	TARGET_HANDLE_PRAGMA_EXTERN_PREFIX \
 	TARGET_VECTORIZE_BUILTIN_MUL_WIDEN_EVEN \
 	TARGET_VECTORIZE_BUILTIN_MUL_WIDEN_ODD \
-	TARGET_MD_ASM_CLOBBERS TARGET_RELAXED_ORDERING
+	TARGET_MD_ASM_CLOBBERS TARGET_RELAXED_ORDERING EXTENDED_SDB_BASIC_TYPES
 
 /* Arrays that were deleted in favor of a functional interface.  */
  #pragma GCC poison built_in_decls implicit_built_in_decls

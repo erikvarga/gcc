@@ -1,5 +1,5 @@
 /* Subroutines used for code generation on the EPIPHANY cpu.
-   Copyright (C) 1994-2015 Free Software Foundation, Inc.
+   Copyright (C) 1994-2016 Free Software Foundation, Inc.
    Contributed by Embecosm on behalf of Adapteva, Inc.
 
 This file is part of GCC.
@@ -22,41 +22,24 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "cfghooks.h"
-#include "tree.h"
+#include "target.h"
 #include "rtl.h"
+#include "tree.h"
 #include "df.h"
+#include "tm_p.h"
+#include "stringpool.h"
+#include "optabs.h"
+#include "emit-rtl.h"
+#include "recog.h"
+#include "diagnostic-core.h"
 #include "alias.h"
-#include "fold-const.h"
 #include "stor-layout.h"
 #include "varasm.h"
 #include "calls.h"
-#include "stringpool.h"
-#include "regs.h"
-#include "insn-config.h"
-#include "conditions.h"
 #include "output.h"
 #include "insn-attr.h"
-#include "flags.h"
-#include "insn-codes.h"
-#include "optabs.h"
-#include "expmed.h"
-#include "dojump.h"
 #include "explow.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "diagnostic-core.h"
-#include "recog.h"
-#include "toplev.h"
-#include "tm_p.h"
-#include "target.h"
-#include "cfgrtl.h"
-#include "cfganal.h"
-#include "lcm.h"
-#include "cfgbuild.h"
-#include "cfgcleanup.h"
-#include "langhooks.h"
 #include "tm-constrs.h"
 #include "tree-pass.h"	/* for current_pass */
 #include "context.h"
@@ -1334,7 +1317,7 @@ epiphany_print_operand (FILE *file, rtx x, int code)
 	    offset = 0;
 	    break;
 	}
-      output_address (addr);
+      output_address (GET_MODE (x), addr);
       fputc (']', file);
       if (offset)
 	{
@@ -1355,18 +1338,16 @@ epiphany_print_operand (FILE *file, rtx x, int code)
 	      case 1:
 		break;
 	    }
-	  output_address (offset);
+	  output_address (GET_MODE (x), offset);
 	}
       break;
     case CONST_DOUBLE :
       /* We handle SFmode constants here as output_addr_const doesn't.  */
       if (GET_MODE (x) == SFmode)
 	{
-	  REAL_VALUE_TYPE d;
 	  long l;
 
-	  REAL_VALUE_FROM_CONST_DOUBLE (d, x);
-	  REAL_VALUE_TO_TARGET_SINGLE (d, l);
+	  REAL_VALUE_TO_TARGET_SINGLE (*CONST_DOUBLE_REAL_VALUE (x), l);
 	  fprintf (file, "%s0x%08lx", IMMEDIATE_PREFIX, l);
 	  break;
 	}
@@ -1389,7 +1370,7 @@ epiphany_print_operand (FILE *file, rtx x, int code)
 /* Print a memory address as an operand to reference that memory location.  */
 
 static void
-epiphany_print_operand_address (FILE *file, rtx addr)
+epiphany_print_operand_address (FILE *file, machine_mode /*mode*/, rtx addr)
 {
   register rtx base, index = 0;
   int offset = 0;
@@ -1443,7 +1424,9 @@ epiphany_print_operand_address (FILE *file, rtx addr)
       break;
     case PRE_INC: case PRE_DEC: case POST_INC: case POST_DEC: case POST_MODIFY:
       /* We shouldn't get here as we've lost the mode of the memory object
-	 (which says how much to inc/dec by.  */
+	 (which says how much to inc/dec by.
+	 FIXME: We have the mode now, address printing can be moved into this
+	 function.  */
       gcc_unreachable ();
       break;
     default:

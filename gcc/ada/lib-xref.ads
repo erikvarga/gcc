@@ -433,7 +433,7 @@ package Lib.Xref is
    --  indicating procedures and functions. If the operation is abstract,
    --  these letters are replaced in the xref by 'x' and 'y' respectively.
 
-   Xref_Entity_Letters : array (Entity_Kind) of Character :=
+   Xref_Entity_Letters : constant array (Entity_Kind) of Character :=
      (E_Abstract_State                             => '@',
       E_Access_Attribute_Type                      => 'P',
       E_Access_Protected_Subprogram_Type           => 'P',
@@ -624,10 +624,9 @@ package Lib.Xref is
 
       function Enclosing_Subprogram_Or_Library_Package
         (N : Node_Id) return Entity_Id;
-      --  Return the closest enclosing subprogram of package. Only return a
-      --  library level package. If the package is enclosed in a subprogram,
-      --  return the subprogram. This ensures that GNATprove can distinguish
-      --  local variables from global variables.
+      --  Return the closest enclosing subprogram or library-level package.
+      --  This ensures that GNATprove can distinguish local variables from
+      --  global variables.
 
       procedure Generate_Dereference
         (N   : Node_Id;
@@ -643,10 +642,6 @@ package Lib.Xref is
          Inside_Stubs : Boolean);
       --  Call Process on all declarations in compilation unit CU. If
       --  Inside_Stubs is True, then the body of stubs is also traversed.
-      --  Generic declarations are ignored.
-
-      procedure Traverse_All_Compilation_Units (Process : Node_Processing);
-      --  Call Process on all declarations through all compilation units.
       --  Generic declarations are ignored.
 
       procedure Collect_SPARK_Xrefs

@@ -1,5 +1,5 @@
 /* Scanning of rtl for dataflow analysis.
-   Copyright (C) 1999-2015 Free Software Foundation, Inc.
+   Copyright (C) 1999-2016 Free Software Foundation, Inc.
    Originally contributed by Michael P. Hayes
              (m.hayes@elec.canterbury.ac.nz, mhayes@redhat.com)
    Major rewrite contributed by Danny Berlin (dberlin@dberlin.org)
@@ -25,22 +25,14 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "backend.h"
-#include "tree.h"
+#include "target.h"
 #include "rtl.h"
+#include "tree.h"
 #include "df.h"
 #include "tm_p.h"
-#include "insn-config.h"
-#include "recog.h"
-#include "alias.h"
 #include "regs.h"
-#include "alloc-pool.h"
-#include "flags.h"
-#include "dumpfile.h"
-#include "target.h"
 #include "emit-rtl.h"  /* FIXME: Can go away once crtl is moved to rtl.h.  */
-
-
-typedef struct df_mw_hardreg *df_mw_hardreg_ptr;
+#include "dumpfile.h"
 
 
 /* The set of hard registers in eliminables[i].from. */
@@ -55,7 +47,7 @@ struct df_collection_rec
   auto_vec<df_ref, 128> def_vec;
   auto_vec<df_ref, 32> use_vec;
   auto_vec<df_ref, 32> eq_use_vec;
-  auto_vec<df_mw_hardreg_ptr, 32> mw_vec;
+  auto_vec<df_mw_hardreg *, 32> mw_vec;
 };
 
 static void df_ref_record (enum df_ref_class, struct df_collection_rec *,
@@ -146,9 +138,6 @@ struct df_scan_problem_data
   bitmap_obstack reg_bitmaps;
   bitmap_obstack insn_bitmaps;
 };
-
-typedef struct df_scan_bb_info *df_scan_bb_info_t;
-
 
 /* Internal function to shut down the scanning problem.  */
 static void
@@ -2241,7 +2230,7 @@ df_mw_ptr_compare (const void *m1, const void *m2)
 /* Sort and compress a set of refs.  */
 
 static void
-df_sort_and_compress_mws (vec<df_mw_hardreg_ptr, va_heap> *mw_vec)
+df_sort_and_compress_mws (vec<df_mw_hardreg *, va_heap> *mw_vec)
 {
   unsigned int count;
   struct df_scan_problem_data *problem_data
@@ -2405,7 +2394,7 @@ df_install_refs (basic_block bb,
    insn.  */
 
 static struct df_mw_hardreg *
-df_install_mws (const vec<df_mw_hardreg_ptr, va_heap> *old_vec)
+df_install_mws (const vec<df_mw_hardreg *, va_heap> *old_vec)
 {
   unsigned int count = old_vec->length ();
   if (count)
@@ -3725,7 +3714,6 @@ df_get_exit_block_use_set (bitmap exit_block_uses)
     }
 #endif
 
-#ifdef EH_RETURN_HANDLER_RTX
   if ((!targetm.have_epilogue () || ! epilogue_completed)
       && crtl->calls_eh_return)
     {
@@ -3733,7 +3721,6 @@ df_get_exit_block_use_set (bitmap exit_block_uses)
       if (tmp && REG_P (tmp))
 	df_mark_reg (tmp, exit_block_uses);
     }
-#endif
 
   /* Mark function return value.  */
   diddle_return_value (df_mark_reg, (void*) exit_block_uses);
@@ -4059,7 +4046,7 @@ df_refs_verify (const vec<df_ref, va_heap> *new_rec, df_ref old_rec,
 /* Verify that NEW_REC and OLD_REC have exactly the same members. */
 
 static bool
-df_mws_verify (const vec<df_mw_hardreg_ptr, va_heap> *new_rec,
+df_mws_verify (const vec<df_mw_hardreg *, va_heap> *new_rec,
 	       struct df_mw_hardreg *old_rec,
 	       bool abort_if_fail)
 {

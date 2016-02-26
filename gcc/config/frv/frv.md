@@ -1,5 +1,5 @@
 ;; Frv Machine Description
-;; Copyright (C) 1999-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2016 Free Software Foundation, Inc.
 ;; Contributed by Red Hat, Inc.
 
 ;; This file is part of GCC.
@@ -1870,11 +1870,9 @@
 {
   rtx op0 = operands[0];
   rtx op1 = operands[1];
-  REAL_VALUE_TYPE rv;
   long l[2];
 
-  REAL_VALUE_FROM_CONST_DOUBLE (rv, op1);
-  REAL_VALUE_TO_TARGET_DOUBLE (rv, l);
+  REAL_VALUE_TO_TARGET_DOUBLE (*CONST_DOUBLE_REAL_VALUE (op1), l);
 
   operands[2] = gen_highpart (SImode, op0);
   operands[3] = gen_lowpart (SImode, op0);

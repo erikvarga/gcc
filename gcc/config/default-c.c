@@ -1,5 +1,5 @@
 /* Default C-family target hooks initializer.
-   Copyright (C) 2011-2015 Free Software Foundation, Inc.
+   Copyright (C) 2011-2016 Free Software Foundation, Inc.
 
 This file is part of GCC.
 
@@ -21,9 +21,6 @@ along with GCC; see the file COPYING3.  If not see
 #include "system.h"
 #include "coretypes.h"
 #include "c-family/c-target.h"
-#include "alias.h"
-#include "symtab.h"
-#include "options.h"
 #include "c-family/c-target-def.h"
 
 /* Do not include tm.h or tm_p.h here; if it is useful for a target to

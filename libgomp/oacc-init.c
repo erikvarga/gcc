@@ -1,6 +1,6 @@
 /* OpenACC Runtime initialization routines
 
-   Copyright (C) 2013-2015 Free Software Foundation, Inc.
+   Copyright (C) 2013-2016 Free Software Foundation, Inc.
 
    Contributed by Mentor Embedded.
 
@@ -225,7 +225,7 @@ acc_init_1 (acc_device_t d)
   acc_dev = &base_dev[goacc_device_num];
 
   gomp_mutex_lock (&acc_dev->lock);
-  if (acc_dev->is_initialized)
+  if (acc_dev->state == GOMP_DEVICE_INITIALIZED)
     {
       gomp_mutex_unlock (&acc_dev->lock);
       gomp_fatal ("device already active");
@@ -306,10 +306,11 @@ acc_shutdown_1 (acc_device_t d)
     {
       struct gomp_device_descr *acc_dev = &base_dev[i];
       gomp_mutex_lock (&acc_dev->lock);
-      if (acc_dev->is_initialized)
+      if (acc_dev->state == GOMP_DEVICE_INITIALIZED)
         {
 	  devices_active = true;
-	  gomp_fini_device (acc_dev);
+	  acc_dev->fini_device_func (acc_dev->target_id);
+	  acc_dev->state = GOMP_DEVICE_UNINITIALIZED;
 	}
       gomp_mutex_unlock (&acc_dev->lock);
     }
@@ -449,6 +450,8 @@ ialias (acc_init)
 void
 acc_shutdown (acc_device_t d)
 {
+  gomp_init_targets_once ();
+
   gomp_mutex_lock (&acc_device_lock);
 
   acc_shutdown_1 (d);
@@ -504,7 +507,7 @@ acc_set_device_type (acc_device_t d)
   acc_dev = &base_dev[goacc_device_num];
 
   gomp_mutex_lock (&acc_dev->lock);
-  if (!acc_dev->is_initialized)
+  if (acc_dev->state == GOMP_DEVICE_UNINITIALIZED)
     gomp_init_device (acc_dev);
   gomp_mutex_unlock (&acc_dev->lock);
 
@@ -606,7 +609,7 @@ acc_set_device_num (int ord, acc_device_t d)
       acc_dev = &base_dev[ord];
 
       gomp_mutex_lock (&acc_dev->lock);
-      if (!acc_dev->is_initialized)
+      if (acc_dev->state == GOMP_DEVICE_UNINITIALIZED)
         gomp_init_device (acc_dev);
       gomp_mutex_unlock (&acc_dev->lock);
 
@@ -620,10 +623,16 @@ acc_set_device_num (int ord, acc_device_t d)
 
 ialias (acc_set_device_num)
 
-int
+/* For -O and higher, the compiler always attempts to expand acc_on_device, but
+   if the user disables the builtin, or calls it via a pointer, we'll need this
+   version.
+
+   Compile this with optimization, so that the compiler expands
+   this, rather than generating infinitely recursive code.  */
+
+int __attribute__ ((__optimize__ ("O2")))
 acc_on_device (acc_device_t dev)
 {
-  /* Just rely on the compiler builtin.  */
   return __builtin_acc_on_device (dev);
 }
 

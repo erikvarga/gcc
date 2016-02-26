@@ -1,5 +1,5 @@
 /* AddressSanitizer, a fast memory error detector.
-   Copyright (C) 2012-2015 Free Software Foundation, Inc.
+   Copyright (C) 2012-2016 Free Software Foundation, Inc.
    Contributed by Kostya Serebryany <kcc@google.com>
 
 This file is part of GCC.
@@ -22,43 +22,35 @@ along with GCC; see the file COPYING3.  If not see
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
-#include "alias.h"
 #include "backend.h"
-#include "cfghooks.h"
+#include "target.h"
+#include "rtl.h"
 #include "tree.h"
 #include "gimple.h"
-#include "rtl.h"
-#include "options.h"
+#include "cfghooks.h"
+#include "alloc-pool.h"
+#include "tree-pass.h"
+#include "tm_p.h"
+#include "stringpool.h"
+#include "tree-ssanames.h"
+#include "optabs.h"
+#include "emit-rtl.h"
+#include "cgraph.h"
+#include "gimple-pretty-print.h"
+#include "alias.h"
 #include "fold-const.h"
 #include "cfganal.h"
-#include "internal-fn.h"
 #include "gimplify.h"
 #include "gimple-iterator.h"
-#include "calls.h"
 #include "varasm.h"
 #include "stor-layout.h"
 #include "tree-iterator.h"
-#include "cgraph.h"
-#include "stringpool.h"
-#include "tree-ssanames.h"
-#include "tree-pass.h"
 #include "asan.h"
-#include "gimple-pretty-print.h"
-#include "target.h"
-#include "flags.h"
-#include "insn-config.h"
-#include "expmed.h"
 #include "dojump.h"
 #include "explow.h"
-#include "emit-rtl.h"
-#include "stmt.h"
 #include "expr.h"
-#include "insn-codes.h"
-#include "optabs.h"
 #include "output.h"
-#include "tm_p.h"
 #include "langhooks.h"
-#include "alloc-pool.h"
 #include "cfgloop.h"
 #include "gimple-builder.h"
 #include "ubsan.h"
@@ -905,6 +897,16 @@ has_stmt_been_instrumented_p (gimple *stmt)
 	  return true;
 	}
     }
+  else if (is_gimple_call (stmt) && gimple_store_p (stmt))
+    {
+      asan_mem_ref r;
+      asan_mem_ref_init (&r, NULL, 1);
+
+      r.start = gimple_call_lhs (stmt);
+      r.access_size = int_size_in_bytes (TREE_TYPE (r.start));
+      return has_mem_ref_been_instrumented (&r);
+    }
+
   return false;
 }
 
@@ -1132,12 +1134,16 @@ asan_emit_stack_protection (rtx base, rtx pbase, unsigned int alignb,
       snprintf (buf, sizeof buf, "__asan_stack_malloc_%d",
 		use_after_return_class);
       ret = init_one_libfunc (buf);
-      rtx addr = convert_memory_address (ptr_mode, base);
-      ret = emit_library_call_value (ret, NULL_RTX, LCT_NORMAL, ptr_mode, 2,
+      ret = emit_library_call_value (ret, NULL_RTX, LCT_NORMAL, ptr_mode, 1,
 				     GEN_INT (asan_frame_size
 					      + base_align_bias),
-				     TYPE_MODE (pointer_sized_int_node),
-				     addr, ptr_mode);
+				     TYPE_MODE (pointer_sized_int_node));
+      /* __asan_stack_malloc_[n] returns a pointer to fake stack if succeeded
+	 and NULL otherwise.  Check RET value is NULL here and jump over the
+	 BASE reassignment in this case.  Otherwise, reassign BASE to RET.  */
+      int very_unlikely = REG_BR_PROB_BASE / 2000 - 1;
+      emit_cmp_and_jump_insns (ret, const0_rtx, EQ, NULL_RTX,
+			       VOIDmode, 0, lab, very_unlikely);
       ret = convert_memory_address (Pmode, ret);
       emit_move_insn (base, ret);
       emit_label (lab);
@@ -1783,9 +1789,9 @@ instrument_derefs (gimple_stmt_iterator *iter, tree t,
   HOST_WIDE_INT bitsize, bitpos;
   tree offset;
   machine_mode mode;
-  int volatilep = 0, unsignedp = 0;
-  tree inner = get_inner_reference (t, &bitsize, &bitpos, &offset,
-				    &mode, &unsignedp, &volatilep, false);
+  int unsignedp, reversep, volatilep = 0;
+  tree inner = get_inner_reference (t, &bitsize, &bitpos, &offset, &mode,
+				    &unsignedp, &reversep, &volatilep, false);
 
   if (TREE_CODE (t) == COMPONENT_REF
       && DECL_BIT_FIELD_REPRESENTATIVE (TREE_OPERAND (t, 1)) != NULL_TREE)
@@ -2042,6 +2048,18 @@ maybe_instrument_call (gimple_stmt_iterator *iter)
       gimple_set_location (g, gimple_location (stmt));
       gsi_insert_before (iter, g, GSI_SAME_STMT);
     }
+
+  if (gimple_store_p (stmt))
+    {
+      tree ref_expr = gimple_call_lhs (stmt);
+      instrument_derefs (iter, ref_expr,
+			 gimple_location (stmt),
+			 /*is_store=*/true);
+
+      gsi_next (iter);
+      return true;
+    }
+
   return false;
 }
 
@@ -2374,6 +2392,8 @@ initialize_sanitizer_builtins (void)
   /* ECF_COLD missing */ ATTR_CONST_NORETURN_NOTHROW_LEAF_LIST
 #undef ATTR_PURE_NOTHROW_LEAF_LIST
 #define ATTR_PURE_NOTHROW_LEAF_LIST ECF_PURE | ATTR_NOTHROW_LEAF_LIST
+#undef DEF_BUILTIN_STUB
+#define DEF_BUILTIN_STUB(ENUM, NAME)
 #undef DEF_SANITIZER_BUILTIN
 #define DEF_SANITIZER_BUILTIN(ENUM, NAME, TYPE, ATTRS) \
   decl = add_builtin_function ("__builtin_" NAME, TYPE, ENUM,		\
@@ -2393,6 +2413,7 @@ initialize_sanitizer_builtins (void)
 			   ATTR_PURE_NOTHROW_LEAF_LIST)
 
 #undef DEF_SANITIZER_BUILTIN
+#undef DEF_BUILTIN_STUB
 }
 
 /* Called via htab_traverse.  Count number of emitted
@@ -2470,6 +2491,8 @@ asan_finish_file (void)
     {
       tree fn = builtin_decl_implicit (BUILT_IN_ASAN_INIT);
       append_to_statement_list (build_call_expr (fn, 0), &asan_ctor_statements);
+      fn = builtin_decl_implicit (BUILT_IN_ASAN_VERSION_MISMATCH_CHECK);
+      append_to_statement_list (build_call_expr (fn, 0), &asan_ctor_statements);
     }
   FOR_EACH_DEFINED_VARIABLE (vnode)
     if (TREE_ASM_WRITTEN (vnode->decl)
@@ -2535,9 +2558,11 @@ asan_expand_check_ifn (gimple_stmt_iterator *iter, bool use_calls)
 {
   gimple *g = gsi_stmt (*iter);
   location_t loc = gimple_location (g);
-
-  bool recover_p
-    = (flag_sanitize & flag_sanitize_recover & SANITIZE_KERNEL_ADDRESS) != 0;
+  bool recover_p;
+  if (flag_sanitize & SANITIZE_USER_ADDRESS)
+    recover_p = (flag_sanitize_recover & SANITIZE_USER_ADDRESS) != 0;
+  else
+    recover_p = (flag_sanitize_recover & SANITIZE_KERNEL_ADDRESS) != 0;
 
   HOST_WIDE_INT flags = tree_to_shwi (gimple_call_arg (g, 0));
   gcc_assert (flags < ASAN_CHECK_LAST);
