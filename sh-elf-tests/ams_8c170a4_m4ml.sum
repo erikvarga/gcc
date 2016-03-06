@@ -1,0 +1,571 @@
+Test Run By yam on Sun Mar  6 17:34:36 2016
+Target is sh-unknown-elf
+Host   is sh-unknown-elf
+
+		=== libstdc++ tests ===
+
+Schedule of variations:
+    sh-sim/-m4/-ml
+
+Running target sh-sim/-m4/-ml
+Running gcc/libstdc++-v3/testsuite/libstdc++-abi/abi.exp ...
+Running gcc/libstdc++-v3/testsuite/libstdc++-dg/conformance.exp ...
+FAIL: 20_util/hash/chi2_q_bit_flip_set.cc execution test
+FAIL: 20_util/hash/chi2_q_bit_string_set.cc execution test
+FAIL: 20_util/hash/chi2_q_numeric_pattern_set.cc execution test
+FAIL: 20_util/hash/chi2_q_uniform_random.cc execution test
+FAIL: 21_strings/basic_string/capacity/wchar_t/18654.cc execution test
+FAIL: 21_strings/basic_string/cons/char/6.cc execution test
+FAIL: 21_strings/basic_string/inserters_extractors/wchar_t/10.cc execution test
+FAIL: 21_strings/basic_string/inserters_extractors/wchar_t/11.cc execution test
+FAIL: 21_strings/basic_string/inserters_extractors/wchar_t/28277.cc execution test
+FAIL: 21_strings/basic_string/modifiers/append/char/3.cc execution test
+FAIL: 21_strings/basic_string/numeric_conversions/char/stof.cc execution test
+FAIL: 21_strings/basic_string/numeric_conversions/wchar_t/stof.cc execution test
+FAIL: 22_locale/collate/transform/char/28277.cc execution test
+FAIL: 23_containers/unordered_map/profile/hash_map.cc execution test
+FAIL: 23_containers/unordered_map/profile/unordered.cc execution test
+FAIL: 23_containers/unordered_set/hash_policy/load_factor.cc execution test
+FAIL: 23_containers/vector/bool/modifiers/insert/31370.cc execution test
+FAIL: 27_io/basic_filebuf/sgetn/char/1-in.cc execution test
+FAIL: 27_io/basic_filebuf/sgetn/char/1-io.cc execution test
+FAIL: 27_io/basic_filebuf/sgetn/char/2-in.cc execution test
+FAIL: 27_io/basic_filebuf/sgetn/char/2-io.cc execution test
+FAIL: 27_io/basic_filebuf/underflow/wchar_t/11603.cc execution test
+FAIL: 27_io/basic_istream/extractors_character/wchar_t/4.cc execution test
+FAIL: 27_io/basic_istream/getline/char/5.cc execution test
+FAIL: 27_io/basic_istream/getline/wchar_t/5.cc execution test
+FAIL: 27_io/basic_istream/ignore/wchar_t/2.cc execution test
+FAIL: 27_io/basic_istream/readsome/char/6746-2.cc execution test
+FAIL: 27_io/basic_istream/readsome/wchar_t/6746-2.cc execution test
+FAIL: 27_io/basic_ostream/inserters_arithmetic/char/hexfloat.cc execution test
+FAIL: 27_io/basic_ostream/inserters_character/wchar_t/28277-3.cc execution test
+FAIL: 27_io/basic_ostream/inserters_character/wchar_t/28277-4.cc execution test
+FAIL: 28_regex/algorithms/regex_match/ecma/char/61601.cc execution test
+FAIL: experimental/type_erased_allocator/1.cc (test for excess errors)
+FAIL: ext/rope/3.cc execution test
+FAIL: ext/vstring/inserters_extractors/wchar_t/28277.cc execution test
+FAIL: tr1/6_containers/unordered_set/26132.cc execution test
+Running gcc/libstdc++-v3/testsuite/libstdc++-prettyprinters/prettyprinters.exp ...
+Running gcc/libstdc++-v3/testsuite/libstdc++-xmethods/xmethods.exp ...
+
+		=== libstdc++ Summary ===
+
+# of expected passes		9297
+# of unexpected failures	36
+# of expected failures		67
+# of unresolved testcases	1
+# of unsupported tests		701
+Test Run By yam on Sun Mar  6 18:01:57 2016
+Target is sh-unknown-elf
+Host   is x86_64-pc-linux-gnu
+
+		=== g++ tests ===
+
+Schedule of variations:
+    sh-sim/-m4/-ml
+
+Running target sh-sim/-m4/-ml
+Running gcc/gcc/testsuite/g++.dg/asan/asan.exp ...
+Running gcc/gcc/testsuite/g++.dg/bprob/bprob.exp ...
+FAIL: g++.dg/bprob/g++-bprob-1.C execution: file g++-bprob-1.gcda does not exist,  -O0  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-1.C execution: file g++-bprob-1.gcda does not exist,  -O1  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-1.C execution: file g++-bprob-1.gcda does not exist,  -O2  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-1.C execution: file g++-bprob-1.gcda does not exist,  -O3  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-1.C execution: file g++-bprob-1.gcda does not exist,  -O3 -g  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-1.C execution: file g++-bprob-1.gcda does not exist,  -Os  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-1.C execution: file g++-bprob-1.gcda does not exist,  -g  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-2.C execution: file g++-bprob-2.gcda does not exist,  -O0  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-2.C execution: file g++-bprob-2.gcda does not exist,  -O1  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-2.C execution: file g++-bprob-2.gcda does not exist,  -O2  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-2.C execution: file g++-bprob-2.gcda does not exist,  -O3  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-2.C execution: file g++-bprob-2.gcda does not exist,  -O3 -g  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-2.C execution: file g++-bprob-2.gcda does not exist,  -Os  -fprofile-arcs
+FAIL: g++.dg/bprob/g++-bprob-2.C execution: file g++-bprob-2.gcda does not exist,  -g  -fprofile-arcs
+Running gcc/gcc/testsuite/g++.dg/charset/charset.exp ...
+Running gcc/gcc/testsuite/g++.dg/cilk-plus/cilk-plus.exp ...
+Running gcc/gcc/testsuite/g++.dg/compat/compat.exp ...
+Running gcc/gcc/testsuite/g++.dg/compat/struct-layout-1.exp ...
+Running gcc/gcc/testsuite/g++.dg/debug/debug.exp ...
+Running gcc/gcc/testsuite/g++.dg/debug/dwarf2/dwarf2.exp ...
+Running gcc/gcc/testsuite/g++.dg/dfp/dfp.exp ...
+Running gcc/gcc/testsuite/g++.dg/dg.exp ...
+FAIL: g++.dg/Wno-frame-address.C  -std=gnu++11 (test for excess errors)
+FAIL: g++.dg/Wno-frame-address.C  -std=gnu++14 (test for excess errors)
+FAIL: g++.dg/Wno-frame-address.C  -std=gnu++98 (test for excess errors)
+FAIL: g++.dg/init/array15.C  -std=c++11 execution test
+FAIL: g++.dg/init/array15.C  -std=c++14 execution test
+FAIL: g++.dg/init/array15.C  -std=c++98 execution test
+FAIL: g++.dg/init/array16.C  -std=gnu++11 execution test
+FAIL: g++.dg/init/array16.C  -std=gnu++14 execution test
+FAIL: g++.dg/init/array16.C  -std=gnu++98 execution test
+FAIL: g++.dg/opt/pr36449.C  -std=gnu++11 execution test
+FAIL: g++.dg/opt/pr36449.C  -std=gnu++14 execution test
+FAIL: g++.dg/opt/pr36449.C  -std=gnu++98 execution test
+FAIL: g++.dg/other/pr55650.C  -std=gnu++11 (test for excess errors)
+FAIL: g++.dg/other/pr55650.C  -std=gnu++14 (test for excess errors)
+FAIL: g++.dg/other/pr55650.C  -std=gnu++98 (test for excess errors)
+Running gcc/gcc/testsuite/g++.dg/gcov/gcov.exp ...
+Running gcc/gcc/testsuite/g++.dg/goacc-gomp/goacc-gomp.exp ...
+Running gcc/gcc/testsuite/g++.dg/goacc/goacc.exp ...
+Running gcc/gcc/testsuite/g++.dg/gomp/gomp.exp ...
+Running gcc/gcc/testsuite/g++.dg/graphite/graphite.exp ...
+Running gcc/gcc/testsuite/g++.dg/guality/guality.exp ...
+Running gcc/gcc/testsuite/g++.dg/lto/lto.exp ...
+Running gcc/gcc/testsuite/g++.dg/pch/pch.exp ...
+Running gcc/gcc/testsuite/g++.dg/plugin/plugin.exp ...
+Running gcc/gcc/testsuite/g++.dg/simulate-thread/simulate-thread.exp ...
+Running gcc/gcc/testsuite/g++.dg/special/ecos.exp ...
+Running gcc/gcc/testsuite/g++.dg/tls/tls.exp ...
+FAIL: g++.dg/tls/static-1.C  -std=gnu++11 execution test
+FAIL: g++.dg/tls/static-1.C  -std=gnu++14 execution test
+FAIL: g++.dg/tls/static-1.C  -std=gnu++98 execution test
+Running gcc/gcc/testsuite/g++.dg/tm/tm.exp ...
+Running gcc/gcc/testsuite/g++.dg/torture/dg-torture.exp ...
+Running gcc/gcc/testsuite/g++.dg/torture/stackalign/stackalign.exp ...
+Running gcc/gcc/testsuite/g++.dg/tree-prof/tree-prof.exp ...
+FAIL: g++.dg/tree-prof/indir-call-prof-2.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/indir-call-prof.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/inline_mismatch_args.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/morefunc.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/partition1.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/partition2.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/partition3.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/pr35545.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/pr51719.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/pr53460.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/pr57451.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/pr59255.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/pr63581.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: g++.dg/tree-prof/reorder.C compilation,  -fprofile-generate -D_PROFILE_GENERATE
+Running gcc/gcc/testsuite/g++.dg/tsan/tsan.exp ...
+Running gcc/gcc/testsuite/g++.dg/ubsan/ubsan.exp ...
+Running gcc/gcc/testsuite/g++.dg/vect/vect.exp ...
+Running gcc/gcc/testsuite/g++.old-deja/old-deja.exp ...
+
+		=== g++ Summary ===
+
+# of expected passes		82546
+# of unexpected failures	46
+# of expected failures		257
+# of unresolved testcases	70
+# of unsupported tests		3835
+build-sh-elf/gcc/testsuite/g++/../../xg++  version 6.0.0 20160226 (experimental) (GCC) 
+
+Test Run By yam on Sun Mar  6 17:34:37 2016
+Target is sh-unknown-elf
+Host   is x86_64-pc-linux-gnu
+
+		=== gcc tests ===
+
+Schedule of variations:
+    sh-sim/-m4/-ml
+
+Running target sh-sim/-m4/-ml
+Running gcc/gcc/testsuite/gcc.c-torture/compile/compile.exp ...
+FAIL: gcc.c-torture/compile/930623-1.c   -O1  (internal compiler error)
+FAIL: gcc.c-torture/compile/930623-1.c   -O1  (test for excess errors)
+FAIL: gcc.c-torture/compile/930623-1.c   -O2  (internal compiler error)
+FAIL: gcc.c-torture/compile/930623-1.c   -O2  (test for excess errors)
+FAIL: gcc.c-torture/compile/930623-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  (internal compiler error)
+FAIL: gcc.c-torture/compile/930623-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  (test for excess errors)
+FAIL: gcc.c-torture/compile/930623-1.c   -O3 -g  (internal compiler error)
+FAIL: gcc.c-torture/compile/930623-1.c   -O3 -g  (test for excess errors)
+FAIL: gcc.c-torture/compile/930623-1.c   -Os  (internal compiler error)
+FAIL: gcc.c-torture/compile/930623-1.c   -Os  (test for excess errors)
+Running gcc/gcc/testsuite/gcc.c-torture/execute/builtins/builtins.exp ...
+Running gcc/gcc/testsuite/gcc.c-torture/execute/execute.exp ...
+FAIL: gcc.c-torture/execute/20120207-1.c   -O2  execution test
+FAIL: gcc.c-torture/execute/20120207-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.c-torture/execute/20120207-1.c   -O3 -g  execution test
+Running gcc/gcc/testsuite/gcc.c-torture/execute/ieee/ieee.exp ...
+Running gcc/gcc/testsuite/gcc.c-torture/unsorted/unsorted.exp ...
+FAIL: gcc.c-torture/unsorted/dump-noaddr.c.*r.sh_ams,  -O1  comparison
+FAIL: gcc.c-torture/unsorted/dump-noaddr.c.*r.sh_ams,  -O2  comparison
+FAIL: gcc.c-torture/unsorted/dump-noaddr.c.*r.sh_ams,  -O2 -flto -fno-use-linker-plugin -flto-partition=none  comparison
+FAIL: gcc.c-torture/unsorted/dump-noaddr.c.*r.sh_ams,  -O3 -fomit-frame-pointer -funroll-loops -fpeel-loops -ftracer -finline-functions  comparison
+FAIL: gcc.c-torture/unsorted/dump-noaddr.c.*r.sh_ams,  -O3 -g  comparison
+FAIL: gcc.c-torture/unsorted/dump-noaddr.c.*r.sh_ams,  -Og -g  comparison
+FAIL: gcc.c-torture/unsorted/dump-noaddr.c.*r.sh_ams,  -Os  comparison
+Running gcc/gcc/testsuite/gcc.dg/asan/asan.exp ...
+Running gcc/gcc/testsuite/gcc.dg/atomic/atomic.exp ...
+Running gcc/gcc/testsuite/gcc.dg/autopar/autopar.exp ...
+Running gcc/gcc/testsuite/gcc.dg/charset/charset.exp ...
+Running gcc/gcc/testsuite/gcc.dg/cilk-plus/cilk-plus.exp ...
+Running gcc/gcc/testsuite/gcc.dg/compat/compat.exp ...
+Running gcc/gcc/testsuite/gcc.dg/compat/struct-layout-1.exp ...
+Running gcc/gcc/testsuite/gcc.dg/cpp/cpp.exp ...
+Running gcc/gcc/testsuite/gcc.dg/cpp/trad/trad.exp ...
+Running gcc/gcc/testsuite/gcc.dg/debug/debug.exp ...
+Running gcc/gcc/testsuite/gcc.dg/debug/dwarf2/dwarf2.exp ...
+Running gcc/gcc/testsuite/gcc.dg/dfp/dfp.exp ...
+Running gcc/gcc/testsuite/gcc.dg/dg.exp ...
+FAIL: gcc.dg/Wno-frame-address.c (test for excess errors)
+FAIL: gcc.dg/ifcvt-4.c scan-rtl-dump ce1 "2 true changes made"
+FAIL: gcc.dg/pr47793.c (test for excess errors)
+FAIL: gcc.dg/pr48141.c (test for excess errors)
+FAIL: gcc.dg/profile-generate-3.c (test for excess errors)
+Running gcc/gcc/testsuite/gcc.dg/fixed-point/fixed-point.exp ...
+Running gcc/gcc/testsuite/gcc.dg/format/format.exp ...
+Running gcc/gcc/testsuite/gcc.dg/goacc-gomp/goacc-gomp.exp ...
+Running gcc/gcc/testsuite/gcc.dg/goacc/goacc.exp ...
+Running gcc/gcc/testsuite/gcc.dg/gomp/gomp.exp ...
+Running gcc/gcc/testsuite/gcc.dg/graphite/graphite.exp ...
+FAIL: gcc.dg/graphite/id-pr45230-1.c (internal compiler error)
+FAIL: gcc.dg/graphite/id-pr45230-1.c (test for excess errors)
+FAIL: gcc.dg/graphite/interchange-0.c execution test
+FAIL: gcc.dg/graphite/interchange-1.c execution test
+FAIL: gcc.dg/graphite/interchange-10.c execution test
+FAIL: gcc.dg/graphite/interchange-11.c execution test
+FAIL: gcc.dg/graphite/interchange-15.c execution test
+FAIL: gcc.dg/graphite/interchange-2.c execution test
+FAIL: gcc.dg/graphite/interchange-3.c execution test
+FAIL: gcc.dg/graphite/interchange-4.c execution test
+FAIL: gcc.dg/graphite/interchange-mvt.c execution test
+FAIL: gcc.dg/graphite/pr46185.c execution test
+FAIL: gcc.dg/graphite/run-id-1.c execution test
+FAIL: gcc.dg/graphite/scop-sor.c scan-tree-dump-times graphite "number of SCoPs: 1" 1
+FAIL: gcc.dg/graphite/uns-interchange-15.c execution test
+FAIL: gcc.dg/graphite/uns-interchange-mvt.c execution test
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+WARNING: program timed out.
+Running gcc/gcc/testsuite/gcc.dg/guality/guality.exp ...
+Running gcc/gcc/testsuite/gcc.dg/ipa/ipa.exp ...
+FAIL: gcc.dg/ipa/iinline-attr.c scan-ipa-dump inline "hooray[^\\n]*inline copy in test"
+Running gcc/gcc/testsuite/gcc.dg/lto/lto.exp ...
+FAIL: gcc.dg/lto/20090210 c_lto_20090210_0.o-c_lto_20090210_1.o link, -O0 -flto -flto-partition=1to1 -fno-use-linker-plugin 
+FAIL: gcc.dg/lto/20090210 c_lto_20090210_0.o-c_lto_20090210_1.o link, -O0 -flto -flto-partition=none -fuse-linker-plugin
+FAIL: gcc.dg/lto/20090210 c_lto_20090210_0.o-c_lto_20090210_1.o link, -O0 -flto -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.dg/lto/20090210 c_lto_20090210_0.o-c_lto_20090210_1.o link, -O2 -flto -flto-partition=1to1 -fno-use-linker-plugin 
+FAIL: gcc.dg/lto/20090210 c_lto_20090210_0.o-c_lto_20090210_1.o link, -O2 -flto -flto-partition=none -fuse-linker-plugin -fno-fat-lto-objects 
+FAIL: gcc.dg/lto/20090210 c_lto_20090210_0.o-c_lto_20090210_1.o link, -O2 -flto -fuse-linker-plugin
+FAIL: gcc.dg/lto/pr54709 c_lto_pr54709_0.o-c_lto_pr54709_1.o link,  -fPIC -fvisibility=hidden -flto 
+FAIL: gcc.dg/lto/pr61526 c_lto_pr61526_0.o-c_lto_pr61526_1.o link,  -fPIC -flto -flto-partition=1to1 
+FAIL: gcc.dg/lto/pr64415 c_lto_pr64415_0.o-c_lto_pr64415_1.o link,  -O -flto -fpic 
+Running gcc/gcc/testsuite/gcc.dg/noncompile/noncompile.exp ...
+Running gcc/gcc/testsuite/gcc.dg/pch/pch.exp ...
+Running gcc/gcc/testsuite/gcc.dg/plugin/plugin.exp ...
+Running gcc/gcc/testsuite/gcc.dg/sancov/sancov.exp ...
+Running gcc/gcc/testsuite/gcc.dg/simulate-thread/simulate-thread.exp ...
+Running gcc/gcc/testsuite/gcc.dg/special/mips-abi.exp ...
+Running gcc/gcc/testsuite/gcc.dg/special/special.exp ...
+Running gcc/gcc/testsuite/gcc.dg/sso/sso.exp ...
+Running gcc/gcc/testsuite/gcc.dg/tls/tls.exp ...
+FAIL: gcc.dg/tls/opt-12.c (test for excess errors)
+FAIL: gcc.dg/tls/thr-init-2.c execution test
+Running gcc/gcc/testsuite/gcc.dg/tm/tm.exp ...
+Running gcc/gcc/testsuite/gcc.dg/torture/dg-torture.exp ...
+Running gcc/gcc/testsuite/gcc.dg/torture/stackalign/stackalign.exp ...
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O1  (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O1  (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O1 -fpic (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O1 -fpic (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2  (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2  (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none -fpic (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2 -fpic (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O2 -fpic (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O3 -g  (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O3 -g  (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O3 -g -fpic (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -O3 -g -fpic (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -Os  (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -Os  (test for excess errors)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -Os -fpic (internal compiler error)
+FAIL: gcc.dg/torture/stackalign/builtin-apply-1.c   -Os -fpic (test for excess errors)
+Running gcc/gcc/testsuite/gcc.dg/torture/tls/tls.exp ...
+FAIL: gcc.dg/torture/tls/run-gd.c   -O0  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O0  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O0  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O1  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O1  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O1  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O2  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O2  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O2  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O3 -g  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O3 -g  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -O3 -g  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -Os  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -Os  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-gd.c   -Os  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ie.c   -O0  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O0  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O0  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O1  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O1  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O1  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O2  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O2  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O2  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O3 -g  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O3 -g  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -O3 -g  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -Os  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -Os  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-ie.c   -Os  execution test
+FAIL: gcc.dg/torture/tls/run-ld.c   -O0  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O0  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O0  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O1  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O1  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O1  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O2  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O2  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O2  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O3 -g  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O3 -g  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -O3 -g  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -Os  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -Os  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-ld.c   -Os  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/run-le.c   -O0  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O0  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O0  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O1  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O1  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O1  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O2  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O2  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O2  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O3 -g  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O3 -g  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -O3 -g  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -Os  -fPIC  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -Os  -fpic  execution test
+FAIL: gcc.dg/torture/tls/run-le.c   -Os  execution test
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O0  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O0  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O0  execution test
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O1  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O1  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O1  execution test
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O2  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O2  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O2  execution test
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O3 -g  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O3 -g  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -O3 -g  execution test
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -Os  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -Os  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-1.c   -Os  execution test
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O0  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O0  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O0  execution test
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O1  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O1  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O1  execution test
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O2  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O2  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O2  execution test
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O2 -flto -fno-use-linker-plugin -flto-partition=none  execution test
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O2 -flto -fuse-linker-plugin -fno-fat-lto-objects  execution test
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O3 -g  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O3 -g  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -O3 -g  execution test
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -Os  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -Os  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/thr-init-2.c   -Os  execution test
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O0  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O0  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O1  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O1  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O2  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O2  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O3 -g  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -O3 -g  -fpic  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -Os  -fPIC  (test for excess errors)
+FAIL: gcc.dg/torture/tls/tls-reload-1.c   -Os  -fpic  (test for excess errors)
+Running gcc/gcc/testsuite/gcc.dg/tree-prof/tree-prof.exp ...
+FAIL: gcc.dg/tree-prof/20041218-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/20050826-2.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/bb-reorg.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/cmpsf-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/cold_partition_label.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/comp-goto-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/crossmodule-indircall-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/crossmodule-indircall-1a.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/ic-misattribution-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/ic-misattribution-1a.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/indir-call-prof.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/inliner-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/merge_block.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/peel-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr34999.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr44777.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr45354.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr47187.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr49299-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr49299-2.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr50907.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr52027.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr52150.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/pr59003.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/prof-robust-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/stringop-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/stringop-2.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/switch-case-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/switch-case-2.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/time-profiler-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/time-profiler-2.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/tracer-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/unroll-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/update-cunroll-2.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/update-loopch.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/update-tailcall.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/va-arg-pack-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/val-prof-1.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/val-prof-2.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/val-prof-3.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/val-prof-4.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/val-prof-5.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/val-prof-6.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+FAIL: gcc.dg/tree-prof/wcoverage-mismatch.c compilation,  -fprofile-generate -D_PROFILE_GENERATE
+Running gcc/gcc/testsuite/gcc.dg/tree-ssa/tree-ssa.exp ...
+FAIL: gcc.dg/tree-ssa/pr65447.c scan-tree-dump-not ivopts "\\nuse 21\\n"
+Running gcc/gcc/testsuite/gcc.dg/tsan/tsan.exp ...
+Running gcc/gcc/testsuite/gcc.dg/ubsan/ubsan.exp ...
+Running gcc/gcc/testsuite/gcc.dg/vect/costmodel/i386/i386-costmodel-vect.exp ...
+Running gcc/gcc/testsuite/gcc.dg/vect/costmodel/ppc/ppc-costmodel-vect.exp ...
+Running gcc/gcc/testsuite/gcc.dg/vect/costmodel/spu/spu-costmodel-vect.exp ...
+Running gcc/gcc/testsuite/gcc.dg/vect/costmodel/x86_64/x86_64-costmodel-vect.exp ...
+Running gcc/gcc/testsuite/gcc.dg/vect/vect.exp ...
+Running gcc/gcc/testsuite/gcc.dg/vmx/vmx.exp ...
+Running gcc/gcc/testsuite/gcc.dg/vxworks/vxworks.exp ...
+Running gcc/gcc/testsuite/gcc.dg/weak/weak.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/acker1.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/arm-isr.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/bprob.exp ...
+FAIL: gcc.misc-tests/bprob-1.c execution: file bprob-1.gcda does not exist,  -O2  -fprofile-arcs
+FAIL: gcc.misc-tests/bprob-1.c execution: file bprob-1.gcda does not exist,  -O3   -fprofile-arcs
+FAIL: gcc.misc-tests/bprob-2.c execution: file bprob-2.gcda does not exist,  -O2  -fprofile-arcs
+FAIL: gcc.misc-tests/bprob-2.c execution: file bprob-2.gcda does not exist,  -O3   -fprofile-arcs
+Running gcc/gcc/testsuite/gcc.misc-tests/dectest.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/dhry.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/gcov.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/godump.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/help.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/i386-prefetch.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/linkage.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/matrix1.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/mg-2.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/mg.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/options.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/output.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/sieve.exp ...
+Running gcc/gcc/testsuite/gcc.misc-tests/sort2.exp ...
+Running gcc/gcc/testsuite/gcc.target/aarch64/aapcs64/aapcs64.exp ...
+Running gcc/gcc/testsuite/gcc.target/aarch64/aarch64.exp ...
+Running gcc/gcc/testsuite/gcc.target/aarch64/acle/acle.exp ...
+Running gcc/gcc/testsuite/gcc.target/aarch64/advsimd-intrinsics/advsimd-intrinsics.exp ...
+Running gcc/gcc/testsuite/gcc.target/aarch64/fp16/fp16.exp ...
+Running gcc/gcc/testsuite/gcc.target/aarch64/simd/simd.exp ...
+Running gcc/gcc/testsuite/gcc.target/alpha/alpha.exp ...
+Running gcc/gcc/testsuite/gcc.target/arc/arc.exp ...
+Running gcc/gcc/testsuite/gcc.target/arm/aapcs/aapcs.exp ...
+Running gcc/gcc/testsuite/gcc.target/arm/acle/acle.exp ...
+Running gcc/gcc/testsuite/gcc.target/arm/arm.exp ...
+Running gcc/gcc/testsuite/gcc.target/arm/lto/lto.exp ...
+Running gcc/gcc/testsuite/gcc.target/arm/neon/neon.exp ...
+Running gcc/gcc/testsuite/gcc.target/arm/simd/simd.exp ...
+Running gcc/gcc/testsuite/gcc.target/avr/avr.exp ...
+Running gcc/gcc/testsuite/gcc.target/avr/torture/avr-torture.exp ...
+Running gcc/gcc/testsuite/gcc.target/bfin/bfin.exp ...
+Running gcc/gcc/testsuite/gcc.target/bfin/builtins/bfin-builtins.exp ...
+Running gcc/gcc/testsuite/gcc.target/cris/cris.exp ...
+Running gcc/gcc/testsuite/gcc.target/cris/torture/cris-torture.exp ...
+Running gcc/gcc/testsuite/gcc.target/epiphany/epiphany.exp ...
+Running gcc/gcc/testsuite/gcc.target/frv/frv.exp ...
+Running gcc/gcc/testsuite/gcc.target/h8300/h8300.exp ...
+Running gcc/gcc/testsuite/gcc.target/hppa/hppa.exp ...
+Running gcc/gcc/testsuite/gcc.target/i386/i386.exp ...
+Running gcc/gcc/testsuite/gcc.target/i386/iamcu/abi-iamcu.exp ...
+Running gcc/gcc/testsuite/gcc.target/i386/math-torture/math-torture.exp ...
+Running gcc/gcc/testsuite/gcc.target/i386/mpx/mpx.exp ...
+Running gcc/gcc/testsuite/gcc.target/i386/stackalign/stackalign.exp ...
+Running gcc/gcc/testsuite/gcc.target/ia64/ia64.exp ...
+Running gcc/gcc/testsuite/gcc.target/m68k/m68k.exp ...
+Running gcc/gcc/testsuite/gcc.target/microblaze/microblaze.exp ...
+Running gcc/gcc/testsuite/gcc.target/mips/inter/mips16-inter.exp ...
+Running gcc/gcc/testsuite/gcc.target/mips/mips-nonpic/mips-nonpic.exp ...
+Running gcc/gcc/testsuite/gcc.target/mips/mips.exp ...
+Running gcc/gcc/testsuite/gcc.target/msp430/msp430.exp ...
+Running gcc/gcc/testsuite/gcc.target/nds32/nds32.exp ...
+Running gcc/gcc/testsuite/gcc.target/nios2/nios2.exp ...
+Running gcc/gcc/testsuite/gcc.target/nvptx/nvptx.exp ...
+Running gcc/gcc/testsuite/gcc.target/powerpc/powerpc.exp ...
+Running gcc/gcc/testsuite/gcc.target/rl78/rl78.exp ...
+Running gcc/gcc/testsuite/gcc.target/rx/rx.exp ...
+Running gcc/gcc/testsuite/gcc.target/s390/s390.exp ...
+Running gcc/gcc/testsuite/gcc.target/sh/sh.exp ...
+FAIL: gcc.target/sh/ams-11.c scan-assembler-times fmov.s\t@\\(r0,r[0-9]+ 1
+FAIL: gcc.target/sh/ams-11.c scan-assembler-times fmov.s\t@r[0-9]+,fr 1
+FAIL: gcc.target/sh/ams-12.c scan-assembler-not stc\tgbr
+FAIL: gcc.target/sh/ams-12.c scan-assembler-times mov.l\t@\\([0-9]+,gbr 3
+FAIL: gcc.target/sh/ams-15.c scan-assembler-not add
+FAIL: gcc.target/sh/ams-15.c scan-assembler-times mov.l\t@r[0-9]+\\+ 3
+FAIL: gcc.target/sh/ams-17.c scan-assembler-times shll2 2
+FAIL: gcc.target/sh/ams-4.c scan-assembler-times mov.[bwl]\t@\\(r0,r[0-9]+ 3
+FAIL: gcc.target/sh/ams-5.c scan-assembler-times mov.l\tr[0-9]+,@\\(24,r[0-9]+ 1
+FAIL: gcc.target/sh/ams-5.c scan-assembler-times mov.l\tr[0-9]+,@\\(32,r[0-9]+ 1
+FAIL: gcc.target/sh/ams-5.c scan-assembler-times mov.l\tr[0-9]+,@\\(r0,r[0-9]+ 1
+FAIL: gcc.target/sh/ams-5.c scan-assembler-times mov.l\tr[0-9]+,@r[0-9]+ 1
+FAIL: gcc.target/sh/ams-6.c scan-assembler-times fmov.s\t@\\(r0,r[0-9]+ 1
+FAIL: gcc.target/sh/ams-6.c scan-assembler-times fmov.s\t@r[0-9]+ 2
+FAIL: gcc.target/sh/ams-6.c scan-assembler-times fmov.s\tfr[0-9]+,@r[0-9]+ 2
+FAIL: gcc.target/sh/ams-7.c scan-assembler-times add\tr[0-9]+,r[0-9]+ 5
+FAIL: gcc.target/sh/ams-7.c scan-assembler-times shll2 2
+FAIL: gcc.target/sh/ams-8.c scan-assembler-times add\tr[0-9]+,r[0-9]+ 4
+FAIL: gcc.target/sh/ams-8.c scan-assembler-times shll2 1
+FAIL: gcc.target/sh/ams-9.c scan-assembler-times mov.l\t@\\(12,r[0-9]+ 3
+FAIL: gcc.target/sh/ams-9.c scan-assembler-times mov.l\t@\\(4,r[0-9]+ 3
+FAIL: gcc.target/sh/ams-9.c scan-assembler-times mov.l\t@\\(8,r[0-9]+ 3
+FAIL: gcc.target/sh/ams-9.c scan-assembler-times mov.l\t@r[0-9]+ 3
+FAIL: gcc.target/sh/pr50749-qihisi-postinc-2.c scan-assembler-times mov.l\t@r[0-9]+\\+,r[0-9]+ 5
+FAIL: gcc.target/sh/pr50749-qihisi-postinc-4.c scan-assembler-times mov.l\t@r[0-9]+\\+,r[0-9]+ 3
+FAIL: gcc.target/sh/pr50749-qihisi-predec-4.c scan-assembler-times mov.b\tr[0-9]+,@-r[0-9]+ 3
+FAIL: gcc.target/sh/pr50749-qihisi-predec-4.c scan-assembler-times mov.l\tr[0-9]+,@-r[0-9]+ 3
+FAIL: gcc.target/sh/pr50749-qihisi-predec-4.c scan-assembler-times mov.w\tr[0-9]+,@-r[0-9]+ 3
+FAIL: gcc.target/sh/pr50751-2.c scan-assembler-times add 2
+FAIL: gcc.target/sh/pr50751-5.c scan-assembler-times add 2
+FAIL: gcc.target/sh/pr54760-2.c scan-assembler-times stc\tgbr 0
+FAIL: gcc.target/sh/pr54760-5.c scan-assembler-not stc\tgbr
+FAIL: gcc.target/sh/pr54760-6.c scan-assembler-not stc\tgbr
+Running gcc/gcc/testsuite/gcc.target/sh/torture/sh-torture.exp ...
+Running gcc/gcc/testsuite/gcc.target/sparc/sparc.exp ...
+Running gcc/gcc/testsuite/gcc.target/spu/ea/ea.exp ...
+Running gcc/gcc/testsuite/gcc.target/spu/spu.exp ...
+Running gcc/gcc/testsuite/gcc.target/tic6x/builtins/c6x-builtins.exp ...
+Running gcc/gcc/testsuite/gcc.target/tic6x/tic6x.exp ...
+Running gcc/gcc/testsuite/gcc.target/vax/vax.exp ...
+Running gcc/gcc/testsuite/gcc.target/visium/visium.exp ...
+Running gcc/gcc/testsuite/gcc.target/x86_64/abi/abi-x86_64.exp ...
+Running gcc/gcc/testsuite/gcc.target/x86_64/abi/avx/abi-avx.exp ...
+Running gcc/gcc/testsuite/gcc.target/x86_64/abi/avx512f/abi-avx512f.exp ...
+Running gcc/gcc/testsuite/gcc.target/x86_64/abi/callabi/callabi.exp ...
+Running gcc/gcc/testsuite/gcc.target/xstormy16/xstormy16.exp ...
+Running gcc/gcc/testsuite/gcc.test-framework/test-framework.exp ...
+
+		=== gcc Summary ===
+
+# of expected passes		80627
+# of unexpected failures	266
+# of expected failures		103
+# of unresolved testcases	216
+# of unsupported tests		1786
+build-sh-elf/gcc/xgcc  version 6.0.0 20160226 (experimental) (GCC) 
+
