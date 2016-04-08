@@ -13263,7 +13263,11 @@ tls_mentioned_p (rtx x)
     }
 }
 
-/* Must not copy any rtx that uses a pc-relative address.  */
+/* Must not copy any rtx that uses a pc-relative address.
+   Also, disallow copying of load-exclusive instructions that
+   may appear after splitting of compare-and-swap-style operations
+   so as to prevent those loops from being transformed away from their
+   canonical forms (see PR 69904).  */
 
 static bool
 arm_cannot_copy_insn_p (rtx_insn *insn)
@@ -13280,6 +13284,20 @@ arm_cannot_copy_insn_p (rtx_insn *insn)
       if (GET_CODE (x) == UNSPEC
 	  && (XINT (x, 1) == UNSPEC_PIC_BASE
 	      || XINT (x, 1) == UNSPEC_PIC_UNIFIED))
+	return true;
+    }
+
+  rtx set = single_set (insn);
+  if (set)
+    {
+      rtx src = SET_SRC (set);
+      if (GET_CODE (src) == ZERO_EXTEND)
+	src = XEXP (src, 0);
+
+      /* Catch the load-exclusive and load-acquire operations.  */
+      if (GET_CODE (src) == UNSPEC_VOLATILE
+	  && (XINT (src, 1) == VUNSPEC_LL
+	      || XINT (src, 1) == VUNSPEC_LAX))
 	return true;
     }
   return false;
@@ -15578,14 +15596,27 @@ arm_reload_out_hi (rtx *operands)
 	/* The slot is out of range, or was dressed up in a SUBREG.  */
 	base = reg_equiv_address (REGNO (ref));
 
-      /* PR 62554: If there is no equivalent memory location then just move
+      /* PR 62254: If there is no equivalent memory location then just move
 	 the value as an SImode register move.  This happens when the target
 	 architecture variant does not have an HImode register move.  */
       if (base == NULL)
 	{
-	  gcc_assert (REG_P (outval));
-	  emit_insn (gen_movsi (gen_rtx_SUBREG (SImode, ref, 0),
-				gen_rtx_SUBREG (SImode, outval, 0)));
+	  gcc_assert (REG_P (outval) || SUBREG_P (outval));
+
+	  if (REG_P (outval))
+	    {
+	      emit_insn (gen_movsi (gen_rtx_SUBREG (SImode, ref, 0),
+				    gen_rtx_SUBREG (SImode, outval, 0)));
+	    }
+	  else /* SUBREG_P (outval)  */
+	    {
+	      if (GET_MODE (SUBREG_REG (outval)) == SImode)
+		emit_insn (gen_movsi (gen_rtx_SUBREG (SImode, ref, 0),
+				      SUBREG_REG (outval)));
+	      else
+		/* FIXME: Handle other cases ?  */
+		gcc_unreachable ();
+	    }
 	  return;
 	}
     }

@@ -75,7 +75,6 @@ m68k port (?)		Jeff Law		<law@redhat.com>
 m68k port		Andreas Schwab		<schwab@linux-m68k.org>
 m68k-motorola-sysv port	Philippe De Muyter	<phdm@macqel.be>
 mcore port		Nick Clifton		<nickc@redhat.com>
-mep port		DJ Delorie		<dj@redhat.com>
 microblaze		Michael Eager		<eager@eagercon.com>
 mips port		Catherine Moore		<clm@codesourcery.com>
 mips port		Eric Christopher	<echristo@gmail.com>
@@ -518,6 +517,7 @@ Quentin Neill					<quentin.neill.gnu@gmail.com>
 Adam Nemet					<adambnemet@gmail.com>
 Thomas Neumann					<tneumann@users.sourceforge.net>
 Dan Nicolaescu					<dann@ics.uci.edu>
+Kelvin Nilsen					<kdnilsen@linux.vnet.ibm.com>
 James Norris					<jnorris@codesourcery.com>
 Diego Novillo					<dnovillo@google.com>
 Dorit Nuzman					<dorit@il.ibm.com>
@@ -566,6 +566,7 @@ Martin Sebor					<msebor@gcc.gnu.org>
 Dodji Seketeli					<dodji@gcc.gnu.org>
 Svein Seldal					<svein@dev.seldal.com>
 Thiemo Seufer					<ths@networkno.de>
+Bill Seurer					<seurer@linux.vnet.ibm.com>
 Marcus Shawcroft				<marcus.shawcroft@arm.com>
 Tim Shen					<timshen@google.com>
 David Sherwood					<david.sherwood@arm.com>
