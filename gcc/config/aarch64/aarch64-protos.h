@@ -360,8 +360,8 @@ void aarch64_emit_call_insn (rtx);
 void aarch64_register_pragmas (void);
 void aarch64_relayout_simd_types (void);
 void aarch64_reset_previous_fndecl (void);
-
-void aarch64_emit_swrsqrt (rtx, rtx);
+void aarch64_save_restore_target_globals (tree);
+void aarch64_emit_approx_rsqrt (rtx, rtx);
 
 /* Initialize builtins for SIMD intrinsics.  */
 void init_aarch64_simd_builtins (void);
@@ -413,9 +413,7 @@ rtx aarch64_expand_builtin (tree exp,
 			    machine_mode mode ATTRIBUTE_UNUSED,
 			    int ignore ATTRIBUTE_UNUSED);
 tree aarch64_builtin_decl (unsigned, bool ATTRIBUTE_UNUSED);
-
 tree aarch64_builtin_rsqrt (unsigned int);
-
 tree aarch64_builtin_vectorized_function (unsigned int, tree, tree);
 
 extern void aarch64_split_combinev16qi (rtx operands[3]);
@@ -431,4 +429,8 @@ bool extract_base_offset_in_addr (rtx mem, rtx *base, rtx *offset);
 bool aarch64_operands_ok_for_ldpstp (rtx *, bool, enum machine_mode);
 bool aarch64_operands_adjust_ok_for_ldpstp (rtx *, bool, enum machine_mode);
 extern bool aarch64_nopcrelative_literal_loads;
+
+extern void aarch64_asm_output_pool_epilogue (FILE *, const char *,
+					      tree, HOST_WIDE_INT);
+
 #endif /* GCC_AARCH64_PROTOS_H */
