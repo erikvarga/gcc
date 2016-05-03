@@ -297,7 +297,7 @@ fold_deferring_overflow_warnings_p (void)
 /* This is called when we fold something based on the fact that signed
    overflow is undefined.  */
 
-static void
+void
 fold_overflow_warning (const char* gmsgid, enum warn_strict_overflow_code wc)
 {
   if (fold_deferring_overflow_warnings > 0)
@@ -963,8 +963,7 @@ int_const_binop_1 (enum tree_code code, const_tree arg1, const_tree parg2,
   signop sign = TYPE_SIGN (type);
   bool overflow = false;
 
-  wide_int arg2 = wide_int::from (parg2, TYPE_PRECISION (type),
-				  TYPE_SIGN (TREE_TYPE (parg2)));
+  wide_int arg2 = wi::to_wide (parg2, TYPE_PRECISION (type));
 
   switch (code)
     {
@@ -2749,6 +2748,28 @@ combine_comparisons (location_t loc,
 int
 operand_equal_p (const_tree arg0, const_tree arg1, unsigned int flags)
 {
+  /* When checking, verify at the outermost operand_equal_p call that
+     if operand_equal_p returns non-zero then ARG0 and ARG1 has the same
+     hash value.  */
+  if (flag_checking && !(flags & OEP_NO_HASH_CHECK))
+    {
+      if (operand_equal_p (arg0, arg1, flags | OEP_NO_HASH_CHECK))
+	{
+	  if (arg0 != arg1)
+	    {
+	      inchash::hash hstate0 (0), hstate1 (0);
+	      inchash::add_expr (arg0, hstate0, flags);
+	      inchash::add_expr (arg1, hstate1, flags);
+	      hashval_t h0 = hstate0.end ();
+	      hashval_t h1 = hstate1.end ();
+	      gcc_assert (h0 == h1);
+	    }
+	  return 1;
+	}
+      else
+	return 0;
+    }
+
   /* If either is ERROR_MARK, they aren't equal.  */
   if (TREE_CODE (arg0) == ERROR_MARK || TREE_CODE (arg1) == ERROR_MARK
       || TREE_TYPE (arg0) == error_mark_node
@@ -6375,10 +6396,8 @@ extract_muldiv_1 (tree t, tree c, enum tree_code code, tree wide_type,
 	  bool overflow_mul_p;
 	  signop sign = TYPE_SIGN (ctype);
 	  unsigned prec = TYPE_PRECISION (ctype);
-	  wide_int mul = wi::mul (wide_int::from (op1, prec,
-						  TYPE_SIGN (TREE_TYPE (op1))),
-				  wide_int::from (c, prec,
-						  TYPE_SIGN (TREE_TYPE (c))),
+	  wide_int mul = wi::mul (wi::to_wide (op1, prec),
+				  wi::to_wide (c, prec),
 				  sign, &overflow_mul_p);
 	  overflow_p = TREE_OVERFLOW (c) | TREE_OVERFLOW (op1);
 	  if (overflow_mul_p
@@ -8373,75 +8392,6 @@ fold_comparison (location_t loc, enum tree_code code, tree type,
   STRIP_SIGN_NOPS (arg0);
   STRIP_SIGN_NOPS (arg1);
 
-  /* Transform comparisons of the form X +- C1 CMP C2 to X CMP C2 -+ C1.  */
-  if ((TREE_CODE (arg0) == PLUS_EXPR || TREE_CODE (arg0) == MINUS_EXPR)
-      && (equality_code
-	  || (ANY_INTEGRAL_TYPE_P (TREE_TYPE (arg0))
-	      && TYPE_OVERFLOW_UNDEFINED (TREE_TYPE (arg0))))
-      && TREE_CODE (TREE_OPERAND (arg0, 1)) == INTEGER_CST
-      && !TREE_OVERFLOW (TREE_OPERAND (arg0, 1))
-      && TREE_CODE (arg1) == INTEGER_CST
-      && !TREE_OVERFLOW (arg1))
-    {
-      const enum tree_code
-	reverse_op = TREE_CODE (arg0) == PLUS_EXPR ? MINUS_EXPR : PLUS_EXPR;
-      tree const1 = TREE_OPERAND (arg0, 1);
-      tree const2 = fold_convert_loc (loc, TREE_TYPE (const1), arg1);
-      tree variable = TREE_OPERAND (arg0, 0);
-      tree new_const = int_const_binop (reverse_op, const2, const1);
-
-      /* If the constant operation overflowed this can be
-	 simplified as a comparison against INT_MAX/INT_MIN.  */
-      if (TREE_OVERFLOW (new_const)
-	  && !TYPE_OVERFLOW_WRAPS (TREE_TYPE (arg0)))
-	{
-	  int const1_sgn = tree_int_cst_sgn (const1);
-	  enum tree_code code2 = code;
-
-	  /* Get the sign of the constant on the lhs if the
-	     operation were VARIABLE + CONST1.  */
-	  if (TREE_CODE (arg0) == MINUS_EXPR)
-	    const1_sgn = -const1_sgn;
-
-	  /* The sign of the constant determines if we overflowed
-	     INT_MAX (const1_sgn == -1) or INT_MIN (const1_sgn == 1).
-	     Canonicalize to the INT_MIN overflow by swapping the comparison
-	     if necessary.  */
-	  if (const1_sgn == -1)
-	    code2 = swap_tree_comparison (code);
-
-	  /* We now can look at the canonicalized case
-	       VARIABLE + 1  CODE2  INT_MIN
-	     and decide on the result.  */
-	  switch (code2)
-	    {
-	    case EQ_EXPR:
-	    case LT_EXPR:
-	    case LE_EXPR:
-	      return
-		omit_one_operand_loc (loc, type, boolean_false_node, variable);
-
-	    case NE_EXPR:
-	    case GE_EXPR:
-	    case GT_EXPR:
-	      return
-		omit_one_operand_loc (loc, type, boolean_true_node, variable);
-
-	    default:
-	      gcc_unreachable ();
-	    }
-	}
-      else
-	{
-	  if (!equality_code)
-	    fold_overflow_warning ("assuming signed overflow does not occur "
-				   "when changing X +- C1 cmp C2 to "
-				   "X cmp C2 -+ C1",
-				   WARN_STRICT_OVERFLOW_COMPARISON);
-	  return fold_build2_loc (loc, code, type, variable, new_const);
-	}
-    }
-
   /* For comparisons of pointers we can decompose it to a compile time
      comparison of the base objects and the offsets into the object.
      This requires at least one operand being an ADDR_EXPR or a
@@ -8499,7 +8449,7 @@ fold_comparison (location_t loc, enum tree_code code, tree type,
 	    {
 	      offset_int tem = wi::sext (wi::to_offset (offset0),
 					 TYPE_PRECISION (sizetype));
-	      tem = wi::lshift (tem, LOG2_BITS_PER_UNIT);
+	      tem <<= LOG2_BITS_PER_UNIT;
 	      tem += bitpos0;
 	      if (wi::fits_shwi_p (tem))
 		{
@@ -8546,7 +8496,7 @@ fold_comparison (location_t loc, enum tree_code code, tree type,
 	    {
 	      offset_int tem = wi::sext (wi::to_offset (offset1),
 					 TYPE_PRECISION (sizetype));
-	      tem = wi::lshift (tem, LOG2_BITS_PER_UNIT);
+	      tem <<= LOG2_BITS_PER_UNIT;
 	      tem += bitpos1;
 	      if (wi::fits_shwi_p (tem))
 		{
@@ -8676,11 +8626,11 @@ fold_comparison (location_t loc, enum tree_code code, tree type,
 	    case EQ_EXPR:
 	    case LE_EXPR:
 	    case LT_EXPR:
-	      return boolean_false_node;
+	      return constant_boolean_node (false, type);
 	    case GE_EXPR:
 	    case GT_EXPR:
 	    case NE_EXPR:
-	      return boolean_true_node;
+	      return constant_boolean_node (true, type);
 	    default:
 	      gcc_unreachable ();
 	    }
@@ -9956,25 +9906,6 @@ fold_binary_loc (location_t loc,
 				    fold_convert_loc (loc, type,
 						      negate_expr (op0)), tem);
 
-	  /* (A + A) * C -> A * 2 * C  */
-	  if (TREE_CODE (arg0) == PLUS_EXPR
-	      && TREE_CODE (arg1) == INTEGER_CST
-	      && operand_equal_p (TREE_OPERAND (arg0, 0),
-			          TREE_OPERAND (arg0, 1), 0))
-	    return fold_build2_loc (loc, MULT_EXPR, type,
-				omit_one_operand_loc (loc, type,
-						  TREE_OPERAND (arg0, 0),
-						  TREE_OPERAND (arg0, 1)),
-				fold_build2_loc (loc, MULT_EXPR, type,
-					     build_int_cst (type, 2) , arg1));
-
-	  /* ((T) (X /[ex] C)) * C cancels out if the conversion is
-	     sign-changing only.  */
-	  if (TREE_CODE (arg1) == INTEGER_CST
-	      && TREE_CODE (arg0) == EXACT_DIV_EXPR
-	      && operand_equal_p (arg1, TREE_OPERAND (arg0, 1), 0))
-	    return fold_convert_loc (loc, type, TREE_OPERAND (arg0, 0));
-
 	  strict_overflow_p = false;
 	  if (TREE_CODE (arg1) == INTEGER_CST
 	      && 0 != (tem = extract_muldiv (op0, arg1, code, NULL_TREE,
@@ -10033,24 +9964,6 @@ fold_binary_loc (location_t loc,
 	      && TREE_CODE (arg1) == CONJ_EXPR
 	      && operand_equal_p (arg0, TREE_OPERAND (arg1, 0), 0))
 	    return fold_mult_zconjz (loc, type, arg0);
-
-	  if (flag_unsafe_math_optimizations)
-	    {
-
-	      /* Canonicalize x*x as pow(x,2.0), which is expanded as x*x.  */
-	      if (!in_gimple_form
-		  && optimize
-		  && operand_equal_p (arg0, arg1, 0))
-		{
-		  tree powfn = mathfn_built_in (type, BUILT_IN_POW);
-
-		  if (powfn)
-		    {
-		      tree arg = build_real (type, dconst2);
-		      return build_call_expr_loc (loc, powfn, 2, arg0, arg);
-		    }
-		}
-	    }
 	}
       goto associate;
 
@@ -13548,6 +13461,9 @@ tree_single_nonzero_warnv_p (tree t, bool *strict_overflow_p)
 
 	if (!DECL_P (base))
 	  base = get_base_address (base);
+
+	if (base && TREE_CODE (base) == TARGET_EXPR)
+	  base = TARGET_EXPR_SLOT (base);
 
 	if (!base)
 	  return false;

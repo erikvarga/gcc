@@ -4436,8 +4436,8 @@ build_unary_op (location_t location,
 	case COMPONENT_REF:
 	  if (DECL_C_BIT_FIELD (TREE_OPERAND (arg, 1)))
 	    {
-	      error ("cannot take address of bit-field %qD",
-		     TREE_OPERAND (arg, 1));
+	      error_at (location, "cannot take address of bit-field %qD",
+			TREE_OPERAND (arg, 1));
 	      return error_mark_node;
 	    }
 
@@ -4449,15 +4449,16 @@ build_unary_op (location_t location,
 	      if (!AGGREGATE_TYPE_P (TREE_TYPE (arg))
 		  && !VECTOR_TYPE_P (TREE_TYPE (arg)))
 		{
-		  error ("cannot take address of scalar with reverse storage "
-			 "order");
+		  error_at (location, "cannot take address of scalar with "
+			    "reverse storage order");
 		  return error_mark_node;
 		}
 
 	      if (TREE_CODE (TREE_TYPE (arg)) == ARRAY_TYPE
 		  && TYPE_REVERSE_STORAGE_ORDER (TREE_TYPE (arg)))
-		warning (OPT_Wscalar_storage_order, "address of array with "
-			"reverse scalar storage order requested");
+		warning_at (location, OPT_Wscalar_storage_order,
+			    "address of array with reverse scalar storage "
+			    "order requested");
 	    }
 
 	default:
@@ -9974,12 +9975,11 @@ c_finish_case (tree body, tree type)
 
 /* Emit an if statement.  IF_LOCUS is the location of the 'if'.  COND,
    THEN_BLOCK and ELSE_BLOCK are expressions to be used; ELSE_BLOCK
-   may be null.  NESTED_IF is true if THEN_BLOCK contains another IF
-   statement, and was not surrounded with parenthesis.  */
+   may be null.  */
 
 void
 c_finish_if_stmt (location_t if_locus, tree cond, tree then_block,
-		  tree else_block, bool nested_if)
+		  tree else_block)
 {
   tree stmt;
 
@@ -10010,39 +10010,6 @@ c_finish_if_stmt (location_t if_locus, tree cond, tree then_block,
 		    " and the else-block");
 	  return;
 	}
-    }
-  /* Diagnose an ambiguous else if if-then-else is nested inside if-then.  */
-  if (warn_parentheses && nested_if && else_block == NULL)
-    {
-      tree inner_if = then_block;
-
-      /* We know from the grammar productions that there is an IF nested
-	 within THEN_BLOCK.  Due to labels and c99 conditional declarations,
-	 it might not be exactly THEN_BLOCK, but should be the last
-	 non-container statement within.  */
-      while (1)
-	switch (TREE_CODE (inner_if))
-	  {
-	  case COND_EXPR:
-	    goto found;
-	  case BIND_EXPR:
-	    inner_if = BIND_EXPR_BODY (inner_if);
-	    break;
-	  case STATEMENT_LIST:
-	    inner_if = expr_last (then_block);
-	    break;
-	  case TRY_FINALLY_EXPR:
-	  case TRY_CATCH_EXPR:
-	    inner_if = TREE_OPERAND (inner_if, 0);
-	    break;
-	  default:
-	    gcc_unreachable ();
-	  }
-    found:
-
-      if (COND_EXPR_ELSE (inner_if))
-	 warning_at (if_locus, OPT_Wparentheses,
-		     "suggest explicit braces to avoid ambiguous %<else%>");
     }
 
   stmt = build3 (COND_EXPR, void_type_node, cond, then_block, else_block);
@@ -12529,7 +12496,7 @@ c_find_omp_placeholder_r (tree *tp, int *, void *data)
    Remove any elements from the list that are invalid.  */
 
 tree
-c_finish_omp_clauses (tree clauses, bool is_omp, bool declare_simd)
+c_finish_omp_clauses (tree clauses, enum c_omp_region_type ort)
 {
   bitmap_head generic_head, firstprivate_head, lastprivate_head;
   bitmap_head aligned_head, map_head, map_field_head;
@@ -12572,7 +12539,7 @@ c_finish_omp_clauses (tree clauses, bool is_omp, bool declare_simd)
 	  t = OMP_CLAUSE_DECL (c);
 	  if (TREE_CODE (t) == TREE_LIST)
 	    {
-	      if (handle_omp_array_sections (c, is_omp))
+	      if (handle_omp_array_sections (c, ort & C_ORT_OMP))
 		{
 		  remove = true;
 		  break;
@@ -12800,10 +12767,10 @@ c_finish_omp_clauses (tree clauses, bool is_omp, bool declare_simd)
 	  goto check_dup_generic;
 
 	case OMP_CLAUSE_LINEAR:
-	  if (!declare_simd)
+	  if (ort != C_ORT_OMP_DECLARE_SIMD)
 	    need_implicitly_determined = true;
 	  t = OMP_CLAUSE_DECL (c);
-	  if (!declare_simd
+	  if (ort != C_ORT_OMP_DECLARE_SIMD
 	      && OMP_CLAUSE_LINEAR_KIND (c) != OMP_CLAUSE_LINEAR_DEFAULT)
 	    {
 	      error_at (OMP_CLAUSE_LOCATION (c),
@@ -12811,16 +12778,33 @@ c_finish_omp_clauses (tree clauses, bool is_omp, bool declare_simd)
 			"clause on %<simd%> or %<for%> constructs");
 	      OMP_CLAUSE_LINEAR_KIND (c) = OMP_CLAUSE_LINEAR_DEFAULT;
 	    }
-	  if (!INTEGRAL_TYPE_P (TREE_TYPE (t))
-	      && TREE_CODE (TREE_TYPE (t)) != POINTER_TYPE)
+	  if (ort & C_ORT_CILK)
 	    {
-	      error_at (OMP_CLAUSE_LOCATION (c),
-			"linear clause applied to non-integral non-pointer "
-			"variable with type %qT", TREE_TYPE (t));
-	      remove = true;
-	      break;
+	      if (!INTEGRAL_TYPE_P (TREE_TYPE (t))
+		  && !SCALAR_FLOAT_TYPE_P (TREE_TYPE (t))
+		  && TREE_CODE (TREE_TYPE (t)) != POINTER_TYPE)
+		{
+		  error_at (OMP_CLAUSE_LOCATION (c),
+			    "linear clause applied to non-integral, "
+			    "non-floating, non-pointer variable with type %qT",
+			    TREE_TYPE (t));
+		  remove = true;
+		  break;
+		}
 	    }
-	  if (declare_simd)
+	  else
+	    {
+	      if (!INTEGRAL_TYPE_P (TREE_TYPE (t))
+		  && TREE_CODE (TREE_TYPE (t)) != POINTER_TYPE)
+		{
+		  error_at (OMP_CLAUSE_LOCATION (c),
+			    "linear clause applied to non-integral non-pointer "
+			    "variable with type %qT", TREE_TYPE (t));
+		  remove = true;
+		  break;
+		}
+	    }
+	  if (ort == C_ORT_OMP_DECLARE_SIMD)
 	    {
 	      tree s = OMP_CLAUSE_LINEAR_STEP (c);
 	      if (TREE_CODE (s) == PARM_DECL)
@@ -12999,7 +12983,7 @@ c_finish_omp_clauses (tree clauses, bool is_omp, bool declare_simd)
 	    }
 	  if (TREE_CODE (t) == TREE_LIST)
 	    {
-	      if (handle_omp_array_sections (c, is_omp))
+	      if (handle_omp_array_sections (c, ort & C_ORT_OMP))
 		remove = true;
 	      break;
 	    }
@@ -13022,7 +13006,7 @@ c_finish_omp_clauses (tree clauses, bool is_omp, bool declare_simd)
 	  t = OMP_CLAUSE_DECL (c);
 	  if (TREE_CODE (t) == TREE_LIST)
 	    {
-	      if (handle_omp_array_sections (c, is_omp))
+	      if (handle_omp_array_sections (c, ort & C_ORT_OMP))
 		remove = true;
 	      else
 		{
@@ -13069,7 +13053,7 @@ c_finish_omp_clauses (tree clauses, bool is_omp, bool declare_simd)
 	      break;
 	    }
 	  if (TREE_CODE (t) == COMPONENT_REF
-	      && is_omp
+	      && (ort & C_ORT_OMP)
 	      && OMP_CLAUSE_CODE (c) != OMP_CLAUSE__CACHE_)
 	    {
 	      if (DECL_BIT_FIELD (TREE_OPERAND (t, 1)))

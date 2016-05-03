@@ -2177,7 +2177,7 @@
   [(match_operand:SI 0 "register_operand" "")		;; bool result output
    (match_operand:QI 1 "memory_operand" "")		;; memory
    (match_operand:SI 2 "const_int_operand" "")]		;; model
-  "(TARGET_ATOMIC_ANY || TARGET_ENABLE_TAS) && !TARGET_SHMEDIA"
+  "TARGET_ATOMIC_ANY || TARGET_ENABLE_TAS"
 {
   rtx addr = force_reg (Pmode, XEXP (operands[1], 0));
 
@@ -2214,7 +2214,7 @@
 	       (const_int 0)))
    (set (mem:QI (match_dup 0))
 	(unspec:QI [(const_int 128)] UNSPEC_ATOMIC))]
-  "TARGET_ENABLE_TAS && !TARGET_SHMEDIA"
+  "TARGET_ENABLE_TAS"
   "tas.b	@%0"
   [(set_attr "insn_class" "co_group")
    (set_attr "ams_validate_alternatives" "yes")])

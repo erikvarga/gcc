@@ -1372,8 +1372,8 @@ bit_value_binop_1 (enum tree_code code, tree type,
 		}
 	      else
 		{
-		  *mask = wi::ext (wi::lshift (r1mask, shift), width, sgn);
-		  *val = wi::ext (wi::lshift (r1val, shift), width, sgn);
+		  *mask = wi::ext (r1mask << shift, width, sgn);
+		  *val = wi::ext (r1val << shift, width, sgn);
 		}
 	    }
 	}
@@ -2114,7 +2114,7 @@ fold_builtin_alloca_with_align (gimple *stmt)
   n_elem = size * 8 / BITS_PER_UNIT;
   array_type = build_array_type_nelts (elem_type, n_elem);
   var = create_tmp_var (array_type);
-  DECL_ALIGN (var) = TREE_INT_CST_LOW (gimple_call_arg (stmt, 1));
+  SET_DECL_ALIGN (var, TREE_INT_CST_LOW (gimple_call_arg (stmt, 1)));
   {
     struct ptr_info_def *pi = SSA_NAME_PTR_INFO (lhs);
     if (pi != NULL && !pi->pt.anything)
