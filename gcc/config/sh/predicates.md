@@ -236,6 +236,12 @@
        (match_code "post_inc" "0")
        (match_code "reg" "00")))
 
+;; Returns true if OP is a pre-decrement addressing mode memory reference.
+(define_predicate "pre_dec_mem"
+  (and (match_code "mem")
+       (match_code "pre_dec" "0")
+       (match_code "reg" "00")))
+
 ;; Returns 1 if the operand can be used in an SH2A movu.{b|w} insn.
 (define_predicate "zero_extend_movu_operand"
   (and (ior (match_operand 0 "displacement_mem_operand")

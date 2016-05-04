@@ -4825,13 +4825,13 @@
   [(set_attr "type" "load")
    (set_attr "length" "2,2,4")])
 
+;; The pre-dec and post-inc mems must be captured by the '<' and '>'
+;; constraints, otherwise wrong code might get generated.
 (define_insn "*extend<mode>si2_predec"
   [(set (match_operand:SI 0 "arith_reg_dest" "=z")
-	(sign_extend:SI
-	  (mem:QIHI
-	    (pre_dec:SI (match_operand:SI 1 "arith_reg_operand" "r")))))]
+	(sign_extend:SI (match_operand:QIHI 1 "pre_dec_mem" "<")))]
   "TARGET_SH2A"
-  "mov.<bw>	@-%1,%0"
+  "mov.<bw>	%1,%0"
   [(set_attr "type" "load")])
 
 ;; The *_snd patterns will take care of other QImode/HImode addressing
@@ -5154,6 +5154,22 @@
   prepare_move_operands (operands, <MODE>mode);
 })
 
+;; The pre-dec and post-inc mems must be captured by the '<' and '>'
+;; constraints, otherwise wrong code might get generated.
+(define_insn "*mov<mode>_load_predec"
+  [(set (match_operand:QIHISI 0 "arith_reg_dest" "=z")
+	(match_operand:QIHISI 1 "pre_dec_mem" "<"))]
+  "TARGET_SH2A"
+  "mov.<bwl>	%1,%0"
+  [(set_attr "type" "load")])
+
+(define_insn "*mov<mode>_store_postinc"
+  [(set (match_operand:QIHISI 0 "post_inc_mem" "=>")
+	(match_operand:QIHISI 1 "arith_reg_operand" "z"))]
+  "TARGET_SH2A"
+  "mov.<bwl>	%1,%0"
+  [(set_attr "type" "store")])
+
 ;; Specifying the displacement addressing load / store patterns separately
 ;; before the generic movqi / movhi pattern allows controlling the order
 ;; in which load / store insns are selected in a more fine grained way.
@@ -5205,21 +5221,6 @@
 	mov.<bw>	@(%O2,%1),%0"
   [(set_attr "type" "load")
    (set_attr "length" "2,2,4")])
-
-(define_insn "*mov<mode>_load_predec"
-  [(set (match_operand:QIHISI 0 "arith_reg_dest" "=z")
-	  (mem:QIHISI
-	    (pre_dec:SI (match_operand:SI 1 "arith_reg_operand" "r"))))]
-  "TARGET_SH2A"
-  "mov.<bwl>	@-%1,%0"
-  [(set_attr "type" "load")])
-
-(define_insn "*mov<mode>_store_postinc"
-  [(set (mem:QIHISI (post_inc:SI (match_operand:SI 0 "arith_reg_operand" "r")))
-	(match_operand:QIHISI 1 "arith_reg_operand" "z"))]
-  "TARGET_SH2A"
-  "mov.<bwl>	%1,@%0+"
-  [(set_attr "type" "store")])
 
 ;; Doing a post-inc DImode store is possible, but it's very likely to result
 ;; lots of reg moves to load the R0 reg before the store.  Thus it's better
