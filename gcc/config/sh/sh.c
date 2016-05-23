@@ -63,6 +63,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "rtl-iter.h"
 
 #include "sh_ams.h"
+#include "sh_ams2.h"
 
 /* This file should be included last.  */
 #include "target-def.h"
@@ -830,11 +831,11 @@ register_sh_passes (void)
 			       sh_ams::options (sh_ams_opt)),
 		   PASS_POS_INSERT_AFTER, "auto_inc_dec", 1);
 
-  /* Run AMS again after sh_treg_combine2 as there might be new opportunities
-     for address optimization  */
+  /* Same for the newer AMS pass.  */
   if (sh_ams2_enable)
-    register_pass (new sh_ams (g, "sh_ams", g_ams_delegate),
-		   PASS_POS_INSERT_AFTER, "sh_treg_combine2", 1);
+    register_pass (new sh_ams2 (g, "sh_ams2", g_ams_delegate,
+                                sh_ams2::options (sh_ams2_opt)),
+		   PASS_POS_INSERT_AFTER, "auto_inc_dec", 1);
 
 }
 
