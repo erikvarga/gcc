@@ -841,6 +841,10 @@ sh_ams2::sequence_element::used_by_unoptimizable_el (void) const
     {
       if ((*it)->used_by_unoptimizable_el ())
         return true;
+
+// FIXME: both if conditions are essentially the same.  if effective_addr and
+// optimization_enabled are moved into the base class there's no need to
+// check the type at all.
       if ((*it)->is_mem_access () &&
           (!((mem_access*)*it)->optimization_enabled ()
            || ((mem_access*)*it)->effective_addr ().is_invalid ()))
@@ -862,6 +866,9 @@ bool
 sh_ams2::sequence_element::adjacent_inc (const sequence_element* first,
                                          const sequence_element* second)
 {
+  // FIXME: this is the same as adjacent_dec.
+  // extract function: e.g. adjacent_distance.
+  // use it in adjacent_inc and adjacent_dec
   addr_expr first_addr, second_addr;
 
   if (!first->is_mem_access ())
@@ -870,6 +877,7 @@ sh_ams2::sequence_element::adjacent_inc (const sequence_element* first,
   const mem_access* first_acc = (const mem_access*)first;
   first_addr = first_acc->effective_addr ();
 
+// FIXME: no need to check the type if effective_addr is in base class.
   if (second->is_mem_access ())
     second_addr = ((const mem_access*)second)->effective_addr ();
   else if (second->type () == type_reg_use)
@@ -897,6 +905,9 @@ bool
 sh_ams2::sequence_element::adjacent_dec (const sequence_element* first,
                                          const sequence_element* second)
 {
+  // FIXME: this is the same as adjacent_inc.
+  // extract function: e.g. adjacent_distance.
+  // use it in adjacent_inc and adjacent_dec
   addr_expr first_addr, second_addr;
 
   if (!first->is_mem_access ())
@@ -905,6 +916,7 @@ sh_ams2::sequence_element::adjacent_dec (const sequence_element* first,
   const mem_access* first_acc = (const mem_access*)first;
   first_addr = first_acc->effective_addr ();
 
+// FIXME: no need to check the type if effective_addr is in base class.
   if (second->is_mem_access ())
     second_addr = ((const mem_access*)second)->effective_addr ();
   else if (second->type () == type_reg_use)
@@ -1016,6 +1028,7 @@ private:
 
 // Return all the start addresses that could be used to arrive at END_ADDR.
 // FIXME: Avoid copying the list elements over and over.
+// FIXME: use output iterator.
 std::list<sh_ams2::reg_mod*>
 sh_ams2::start_addr_list::get_relevant_addresses (const addr_expr& end_addr)
 {
@@ -1128,6 +1141,12 @@ sh_ams2::sequence::split (std::list<sequence>::iterator seq_it,
   for (sequence_iterator el = seq.elements ().begin ();
        el != seq.elements ().end (); ++el)
     {
+
+// FIXME: move effective addr into base class and just do
+//    addr_expr addr = (*el)->effective_addr ();
+//    if (!addr.valid ())
+//      continue;
+
       addr_expr addr;
       if ((*el)->is_mem_access ())
         addr = ((mem_access*)*el)->effective_addr ();
@@ -1167,6 +1186,7 @@ sh_ams2::sequence::split (std::list<sequence>::iterator seq_it,
     }
 
   // Sort the shared terms by their score.
+  // FIXME: use vector::reserve
   std::vector<shared_term*> sorted_terms;
   for (shared_term_map::iterator it = shared_terms.begin ();
        it != shared_terms.end (); ++it)
@@ -1200,6 +1220,8 @@ sh_ams2::sequence::split (std::list<sequence>::iterator seq_it,
         }
     }
 
+// FIXME: is that needed?  it's not in a loop and the variables are not used
+// anymore after the .clear.
   shared_terms.clear ();
   sorted_terms.clear ();
 
@@ -2065,6 +2087,7 @@ try_insert_address_mods (reg_mod* start_addr, const addr_expr& end_addr,
       && GET_MODE (c_start_addr.index_reg ()) != acc_mode)
     return mod_addr_result (infinite_costs);
 
+// FIXME: get rid of this macro somehow.
   #define insert_addr_mod(used_rm, curr_addr_rtx, \
                           curr_addr, effective_addr) do \
   { \
@@ -2293,6 +2316,9 @@ sh_ams2::sequence::update_insn_stream (void)
               emit_insn_before (new_insns, (*els)->insn ());
             }
 
+// FIXME: exctract virtual function 'update_insn_stream' (or similar name)
+//        into sequence element base class.  this will eliminate the need
+//        for the type if-else here.
           if ((*els)->is_mem_access ())
             {
               mem_access* m = (mem_access*)*els;
@@ -2754,6 +2780,8 @@ sh_ams2::sequence::update_cost (delegate& d)
   for (sequence_iterator els = elements ().begin ();
        els != elements ().end (); ++els)
     {
+// FIXME: extract virtual function 'update_cost' (or similar name) into
+//        base class to avoid the if-else on the element type.
       if ((*els)->is_mem_access ())
         {
           mem_access* m = (mem_access*)*els;
@@ -3263,6 +3291,10 @@ sh_ams2::mem_load::try_replace_addr (const sh_ams2::addr_expr& new_addr)
 bool
 sh_ams2::mem_load::replace_addr (const sh_ams2::addr_expr& new_addr)
 {
+  // FIXME:
+  // validate_change might invoke the backend's 'legitimize_address' which
+  // can produce additional insns before the changed insn.  must capture those
+  // insns, too.  see also sh_ams::access::set_insn_mem_rtx
   return validate_change (insn (), m_mem_ref,
                           replace_equiv_address (*m_mem_ref,
                                                  new_addr.to_rtx ()),
@@ -3286,6 +3318,10 @@ sh_ams2::mem_store::try_replace_addr (const sh_ams2::addr_expr& new_addr)
 bool
 sh_ams2::mem_store::replace_addr (const sh_ams2::addr_expr& new_addr)
 {
+  // FIXME:
+  // validate_change might invoke the backend's 'legitimize_address' which
+  // can produce additional insns before the changed insn.  must capture those
+  // insns, too.  see also sh_ams::access::set_insn_mem_rtx
   return validate_change (insn (), m_mem_ref,
                           replace_equiv_address (*m_mem_ref,
                                                  new_addr.to_rtx ()),
@@ -3315,6 +3351,15 @@ sh_ams2::mem_operand::try_replace_addr (const sh_ams2::addr_expr& new_addr)
 bool
 sh_ams2::mem_operand::replace_addr (const sh_ams2::addr_expr& new_addr)
 {
+  // FIXME:
+  // validate_change might invoke the backend's 'legitimize_address' which
+  // can produce additional insns before the changed insn.  must capture those
+  // insns, too.  see also sh_ams::access::set_insn_mem_rtx
+
+  // FIXME:
+  // this might leave the insn in some intermediate state if e.g. the first
+  // validate_change works but the second fails.  should use a change group
+  // or something like that and rollback all changes if one fails.
   rtx new_rtx = new_addr.to_rtx ();
   for (static_vector<rtx*, 16>::iterator it = m_mem_refs.begin ();
        it != m_mem_refs.end (); ++it)
@@ -3327,6 +3372,7 @@ sh_ams2::mem_operand::replace_addr (const sh_ams2::addr_expr& new_addr)
 }
 
 // Check whether two sequence elements are duplicates.
+// FIXME: maybe specialize std::equal_to instead of this function...
 bool
 sh_ams2::elements_equal (const sequence_element* el1,
                          const sequence_element* el2)
