@@ -297,21 +297,18 @@ log_sequence_element (const sh_ams2::sequence_element& e,
     {
       const sh_ams2::reg_use& ru = (const sh_ams2::reg_use&)e;
       log_msg ("\n  use ");
+      log_rtx (ru.reg ());
       if (ru.reg_ref ())
-        log_rtx (*ru.reg_ref ());
-      else
-        log_rtx (ru.reg ());
-      log_msg ("\n  effective addr:   ");
+        {
+          log_msg ("in expr\n");
+          log_rtx (*ru.reg_ref ());
+        }
 
+      log_msg ("\n  effective addr:   ");
       if (ru.effective_addr ().is_invalid ())
         log_msg ("unknown");
       else
         log_addr_expr (ru.effective_addr ());
-      if (ru.reg_ref ())
-        {
-          log_msg ("\n  in insn\n");
-          log_insn (ru.insn ());
-        }
       if (!ru.optimization_enabled ())
         log_msg ("\n  (won't be optimized)");
     }
@@ -4026,7 +4023,7 @@ sh_ams2::execute (function* fun)
           != (*it)->sequences ().end ())
         {
           log_msg ("reg-mod is used by a sequence that won't be updated\n");
-          log_msg ("keeping insns\n");
+          log_msg ("keeping insn\n");
 
           // In this case, all other sequences that used this reg-mod
           // can't be updated either.
@@ -4043,7 +4040,33 @@ sh_ams2::execute (function* fun)
             }
         }
       else if ((*it)->insn ())
-        set_insn_deleted ((*it)->insn ());
+        {
+          // Also keep the insn if it has other sequence elements in it.
+          for (std::set<sequence*>::iterator seqs
+                 = (*it)->sequences ().begin ();
+               seqs != (*it)->sequences ().end (); ++seqs)
+            {
+              std::pair<insn_map::iterator, insn_map::iterator>
+                els_in_insn = (*seqs)->elements_in_insn ((*it)->insn ());
+              for (insn_map::iterator els = els_in_insn.first;
+                   els != els_in_insn.second; ++els)
+                {
+                  if (*els->second != *it
+                      // For unspecified reg-uses it doesn't matter
+                      // whether the insn exists, so we can remove it.
+                      && ((*els->second)->type () != type_reg_use
+                          || ((reg_use*)*els->second)->reg_ref () != NULL))
+                    {
+                      log_msg ("reg-mod's insn has other elements\n");
+                      log_msg ("keeping insn\n");
+                      goto next;
+                    }
+                }
+            }
+          set_insn_deleted ((*it)->insn ());
+        }
+    next:
+      continue;
     }
 
   log_msg ("\nupdating sequence insns\n");
