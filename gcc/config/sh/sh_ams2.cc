@@ -1331,18 +1331,22 @@ sh_ams2::sequence::find_mem_accesses (rtx_insn* i, rtx& x, element_type type)
   switch (GET_CODE (x))
     {
     case MEM:
+// FIXME: ref_counting_ptr<mem_access> acc
       mem_access* acc;
 
       switch (type)
         {
         case type_mem_load:
+// FIXME: use make_ref_counted<mem_load>
           acc = new mem_load (i, GET_MODE (x), &x);
           break;
         case type_mem_store:
+// FIXME: use make_ref_counted<mem_store>
           acc = new mem_store (i, GET_MODE (x), &x);
           break;
         case type_mem_operand:
           v.push_back (&x);
+// FIXME: use make_ref_counted<mem_operand>
           acc = new mem_operand (i, GET_MODE (x), v);
           break;
         default:
@@ -1405,6 +1409,8 @@ sh_ams2::sequence::find_addr_reg_mods (void)
           addr_expr reg_current_addr
             = find_reg_note (mod_insn, REG_INC, NULL_RTX)
             ? make_reg_addr (reg) : rtx_to_addr_expr (value);
+
+// FIXME: use make_ref_counted<reg_mod>
           reg_mod* new_reg_mod
             = new reg_mod (mod_insn, reg, value, reg_current_addr);
           new_reg_mod = (reg_mod*)insert_unique (new_reg_mod)->get ();
@@ -1462,6 +1468,7 @@ sh_ams2::sequence::find_addr_reg_uses (void)
                        it != reg_use_refs.end (); ++it)
                     {
                       rtx* use_ref = *it;
+// FIXME: use make_ref_counted<reg_use>
                       reg_use* new_reg_use = new reg_use (i, *regs, use_ref);
                       new_reg_use
                         = (reg_use*)insert_unique (new_reg_use)->get ();
@@ -1518,6 +1525,7 @@ sh_ams2::sequence::find_addr_reg_uses (void)
     {
       rtx reg = it->first;
       reg_mod* rm = it->second;
+// FIXME: use make_ref_counted<reg_use>
       reg_use* new_reg_use = new reg_use (last_el_insn, reg, NULL);
       new_reg_use = (reg_use*)insert_unique (new_reg_use)->get ();
       new_reg_use->set_effective_addr (rm->effective_addr ());
@@ -1917,6 +1925,8 @@ find_cheapest_start_addr (const addr_expr& end_addr, sequence_iterator el,
   if (end_addr.has_no_base_reg () && end_addr.has_no_index_reg ())
     {
       rtx const_reg = gen_reg_rtx (acc_mode);
+
+// FIXME: use make_ref_counted<reg_mod>
       reg_mod* const_load
         = new reg_mod (NULL, const_reg, NULL,
                        make_const_addr (end_addr.disp ()),
@@ -2044,6 +2054,8 @@ insert_address_mods (const alternative& alt, reg_mod* base_start_addr,
         {
           // Otherwise, insert a reg-mod that sets the used reg to
           // the correct value.
+
+// FIXME: use make_ref_counted<reg_mod>
           reg_mod* reg_copy = new reg_mod (NULL, ru->reg (), NULL, new_addr,
                                            ru->effective_addr ());
           sequence_iterator inserted_el = insert_element (reg_copy, el);
@@ -2333,6 +2345,7 @@ insert_addr_mod (reg_mod* used_rm, machine_mode acc_mode,
       tracker.use_changed_reg_mods ().push_back (used_rm);
     }
   rtx new_reg = gen_reg_rtx (acc_mode);
+// FIXME: use make_ref_counted<reg_mod>
   reg_mod* new_addr = new reg_mod (NULL, new_reg, NULL,
                                    curr_addr, effective_addr);
   sequence_iterator inserted_el = insert_element (new_addr, el);
@@ -2511,6 +2524,8 @@ sh_ams2::sequence::start_insn (void) const
 // Insert a new element into the sequence.  Return an iterator pointing
 // to the newly inserted element.
 sh_ams2::sequence_iterator
+
+//		FIXME: pass const ref  ↓ ↓ ↓
 sh_ams2::sequence::insert_element (ref_counting_ptr<sequence_element>& el,
                                    sequence_iterator insert_before)
 {
@@ -2533,6 +2548,24 @@ sh_ams2::sequence::insert_element (ref_counting_ptr<sequence_element>& el,
   return iter;
 }
 
+
+// FIXME: this overload could turn into a trap, because it constructs
+// a ref counting ptr which can potentially delete the passed sequence_element,
+// if insert_element fails for some reason (which it doesn't now, but ...).
+//
+// the ref_counting_ptr<sequence_element> should be constructed outside and
+// passed to the overload below.
+// to reduce the amount of code, in ref_counted.h introduce a new set of
+// templated overloads:
+//    template<typename T> ref_counting_ptr<T> make_ref_counted (void)
+//    template<typename T, typename A0> ref_counting_ptr<T> make_ref_counted (const A0& a0)
+//    template<typename T, typename A0, typename A1> ref_counting_ptr<T> make_ref_counted (const A0& a0, const A1& a1)
+//    template<typename T, typename A0, typename A1, typename A2> ref_counting_ptr<T> make_ref_counted (const A0& a0, const A1& a1, const A2& a2)
+//    ...
+//
+// see also std::make_shared and std::make_unique
+// then use as
+//     container.insert_element (make_ref_counted<reg_mod> (NULL, new_reg, NULL, curr_addr, effective_addr));
 sh_ams2::sequence_iterator
 sh_ams2::sequence::insert_element (sequence_element* el,
                                    sequence_iterator insert_before)
@@ -2546,6 +2579,8 @@ sh_ams2::sequence::insert_element (sequence_element* el,
 // insert it and return an iterator to the already inserted duplicate instead.
 // The place of the element is determined by its insn.
 sh_ams2::sequence_iterator
+
+//		FIXME: pass const ref  ↓ ↓ ↓
 sh_ams2::sequence::insert_unique (ref_counting_ptr<sequence_element>& el)
 {
   if (elements ().empty ())
@@ -3728,6 +3763,7 @@ sh_ams2::rtx_to_addr_expr (rtx x, machine_mode mem_mach_mode,
               // Add to the sequence's start a reg mod that sets the reg
               // to itself. This will be used by the address modification
               // generator as a starting address.
+// FIXME: use make_ref_counted<reg_mod>
               sequence_iterator new_reg_mod
                 = seq->insert_unique (new reg_mod (NULL, x, x,
                                                    make_reg_addr (x),
@@ -3744,6 +3780,7 @@ sh_ams2::rtx_to_addr_expr (rtx x, machine_mode mem_mach_mode,
             : rtx_to_addr_expr (value, mem_mach_mode);
 
           // Insert the modifying insn into the sequence as a reg mod.
+// FIXME: use make_ref_counted<reg_mod>
           sequence_iterator new_reg_mod
             = seq->insert_unique (new reg_mod (mod_insn, x, value,
                                                reg_current_addr));
