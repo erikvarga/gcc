@@ -3057,9 +3057,6 @@ sh_ams2::mem_access::update_access_alternatives (const sequence& seq,
 
   alternatives ().clear ();
 
-  if (!optimization_enabled ())
-    return;
-
   d.mem_access_alternatives (alternatives (), seq, it, val_alts);
   set_alternative_validation (val_alts);
 
@@ -3204,6 +3201,9 @@ sh_ams2::mem_access::matches_alternative (const sh_ams2::alternative& alt) const
 {
   const addr_expr& ae = current_addr ();
   const addr_expr& alt_ae = alt.address ();
+
+  if (ae.is_invalid ())
+    return false;
 
   if (ae.type () != alt_ae.type ())
     return false;
