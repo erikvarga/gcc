@@ -1163,7 +1163,7 @@ NOTE:
     bool
     reg_used_in_sequence (rtx reg) const
     {
-      return reg_used_in_sequence (reg, elements ().begin ());
+      return reg_used_in_sequence (reg, begin ());
     }
 
     // The total cost of the accesses in the sequence.
@@ -1222,15 +1222,20 @@ NOTE:
     // used to arrive at a given destination address.
     start_addr_list& start_addresses (void)  { return m_start_addr_list; }
 
-    std::list<ref_counting_ptr<sequence_element> >& elements (void)
-      {
-        return m_els;
-      }
+    bool empty (void) const { return m_els.empty (); }
+    size_t size (void) const { return m_els.size (); }
 
-    const std::list<ref_counting_ptr<sequence_element> >& elements (void) const
-      {
-        return m_els;
-      }
+    sequence_iterator begin (void) { return sequence_iterator (m_els.begin ()); }
+    sequence_iterator end (void) { return sequence_iterator (m_els.end ()); }
+
+    sequence_const_iterator begin (void) const { return sequence_const_iterator (m_els.begin ()); }
+    sequence_const_iterator end (void) const { return sequence_const_iterator (m_els.end ()); }
+
+    sequence_reverse_iterator rbegin (void) { return sequence_reverse_iterator (m_els.rbegin ()); }
+    sequence_reverse_iterator rend (void) { return sequence_reverse_iterator (m_els.rend ()); }
+
+    sequence_const_reverse_iterator rbegin (void) const { return sequence_const_reverse_iterator (m_els.rbegin ()); }
+    sequence_const_reverse_iterator rend (void) const { return sequence_const_reverse_iterator (m_els.rend ()); }
 
     // iterator decorator for iterating over different types of elements
     // in the access sequence.
@@ -1238,28 +1243,28 @@ NOTE:
     filter_iterator<sequence_iterator, Match> begin (void)
     {
       typedef filter_iterator<sequence_iterator, Match> iter;
-      return iter (m_els.begin (), m_els.end ());
+      return iter (begin (), end ());
     }
 
     template <typename Match>
     filter_iterator<sequence_iterator, Match> end (void)
     {
       typedef filter_iterator<sequence_iterator, Match> iter;
-      return iter (m_els.end (), m_els.end ());
+      return iter (begin (), end ());
     }
 
     template <typename Match>
     filter_iterator<sequence_const_iterator, Match> begin (void) const
     {
       typedef filter_iterator<sequence_const_iterator, Match> iter;
-      return iter (m_els.begin (), m_els.end ());
+      return iter (begin (), end ());
     }
 
     template <typename Match>
     filter_iterator<sequence_const_iterator, Match> end (void) const
     {
       typedef filter_iterator<sequence_const_iterator, Match> iter;
-      return iter (m_els.end (), m_els.end ());
+      return iter (begin (), end ());
     }
 
   private:
