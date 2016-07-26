@@ -3906,6 +3906,8 @@ sh_ams2::rtx_to_addr_expr (rtx x, machine_mode mem_mode,
             {
               el->add_dependency (prev_val.rm);
               prev_val.rm->add_dependent_el (el);
+              if (prev_val.rm->effective_addr ().is_invalid ())
+                return make_reg_addr (x);
               return prev_val.rm->effective_addr ();
             }
 
