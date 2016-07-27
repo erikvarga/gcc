@@ -4846,18 +4846,6 @@
   "mov.<bw>	%1,%0"
   [(set_attr "type" "load")])
 
-(define_expand "extendqihi2"
-  [(set (match_operand:HI 0 "arith_reg_dest")
-	(sign_extend:HI (match_operand:QI 1 "arith_reg_operand")))]
-  "TARGET_SH1")
-
-(define_insn "*extendqihi2_compact_reg"
-  [(set (match_operand:HI 0 "arith_reg_dest" "=r")
-	(sign_extend:HI (match_operand:QI 1 "arith_reg_operand" "r")))]
-  "TARGET_SH1"
-  "exts.b	%1,%0"
-  [(set_attr "type" "arith")])
-
 ;; -------------------------------------------------------------------------
 ;; Move instructions
 ;; -------------------------------------------------------------------------
