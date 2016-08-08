@@ -10573,8 +10573,8 @@
 ;; -------------------------------------------------------------------------
 
 (define_expand "stack_protect_set"
-  [(set (match_operand 0 "memory_operand" "")
-	(match_operand 1 "memory_operand" ""))]
+  [(set (match_operand 0 "stack_protector_mem_operand")
+	(match_operand 1 "stack_protector_mem_operand"))]
   ""
 {
   emit_insn (gen_stack_protect_set_si (operands[0], operands[1]));
@@ -10582,8 +10582,10 @@
 })
 
 (define_insn "stack_protect_set_si"
-  [(set (match_operand:SI 0 "memory_operand" "=m")
-	(unspec:SI [(match_operand:SI 1 "memory_operand" "m")] UNSPEC_SP_SET))
+  [(set (match_operand:SI 0 "stack_protector_mem_operand" "=SraSdd>")
+	(unspec:SI [
+	   (match_operand:SI 1 "stack_protector_mem_operand" "SraSdd>")]
+	 UNSPEC_SP_SET))
    (set (match_scratch:SI 2 "=&r") (const_int 0))]
   ""
 {
@@ -10592,12 +10594,13 @@
 	 "	mov	#0,%2";
 }
   [(set_attr "type" "other")
-   (set_attr "length" "6")])
+   (set_attr "length" "6")
+   (set_attr "ams_validate_alternatives" "yes")])
 
 (define_expand "stack_protect_test"
-  [(match_operand 0 "memory_operand" "")
-   (match_operand 1 "memory_operand" "")
-   (match_operand 2 "" "")]
+  [(match_operand 0 "stack_protector_mem_operand")
+   (match_operand 1 "stack_protector_mem_operand")
+   (match_operand 2)]
   ""
 {
   emit_insn (gen_stack_protect_test_si (operands[0], operands[1]));
@@ -10607,9 +10610,10 @@
 
 (define_insn "stack_protect_test_si"
   [(set (reg:SI T_REG)
-	(unspec:SI [(match_operand:SI 0 "memory_operand" "m")
-		    (match_operand:SI 1 "memory_operand" "m")]
-		   UNSPEC_SP_TEST))
+	(unspec:SI [
+	   (match_operand:SI 0 "stack_protector_mem_operand" "SraSdd>")
+	   (match_operand:SI 1 "stack_protector_mem_operand" "SraSdd>")]
+	 UNSPEC_SP_TEST))
   (set (match_scratch:SI 2 "=&r") (const_int 0))
   (set (match_scratch:SI 3 "=&r") (const_int 0))]
   ""
@@ -10621,7 +10625,8 @@
 	 "	mov	#0,%3";
 }
   [(set_attr "type" "other")
-   (set_attr "length" "10")])
+   (set_attr "length" "10")
+   (set_attr "ams_validate_alternatives" "yes")])
 
 ;; -------------------------------------------------------------------------
 ;; Atomic operations
