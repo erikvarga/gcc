@@ -155,6 +155,7 @@ extern rtx sh_find_equiv_gbr_addr (rtx_insn* cur_insn, rtx mem);
 extern int sh_eval_treg_value (rtx op);
 extern HOST_WIDE_INT sh_disp_addr_displacement (rtx mem_op);
 extern int sh_max_mov_insn_displacement (machine_mode mode, bool consider_sh2a);
+extern int sh_max_gbr_mov_insn_displacement (machine_mode mode);
 extern bool sh_movsf_ie_ra_split_p (rtx, rtx, rtx);
 extern void sh_expand_sym_label2reg (rtx, rtx, rtx, bool);
 
