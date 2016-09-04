@@ -11977,7 +11977,7 @@ mem_access_alternatives (ams::alternative_set& alt,
   // use some caching, but then the delegate needs to be stateful and the ams
   // pass needs to 'reset' it whenever a new function starts or something
   // like that.
-  const int r0_extra_cost = 1;
+  const int r0_extra_cost = 2;
 
   int gbr_extra_cost = 0;
 
@@ -12003,9 +12003,9 @@ mem_access_alternatives (ams::alternative_set& alt,
     if (GET_MODE_CLASS (acc_mode) != MODE_FLOAT)
       {
 	const int max_disp = sh_max_gbr_mov_insn_displacement (acc_mode);
-	*alts++ = ams_alt (1, ams::make_disp_addr (get_gbr_reg_rtx (), 0,
+	*alts++ = ams_alt (2, ams::make_disp_addr (get_gbr_reg_rtx (), 0,
                                                       max_disp));
-	gbr_extra_cost = 2;
+	gbr_extra_cost = 4;
       }
   }
 
@@ -12016,7 +12016,7 @@ mem_access_alternatives (ams::alternative_set& alt,
   // Y0, Y1, FPSCR, FPUL.
   // FIXME: also constant pool loads (LABEL_REF?).
   // FIXME: also mac.w and mac.l insns (post-inc loads only).
-  *alts++ = ams_alt (1 + gbr_extra_cost, ams::make_reg_addr ());
+  *alts++ = ams_alt (2 + gbr_extra_cost, ams::make_reg_addr ());
 
   // For QIHImode loads make post-inc/pre-dec loads/stores cheaper if they
   // are part of adjacent chains of 3 or more insns.  This will make AMS
@@ -12032,7 +12032,7 @@ mem_access_alternatives (ams::alternative_set& alt,
   const bool sf_related = is_stack_frame_related_access (acc)
 			   && !fp_accesses_dominate (seq, *this);
 
-  const int inc_cost = sf_related * 4
+  const int inc_cost = sf_related * 8
 		       + ((acc_size < 4
 		           && acc->inc_chain ().length () >= 3
                            && !acc->inc_chain ().is_last ())
@@ -12040,8 +12040,8 @@ mem_access_alternatives (ams::alternative_set& alt,
                               && (acc->inc_chain ().last ()->type ()
                                   == ams::type_reg_use
                                   || acc->inc_chain ().last ()->type ()
-                                     == ams::type_reg_mod)) ? -2 : 0);
-  const int dec_cost = sf_related * 4
+                                     == ams::type_reg_mod)) ? -4 : 0);
+  const int dec_cost = sf_related * 8
 		       + ((acc_size < 4
 		           && acc->dec_chain ().length () >= 3
                            && !acc->dec_chain ().is_last ())
@@ -12049,7 +12049,7 @@ mem_access_alternatives (ams::alternative_set& alt,
                               && (acc->dec_chain ().last ()->type ()
                                   == ams::type_reg_use
                                   || acc->dec_chain ().last ()->type ()
-                                     == ams::type_reg_mod)) ? -2 : 0);
+                                     == ams::type_reg_mod)) ? -4 : 0);
 
   // If there is no FPU GP regs will be used for storing FP modes, so we
   // allow normal QIHISImode alternatives also for FP modes.
@@ -12063,17 +12063,17 @@ mem_access_alternatives (ams::alternative_set& alt,
       // than using displacement modes.
       if (acc->type () == ams::type_mem_load && TARGET_SH2A
 	  && acc_mode != DImode)
-        *alts++ = ams_alt (1 + r0_extra_cost + gbr_extra_cost + dec_cost,
+        *alts++ = ams_alt (2 + r0_extra_cost + gbr_extra_cost + dec_cost,
                             ams::make_pre_dec_addr (acc_mode));
 
       if (acc->type () == ams::type_mem_store && TARGET_SH2A
 	  && acc_mode != DImode)
-        *alts++ = ams_alt (1 + r0_extra_cost + gbr_extra_cost + inc_cost,
+        *alts++ = ams_alt (2 + r0_extra_cost + gbr_extra_cost + inc_cost,
                             ams::make_post_inc_addr (acc_mode));
 
       // QImode and HImode accesses with displacements work with R0 only,
       // thus charge extra.
-      const int disp_cost = 1 + (acc_size < 4 ? r0_extra_cost : 0)
+      const int disp_cost = 2 + (acc_size < 4 ? r0_extra_cost : 0)
 			    + gbr_extra_cost;
       const int max_disp = sh_max_mov_insn_displacement (acc_mode, false);
 
@@ -12082,16 +12082,16 @@ mem_access_alternatives (ams::alternative_set& alt,
 
   // indexed addressing has to use R0 for either base or index reg.
   // FIXME: may be disallow indexed mode for access size > 4?
-  *alts++ = ams_alt (1 + gbr_extra_cost + r0_extra_cost,
+  *alts++ = ams_alt (3 + gbr_extra_cost + r0_extra_cost,
                      ams::make_index_addr ());
 
   // non-SH2A allow post-inc loads only and pre-dec stores only for pretty much
   // everything.
   if (acc->type () == ams::type_mem_load)
-    *alts++ = ams_alt (1 + gbr_extra_cost + inc_cost,
+    *alts++ = ams_alt (2 + gbr_extra_cost + inc_cost,
                        ams::make_post_inc_addr (acc_mode));
   else if (acc->type () == ams::type_mem_store)
-    *alts++ = ams_alt (1 + gbr_extra_cost + dec_cost,
+    *alts++ = ams_alt (2 + gbr_extra_cost + dec_cost,
                        ams::make_pre_dec_addr (acc_mode));
 
   // On SH2A we can do larger displacements and also do FP modes with
@@ -12101,7 +12101,7 @@ mem_access_alternatives (ams::alternative_set& alt,
   if (TARGET_SH2A)
     {
       const int max_disp = sh_max_mov_insn_displacement (acc_mode, true);
-      *alts++ = ams_alt (3 + gbr_extra_cost,
+      *alts++ = ams_alt (6 + gbr_extra_cost,
                          ams::make_disp_addr (0, max_disp));
     }
 }
@@ -12135,12 +12135,12 @@ ams_reg_disp_cost (const_rtx reg ATTRIBUTE_UNUSED, ams::disp_t disp,
   // the costs for adding small constants should be higher than
   // QI/HI displacement mode addresses.
   if (CONST_OK_FOR_I08 (disp))
-    return 4;
+    return 8;
 
   // assume that everything else is even worse.
   // FIXME: if register pressure is (expected to be) high, reduce the cost
   // a bit to avoid addr reg cloning.
-  return 6;
+  return 12;
 }
 
 int
@@ -12172,13 +12172,13 @@ ams_reg_plus_reg_cost (const_rtx reg ATTRIBUTE_UNUSED,
 	{
 	  if (alt->address ().base_reg () == ams::any_regno
 	      && alt->address ().index_reg () == ams::any_regno)
-	    return 5;
+	    return 10;
 	}
     }
 
   // the costs for adding a register should be around the same
   // as adding a small constant.
-  return 3;
+  return 6;
 }
 
 int
@@ -12188,9 +12188,9 @@ ams_reg_scale_cost (const_rtx reg ATTRIBUTE_UNUSED, ams::scale_t scale,
 {
   // multiplying by powers of 2 can be done cheaper with shifts.
   if ((scale & (scale - 1)) == 0)
-    return 2;
+    return 4;
 
-  return 3;
+  return 6;
 }
 
 int
@@ -12200,9 +12200,9 @@ ams_const_load_cost (const_rtx reg ATTRIBUTE_UNUSED,
                      ams::sequence::const_iterator el ATTRIBUTE_UNUSED)
 {
   if (CONST_OK_FOR_I08 (value))
-    return 2;
+    return 4;
 
-  return 4;
+  return 8;
 }
 
 int
@@ -12213,7 +12213,7 @@ addr_reg_mod_cost (const_rtx reg, const_rtx val,
 {
   // FIXME: This hack shouldn't be needed.  See also mem_access_alternatives.
   if (is_stack_frame_related_access (acc) && !fp_accesses_dominate (seq, *this))
-    return 12;
+    return 24;
 
   // modifying the GBR is impossible.
   if (ams::get_regno (reg) == GBR_REG)
@@ -12254,12 +12254,12 @@ addr_reg_clone_cost (const_rtx reg ATTRIBUTE_UNUSED,
 {
   // FIXME: This hack shouldn't be needed.  See also mem_access_alternatives.
   if (is_stack_frame_related_access (acc) && !fp_accesses_dominate (seq, *this))
-    return 12;
+    return 24;
 
   // FIXME: maybe cloning the GBR should be cheaper?
   // FIXME: if register pressure is (expected to be) high, increase the cost
   // a bit to avoid addr reg cloning.
-  return 4;
+  return 8;
 }
 
 // ------------------------------------------------------------------------------
